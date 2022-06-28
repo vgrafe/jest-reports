@@ -1,0 +1,9 @@
+name: "Couette - jest cov report"
+# description: "Provide a description here"
+author: "vgrafe"
+inputs:
+  GITHUB_TOKEN:
+    required: true
+runs:
+  using: "node16"
+  main: "dist/index.js"
