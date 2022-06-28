@@ -157,9 +157,7 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting couette...");
     try {
-        const GITHUB_TOKEN = core.getInput("github-token", {
-            required: true,
-        });
+        const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
         const octokit = github.getOctokit(GITHUB_TOKEN);
         const isPullRequest = github.context.eventName === "pull_request";
         if (isPullRequest) {
