@@ -162,7 +162,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git`, undefined, {
                 cwd: process.cwd(),
             });
-            yield getCoverageAtBranch(github.context.ref, "coverage/branch.json");
+            yield getCoverageAtBranch(pullRequest.head.ref, "coverage/branch.json");
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
             yield cache.restoreCache([`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`], baseCoverageCacheKey);
             try {
