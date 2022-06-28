@@ -247,23 +247,23 @@ const summariesToTable = (summary, baseSummary) => {
         ["total", "coverage", "change"],
         [
             "lines",
-            roundWithOneDigit(summary.total.lines.total) + "%",
-            roundWithOneDigit(summary.total.lines.total - baseSummary.total.lines.total) + "%",
+            roundWithOneDigit(summary.total.lines.pct) + "%",
+            addPlusIfPositive(roundWithOneDigit(summary.total.lines.pct - baseSummary.total.lines.pct)) + "%",
         ],
         [
             "statements",
-            roundWithOneDigit(summary.total.statements.total) + "%",
-            roundWithOneDigit(summary.total.statements.total - baseSummary.total.statements.total) + "%",
+            roundWithOneDigit(summary.total.statements.pct) + "%",
+            addPlusIfPositive(roundWithOneDigit(summary.total.statements.pct - baseSummary.total.statements.pct)) + "%",
         ],
         [
             "branches",
-            roundWithOneDigit(summary.total.branches.total) + "%",
-            roundWithOneDigit(summary.total.branches.total - baseSummary.total.branches.total) + "%",
+            roundWithOneDigit(summary.total.branches.pct) + "%",
+            addPlusIfPositive(roundWithOneDigit(summary.total.branches.pct - baseSummary.total.branches.pct)) + "%",
         ],
         [
             "functions",
-            roundWithOneDigit(summary.total.functions.total) + "%",
-            roundWithOneDigit(summary.total.functions.total - baseSummary.total.functions.total) + "%",
+            roundWithOneDigit(summary.total.functions.pct) + "%",
+            addPlusIfPositive(roundWithOneDigit(summary.total.functions.pct - baseSummary.total.functions.pct)) + "%",
         ],
     ], { align: ["l", "r", "r"] });
     const componentsTable = (0, markdown_table_1.markdownTable)([
