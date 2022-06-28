@@ -1,4 +1,7 @@
 name: "Couette - jest cov report"
+branding:
+  icon: "umbrella"
+  color: "blue"
 # description: "Provide a description here"
 author: "vgrafe"
 inputs:
@@ -8,7 +11,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: $GITHUB_ACTION_PATH/run.sh
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+    - uses: actions/setup-node@v3
+      with:
+        node-version: "16.10.0"
+    - run: node ${{ github.action_path }}/dist/index.js
