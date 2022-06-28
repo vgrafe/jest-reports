@@ -2,8 +2,12 @@ name: "Couette - jest cov report"
 # description: "Provide a description here"
 author: "vgrafe"
 inputs:
-  GITHUB_TOKEN:
-    required: true
+  github-token:
+    description: "A github access token"
+    default: ${{ github.token }}
 runs:
-  using: "node16"
-  main: "dist/index.js"
+  steps:
+    - run: $GITHUB_ACTION_PATH/run.sh
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
