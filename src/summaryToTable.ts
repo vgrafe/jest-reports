@@ -44,19 +44,21 @@ export const summaryToTable = (summary: any) => {
     { align: ["l", "l", "r"] }
   );
 
-  const componentsTable = markdownTable(
-    [
-      ["", "module", "coverage"],
-      ...summaryRows.map((row) => [
-        getIcon(getPercent(summary[row])),
-        row.replace(process.cwd(), ""),
-        roundWithOneDigit(getPercent(summary[row])) + "%",
-      ]),
-    ],
-    { align: ["l", "l", "r"] }
-  );
+  const tables = {
+    all: markdownTable(
+      [
+        ["", "module", "coverage"],
+        ...summaryRows.map((row) => [
+          getIcon(getPercent(summary[row])),
+          row.replace(process.cwd(), ""),
+          roundWithOneDigit(getPercent(summary[row])) + "%",
+        ]),
+      ],
+      { align: ["l", "l", "r"] }
+    ),
+  };
 
-  return { summaryTable, componentsTable };
+  return { summaryTable, tables };
 };
 
 export const summariesToTable = (summary: any, baseSummary: any) => {
@@ -77,22 +79,46 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
     { align: ["l", "l", "r", "r"] }
   );
 
-  const componentsTable = markdownTable(
-    [
-      ["", "module", "coverage", "change"],
-      ...summaryRows.map((row) => [
-        getIcon(getPercent(summary[row])),
-        row.replace(process.cwd(), ""),
-        roundWithOneDigit(getPercent(summary[row])) + "%",
-        addPlusIfPositive(
-          roundWithOneDigit(
-            getPercent(summary[row]) - getPercent(baseSummary[row])
-          )
-        ) + "%",
-      ]),
-    ],
-    { align: ["l", "l", "r", "r"] }
-  );
+  let added: string[] = [];
+  let regressions: string[] = [];
+  let healthy: string[] = [];
 
-  return { summaryTable, componentsTable };
+  for (const row of summaryRows) {
+    if (!baseSummary[row]) added.push(row);
+    else {
+      const pct = getPercent(summary[row]);
+      const basePct = getPercent(baseSummary[row]);
+      if (pct >= basePct) {
+        healthy.push(row);
+      } else {
+        regressions.push(row);
+      }
+    }
+  }
+
+  const makeTable = (rows: string[]) =>
+    markdownTable(
+      [
+        ["", "module", "coverage", "change"],
+        ...rows.map((row) => [
+          getIcon(getPercent(summary[row])),
+          row.replace(process.cwd(), ""),
+          roundWithOneDigit(getPercent(summary[row])) + "%",
+          addPlusIfPositive(
+            roundWithOneDigit(
+              getPercent(summary[row]) - getPercent(baseSummary[row])
+            )
+          ) + "%",
+        ]),
+      ],
+      { align: ["l", "l", "r", "r"] }
+    );
+
+  const tables = {
+    added: makeTable(added),
+    regressions: makeTable(regressions),
+    healthy: makeTable(healthy),
+  };
+
+  return { summaryTable, tables };
 };

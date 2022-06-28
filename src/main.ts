@@ -145,7 +145,9 @@ const test = () => {
   const a = summariesToTable(sum1, sum2);
 
   console.log(a.summaryTable);
-  console.log(a.componentsTable);
+  console.log(a.tables.added);
+  console.log(a.tables.healthy);
+  console.log(a.tables.regressions);
 };
 
 run();

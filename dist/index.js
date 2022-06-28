@@ -60,16 +60,21 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
     const branchCov = JSON.parse(branchCoverage.toString());
     const octokit = github.getOctokit(ghToken);
     console.log("building coverage reports...");
-    const tables = mainCov
-        ? (0, summaryToTable_1.summariesToTable)(branchCov, mainCov)
-        : (0, summaryToTable_1.summaryToTable)(branchCov);
     const allComments = yield octokit.rest.issues.listComments({
         issue_number: github.context.issue.number,
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
     });
     const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("## Coverage report"); });
-    const commentBody = `## Coverage report\n${!mainCov ? "base branch coverage report not found.\n" : ""}\n\n${tables.summaryTable}\n\n${tables.componentsTable}`;
+    let commentBody = "error";
+    if (mainCov) {
+        const tables = (0, summaryToTable_1.summariesToTable)(branchCov, mainCov);
+        commentBody = `## Coverage report\n${!mainCov ? "base branch coverage report not found.\n" : ""}\n\n${tables.summaryTable}\n\n${tables.tables.regressions}\n${tables.tables.added}\n${tables.tables.healthy}`;
+    }
+    else {
+        const tables = (0, summaryToTable_1.summaryToTable)(branchCov);
+        commentBody = `## Coverage report\n${!mainCov ? "base branch coverage report not found.\n" : ""}\n\n${tables.summaryTable}\n\n${tables.tables.all}`;
+    }
     const commentParams = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
@@ -147,7 +152,7 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     yield (0, exec_1.exec)(`yarn`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
-    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters="json-summary" --runInBand`, undefined, {
+    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters="json-summary"`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${fileName}`, undefined, {
@@ -253,7 +258,9 @@ const test = () => {
     };
     const a = (0, summaryToTable_1.summariesToTable)(sum1, sum2);
     console.log(a.summaryTable);
-    console.log(a.componentsTable);
+    console.log(a.tables.added);
+    console.log(a.tables.healthy);
+    console.log(a.tables.regressions);
 };
 run();
 // test();
@@ -307,15 +314,17 @@ const summaryToTable = (summary) => {
             roundWithOneDigit(summary.total[field].total) + "%",
         ]),
     ], { align: ["l", "l", "r"] });
-    const componentsTable = (0, markdown_table_1.markdownTable)([
-        ["", "module", "coverage"],
-        ...summaryRows.map((row) => [
-            getIcon(getPercent(summary[row])),
-            row.replace(process.cwd(), ""),
-            roundWithOneDigit(getPercent(summary[row])) + "%",
-        ]),
-    ], { align: ["l", "l", "r"] });
-    return { summaryTable, componentsTable };
+    const tables = {
+        all: (0, markdown_table_1.markdownTable)([
+            ["", "module", "coverage"],
+            ...summaryRows.map((row) => [
+                getIcon(getPercent(summary[row])),
+                row.replace(process.cwd(), ""),
+                roundWithOneDigit(getPercent(summary[row])) + "%",
+            ]),
+        ], { align: ["l", "l", "r"] }),
+    };
+    return { summaryTable, tables };
 };
 exports.summaryToTable = summaryToTable;
 const summariesToTable = (summary, baseSummary) => {
@@ -329,16 +338,38 @@ const summariesToTable = (summary, baseSummary) => {
             addPlusIfPositive(summary.total[field].pct - baseSummary.total[field].pct) + "%",
         ]),
     ], { align: ["l", "l", "r", "r"] });
-    const componentsTable = (0, markdown_table_1.markdownTable)([
+    let added = [];
+    let regressions = [];
+    let healthy = [];
+    for (const row of summaryRows) {
+        if (!baseSummary[row])
+            added.push(row);
+        else {
+            const pct = getPercent(summary[row]);
+            const basePct = getPercent(baseSummary[row]);
+            if (pct >= basePct) {
+                healthy.push(row);
+            }
+            else {
+                regressions.push(row);
+            }
+        }
+    }
+    const makeTable = (rows) => (0, markdown_table_1.markdownTable)([
         ["", "module", "coverage", "change"],
-        ...summaryRows.map((row) => [
+        ...rows.map((row) => [
             getIcon(getPercent(summary[row])),
             row.replace(process.cwd(), ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
             addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) - getPercent(baseSummary[row]))) + "%",
         ]),
     ], { align: ["l", "l", "r", "r"] });
-    return { summaryTable, componentsTable };
+    const tables = {
+        added: makeTable(added),
+        regressions: makeTable(regressions),
+        healthy: makeTable(healthy),
+    };
+    return { summaryTable, tables };
 };
 exports.summariesToTable = summariesToTable;
 

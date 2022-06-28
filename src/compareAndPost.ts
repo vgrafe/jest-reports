@@ -25,10 +25,6 @@ export const compareAndPost = async (ghToken: string) => {
 
   console.log("building coverage reports...");
 
-  const tables = mainCov
-    ? summariesToTable(branchCov, mainCov)
-    : summaryToTable(branchCov);
-
   const allComments = await octokit.rest.issues.listComments({
     issue_number: github.context.issue.number,
     owner: github.context.repo.owner,
@@ -39,9 +35,23 @@ export const compareAndPost = async (ghToken: string) => {
     com.body?.startsWith("## Coverage report")
   );
 
-  const commentBody = `## Coverage report\n${
-    !mainCov ? "base branch coverage report not found.\n" : ""
-  }\n\n${tables.summaryTable}\n\n${tables.componentsTable}`;
+  let commentBody = "error";
+
+  if (mainCov) {
+    const tables = summariesToTable(branchCov, mainCov);
+
+    commentBody = `## Coverage report\n${
+      !mainCov ? "base branch coverage report not found.\n" : ""
+    }\n\n${tables.summaryTable}\n\n${tables.tables.regressions}\n${
+      tables.tables.added
+    }\n${tables.tables.healthy}`;
+  } else {
+    const tables = summaryToTable(branchCov);
+
+    commentBody = `## Coverage report\n${
+      !mainCov ? "base branch coverage report not found.\n" : ""
+    }\n\n${tables.summaryTable}\n\n${tables.tables.all}`;
+  }
 
   const commentParams = {
     owner: github.context.repo.owner,
