@@ -15,3 +15,4 @@ runs:
       with:
         node-version: "16.10.0"
     - run: node ${{ github.action_path }}/dist/index.js
+      shell: bash
