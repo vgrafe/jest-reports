@@ -14,5 +14,5 @@ runs:
     - uses: actions/setup-node@v3
       with:
         node-version: "16.10.0"
-    - run: INPUT_GITHUB_TOKEN=${{ inputs.github-token }}; node ${{ github.action_path }}/dist/index.js
+    - run: INPUT_GITHUB_TOKEN=${{ inputs.github-token }} node ${{ github.action_path }}/dist/index.js
       shell: bash
