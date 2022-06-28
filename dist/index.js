@@ -157,7 +157,7 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting couette...");
     try {
-        const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN", {
+        const GITHUB_TOKEN = core.getInput("github-token", {
             required: true,
         });
         const octokit = github.getOctokit(GITHUB_TOKEN);

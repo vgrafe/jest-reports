@@ -32,7 +32,7 @@ const run = async () => {
   core.info("starting couette...");
 
   try {
-    const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN", {
+    const GITHUB_TOKEN = core.getInput("github-token", {
       required: true,
     });
     const octokit = github.getOctokit(GITHUB_TOKEN);
