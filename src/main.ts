@@ -86,8 +86,6 @@ const run = async () => {
   }
 };
 
-run();
-
 const test = () => {
   const sum1 = {
     total: {
@@ -149,6 +147,8 @@ const test = () => {
   console.log(a.summaryTable);
   console.log(a.componentsTable);
 };
+
+run();
 
 // test();
 

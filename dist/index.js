@@ -196,7 +196,6 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             core.setFailed(error.message);
     }
 });
-run();
 const test = () => {
     const sum1 = {
         total: {
@@ -256,14 +255,15 @@ const test = () => {
     console.log(a.summaryTable);
     console.log(a.componentsTable);
 };
+run();
 // test();
 /*
 
  yarn all
  git add .
- git tag -a -m "some update" v0.12\n\n
+ git tag -a -m "some update" v0.1x
  git commit -m "update"
- git push --follow-tags \n
+ git push --follow-tags
 
 */
 
@@ -304,7 +304,7 @@ const summaryToTable = (summary) => {
     const componentsTable = (0, markdown_table_1.markdownTable)([
         ["module", "coverage"],
         ...summaryRows.map((row) => [
-            row.replace("/home/runner/work/test-action-app/test-action-app/", ""),
+            row.replace(process.cwd(), ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
         ]),
     ], { align: ["l", "r"] });
@@ -324,7 +324,7 @@ const summariesToTable = (summary, baseSummary) => {
     const componentsTable = (0, markdown_table_1.markdownTable)([
         ["module", "coverage", "change"],
         ...summaryRows.map((row) => [
-            row.replace("/home/runner/work/test-action-app/test-action-app/", ""),
+            row.replace(process.cwd(), ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
             addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) - getPercent(baseSummary[row]))) + "%",
         ]),

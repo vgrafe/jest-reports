@@ -40,7 +40,7 @@ export const summaryToTable = (summary: any) => {
     [
       ["module", "coverage"],
       ...summaryRows.map((row) => [
-        row.replace("/home/runner/work/test-action-app/test-action-app/", ""),
+        row.replace(process.cwd(), ""),
         roundWithOneDigit(getPercent(summary[row])) + "%",
       ]),
     ],
@@ -71,7 +71,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
     [
       ["module", "coverage", "change"],
       ...summaryRows.map((row) => [
-        row.replace("/home/runner/work/test-action-app/test-action-app/", ""),
+        row.replace(process.cwd(), ""),
         roundWithOneDigit(getPercent(summary[row])) + "%",
         addPlusIfPositive(
           roundWithOneDigit(
