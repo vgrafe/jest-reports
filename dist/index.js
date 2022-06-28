@@ -164,7 +164,8 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             });
             yield getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
-            yield cache.restoreCache([`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`], baseCoverageCacheKey);
+            const baseCachePath = `${github.context.repo.repo}/coverage/base.json`;
+            yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
             try {
                 console.log("checking if base coverage exists");
                 fs_1.default.readFileSync(`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`);
@@ -174,7 +175,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 console.log("it does not. let's build it");
                 yield getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
                 console.log("done. caching...");
-                yield cache.saveCache([`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`], baseCoverageCacheKey);
+                yield cache.saveCache([baseCachePath], baseCoverageCacheKey);
             }
             yield (0, compareAndPost_1.compareAndPost)(GITHUB_TOKEN);
         }

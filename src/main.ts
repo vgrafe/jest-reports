@@ -52,10 +52,9 @@ const run = async () => {
 
       const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
 
-      await cache.restoreCache(
-        [`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`],
-        baseCoverageCacheKey
-      );
+      const baseCachePath = `${github.context.repo.repo}/coverage/base.json`;
+
+      await cache.restoreCache([baseCachePath], baseCoverageCacheKey);
 
       try {
         console.log("checking if base coverage exists");
@@ -67,10 +66,7 @@ const run = async () => {
         console.log("it does not. let's build it");
         await getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
         console.log("done. caching...");
-        await cache.saveCache(
-          [`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`],
-          baseCoverageCacheKey
-        );
+        await cache.saveCache([baseCachePath], baseCoverageCacheKey);
       }
 
       await compareAndPost(GITHUB_TOKEN);
