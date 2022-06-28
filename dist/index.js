@@ -167,7 +167,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             yield cache.restoreCache([`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`], baseCoverageCacheKey);
             try {
                 console.log("checking if base coverage exists");
-                fs_1.default.readFileSync(process.cwd() + `/coverage/base.json`);
+                fs_1.default.readFileSync(`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`);
                 console.log("it does!");
             }
             catch (_a) {

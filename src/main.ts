@@ -59,7 +59,9 @@ const run = async () => {
 
       try {
         console.log("checking if base coverage exists");
-        fs.readFileSync(process.cwd() + `/coverage/base.json`);
+        fs.readFileSync(
+          `${process.cwd()}/${github.context.repo.repo}/coverage/base.json`
+        );
         console.log("it does!");
       } catch {
         console.log("it does not. let's build it");
