@@ -59,7 +59,7 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
     const branchCoverage = fs_1.default.readFileSync(process.cwd() + `/${github.context.repo.repo}/coverage/branch.json`);
     const branchCov = JSON.parse(branchCoverage.toString());
     const octokit = github.getOctokit(ghToken);
-    const table = mainCov
+    const tables = mainCov
         ? (0, summaryToTable_1.summariesToTable)(branchCov, mainCov)
         : (0, summaryToTable_1.summaryToTable)(branchCov);
     const allComments = yield octokit.rest.issues.listComments({
@@ -68,7 +68,7 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
         repo: github.context.repo.repo,
     });
     const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("## Coverage report"); });
-    const commentBody = `## Coverage report\n${!mainCov ? "base branch coverage report not found.\n" : ""}${table}`;
+    const commentBody = `## Coverage report\n${!mainCov ? "base branch coverage report not found.\n" : ""}\n\n${tables.summaryTable}\n\n${tables.componentsTable}`;
     const commentParams = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
@@ -215,19 +215,46 @@ const getPercent = (summaryRow) => {
 const roundWithOneDigit = (num) => Math.round(num * 1000) / 10;
 const addPlusIfPositive = (num) => (num > 0 ? "+" + num : num);
 const summaryToTable = (summary) => {
-    const summaryRows = Object.keys(summary);
-    return (0, markdown_table_1.markdownTable)([
+    const [_, ...summaryRows] = Object.keys(summary);
+    const summaryTable = (0, markdown_table_1.markdownTable)([
+        ["total", "coverage"],
+        ["lines", roundWithOneDigit(summary.total.lines.total) + "%"],
+        ["statements", roundWithOneDigit(summary.total.statements.total) + "%"],
+        ["branches", roundWithOneDigit(summary.total.branches.total) + "%"],
+        ["functions", roundWithOneDigit(summary.total.functions.total) + "%"],
+    ], { align: ["l", "r"] });
+    const componentsTable = (0, markdown_table_1.markdownTable)([
         ["module", "coverage"],
         ...summaryRows.map((row) => [
             row.replace("/home/runner/work/test-action-app/test-action-app/", ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
         ]),
     ], { align: ["l", "r"] });
+    return { summaryTable, componentsTable };
 };
 exports.summaryToTable = summaryToTable;
 const summariesToTable = (summary, baseSummary) => {
-    const summaryRows = Object.keys(summary);
-    return (0, markdown_table_1.markdownTable)([
+    const [_, ...summaryRows] = Object.keys(summary);
+    const summaryTable = (0, markdown_table_1.markdownTable)([
+        ["total", "coverage"],
+        [
+            "lines",
+            roundWithOneDigit(summary.total.lines.total - baseSummary.total.lines.total) + "%",
+        ],
+        [
+            "statements",
+            roundWithOneDigit(summary.total.statements.total - baseSummary.total.statements.total) + "%",
+        ],
+        [
+            "branches",
+            roundWithOneDigit(summary.total.branches.total - baseSummary.total.branches.total) + "%",
+        ],
+        [
+            "functions",
+            roundWithOneDigit(summary.total.functions.total - baseSummary.total.functions.total) + "%",
+        ],
+    ], { align: ["l", "r"] });
+    const componentsTable = (0, markdown_table_1.markdownTable)([
         ["module", "coverage", "change"],
         ...summaryRows.map((row) => [
             row.replace("/home/runner/work/test-action-app/test-action-app/", ""),
@@ -235,6 +262,7 @@ const summariesToTable = (summary, baseSummary) => {
             addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) - getPercent(baseSummary[row]))) + "%",
         ]),
     ], { align: ["l", "r", "r"] });
+    return { summaryTable, componentsTable };
 };
 exports.summariesToTable = summariesToTable;
 

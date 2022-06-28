@@ -23,7 +23,7 @@ export const compareAndPost = async (ghToken: string) => {
 
   const octokit = github.getOctokit(ghToken);
 
-  const table = mainCov
+  const tables = mainCov
     ? summariesToTable(branchCov, mainCov)
     : summaryToTable(branchCov);
 
@@ -39,7 +39,7 @@ export const compareAndPost = async (ghToken: string) => {
 
   const commentBody = `## Coverage report\n${
     !mainCov ? "base branch coverage report not found.\n" : ""
-  }${table}`;
+  }\n\n${tables.summaryTable}\n\n${tables.componentsTable}`;
 
   const commentParams = {
     owner: github.context.repo.owner,

@@ -23,9 +23,20 @@ const roundWithOneDigit = (num: number) => Math.round(num * 1000) / 10;
 const addPlusIfPositive = (num: number) => (num > 0 ? "+" + num : num);
 
 export const summaryToTable = (summary: any) => {
-  const summaryRows = Object.keys(summary);
+  const [_, ...summaryRows] = Object.keys(summary);
 
-  return markdownTable(
+  const summaryTable = markdownTable(
+    [
+      ["total", "coverage"],
+      ["lines", roundWithOneDigit(summary.total.lines.total) + "%"],
+      ["statements", roundWithOneDigit(summary.total.statements.total) + "%"],
+      ["branches", roundWithOneDigit(summary.total.branches.total) + "%"],
+      ["functions", roundWithOneDigit(summary.total.functions.total) + "%"],
+    ],
+    { align: ["l", "r"] }
+  );
+
+  const componentsTable = markdownTable(
     [
       ["module", "coverage"],
       ...summaryRows.map((row) => [
@@ -35,12 +46,45 @@ export const summaryToTable = (summary: any) => {
     ],
     { align: ["l", "r"] }
   );
+
+  return { summaryTable, componentsTable };
 };
 
 export const summariesToTable = (summary: any, baseSummary: any) => {
-  const summaryRows = Object.keys(summary);
+  const [_, ...summaryRows] = Object.keys(summary);
 
-  return markdownTable(
+  const summaryTable = markdownTable(
+    [
+      ["total", "coverage"],
+      [
+        "lines",
+        roundWithOneDigit(
+          summary.total.lines.total - baseSummary.total.lines.total
+        ) + "%",
+      ],
+      [
+        "statements",
+        roundWithOneDigit(
+          summary.total.statements.total - baseSummary.total.statements.total
+        ) + "%",
+      ],
+      [
+        "branches",
+        roundWithOneDigit(
+          summary.total.branches.total - baseSummary.total.branches.total
+        ) + "%",
+      ],
+      [
+        "functions",
+        roundWithOneDigit(
+          summary.total.functions.total - baseSummary.total.functions.total
+        ) + "%",
+      ],
+    ],
+    { align: ["l", "r"] }
+  );
+
+  const componentsTable = markdownTable(
     [
       ["module", "coverage", "change"],
       ...summaryRows.map((row) => [
@@ -55,4 +99,6 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
     ],
     { align: ["l", "r", "r"] }
   );
+
+  return { summaryTable, componentsTable };
 };
