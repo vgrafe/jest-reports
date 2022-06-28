@@ -6,6 +6,7 @@ inputs:
     description: "A github access token"
     default: ${{ github.token }}
 runs:
+  using: composite
   steps:
     - run: $GITHUB_ACTION_PATH/run.sh
       shell: bash
