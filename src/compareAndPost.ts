@@ -23,6 +23,8 @@ export const compareAndPost = async (ghToken: string) => {
 
   const octokit = github.getOctokit(ghToken);
 
+  console.log("building coverage reports...");
+
   const tables = mainCov
     ? summariesToTable(branchCov, mainCov)
     : summaryToTable(branchCov);
@@ -47,14 +49,17 @@ export const compareAndPost = async (ghToken: string) => {
     body: commentBody,
   };
 
-  if (existingComment)
+  if (existingComment) {
+    console.log("building coverage reports...");
     await octokit.rest.issues.updateComment({
       comment_id: existingComment.id,
       ...commentParams,
     });
-  else
+  } else {
+    console.log("building coverage reports...");
     octokit.rest.issues.createComment({
       issue_number: github.context.issue.number,
       ...commentParams,
     });
+  }
 };

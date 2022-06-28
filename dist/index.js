@@ -59,6 +59,7 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
     const branchCoverage = fs_1.default.readFileSync(process.cwd() + `/${github.context.repo.repo}/coverage/branch.json`);
     const branchCov = JSON.parse(branchCoverage.toString());
     const octokit = github.getOctokit(ghToken);
+    console.log("building coverage reports...");
     const tables = mainCov
         ? (0, summaryToTable_1.summariesToTable)(branchCov, mainCov)
         : (0, summaryToTable_1.summaryToTable)(branchCov);
@@ -74,10 +75,14 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
         repo: github.context.repo.repo,
         body: commentBody,
     };
-    if (existingComment)
+    if (existingComment) {
+        console.log("building coverage reports...");
         yield octokit.rest.issues.updateComment(Object.assign({ comment_id: existingComment.id }, commentParams));
-    else
+    }
+    else {
+        console.log("building coverage reports...");
         octokit.rest.issues.createComment(Object.assign({ issue_number: github.context.issue.number }, commentParams));
+    }
 });
 exports.compareAndPost = compareAndPost;
 
@@ -149,6 +154,7 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     });
 });
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("starting couette...");
     try {
         const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN");
         const octokit = github.getOctokit(GITHUB_TOKEN);
@@ -159,28 +165,30 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 repo: github.context.repo.repo,
                 pull_number: github.context.issue.number,
             });
+            console.log("cloning repo...");
             yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git`, undefined, {
                 cwd: process.cwd(),
             });
+            console.log("computing coverage...");
             yield getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
             const baseCachePath = `${github.context.repo.repo}/coverage/base.json`;
             yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
             try {
-                console.log("checking if base coverage exists");
+                console.log("checking for base coverage cache...");
                 fs_1.default.readFileSync(`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`);
-                console.log("it does!");
+                console.log("hit!");
             }
             catch (_a) {
-                console.log("it does not. let's build it");
+                console.log("not found.");
+                console.log("computing base coverage...");
                 yield getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
                 console.log("done. caching...");
                 yield cache.saveCache([baseCachePath], baseCoverageCacheKey);
             }
             yield (0, compareAndPost_1.compareAndPost)(GITHUB_TOKEN);
         }
-        // core.debug(`Waiting ${ms} milliseconds ...`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-        // core.setOutput("time", new Date().toTimeString());
+        console.log("done!");
     }
     catch (error) {
         if (error instanceof Error)

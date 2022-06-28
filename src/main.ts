@@ -28,6 +28,8 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
 };
 
 const run = async () => {
+  console.log("starting couette...");
+
   try {
     const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN");
     const octokit = github.getOctokit(GITHUB_TOKEN);
@@ -40,6 +42,8 @@ const run = async () => {
         pull_number: github.context.issue.number,
       });
 
+      console.log("cloning repo...");
+
       await exec(
         `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git`,
         undefined,
@@ -47,6 +51,8 @@ const run = async () => {
           cwd: process.cwd(),
         }
       );
+
+      console.log("computing coverage...");
 
       await getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
 
@@ -57,13 +63,14 @@ const run = async () => {
       await cache.restoreCache([baseCachePath], baseCoverageCacheKey);
 
       try {
-        console.log("checking if base coverage exists");
+        console.log("checking for base coverage cache...");
         fs.readFileSync(
           `${process.cwd()}/${github.context.repo.repo}/coverage/base.json`
         );
-        console.log("it does!");
+        console.log("hit!");
       } catch {
-        console.log("it does not. let's build it");
+        console.log("not found.");
+        console.log("computing base coverage...");
         await getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
         console.log("done. caching...");
         await cache.saveCache([baseCachePath], baseCoverageCacheKey);
@@ -72,8 +79,7 @@ const run = async () => {
       await compareAndPost(GITHUB_TOKEN);
     }
 
-    // core.debug(`Waiting ${ms} milliseconds ...`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-    // core.setOutput("time", new Date().toTimeString());
+    console.log("done!");
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
   }
