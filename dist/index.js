@@ -76,11 +76,11 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
         body: commentBody,
     };
     if (existingComment) {
-        console.log("building coverage reports...");
+        console.log("updating comment...");
         yield octokit.rest.issues.updateComment(Object.assign({ comment_id: existingComment.id }, commentParams));
     }
     else {
-        console.log("building coverage reports...");
+        console.log("adding comment...");
         octokit.rest.issues.createComment(Object.assign({ issue_number: github.context.issue.number }, commentParams));
     }
 });
@@ -220,8 +220,8 @@ const getPercent = (summaryRow) => {
         summaryRow.functions.covered;
     return covered / total;
 };
-const roundWithOneDigit = (num) => Math.round(num * 1000) / 10;
-const addPlusIfPositive = (num) => (num > 0 ? "+" + num : num);
+const roundWithOneDigit = (num) => Math.round(Number(num) * 1000) / 10;
+const addPlusIfPositive = (num) => (Number(num) > 0 ? "+" + num : num);
 const summaryToTable = (summary) => {
     const [_, ...summaryRows] = Object.keys(summary);
     const summaryTable = (0, markdown_table_1.markdownTable)([

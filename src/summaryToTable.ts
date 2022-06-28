@@ -18,9 +18,9 @@ const getPercent = (summaryRow: any) => {
   return covered / total;
 };
 
-const roundWithOneDigit = (num: number) => Math.round(num * 1000) / 10;
+const roundWithOneDigit = (num: number) => Math.round(Number(num) * 1000) / 10;
 
-const addPlusIfPositive = (num: number) => (num > 0 ? "+" + num : num);
+const addPlusIfPositive = (num: number) => (Number(num) > 0 ? "+" + num : num);
 
 export const summaryToTable = (summary: any) => {
   const [_, ...summaryRows] = Object.keys(summary);

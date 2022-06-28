@@ -50,13 +50,13 @@ export const compareAndPost = async (ghToken: string) => {
   };
 
   if (existingComment) {
-    console.log("building coverage reports...");
+    console.log("updating comment...");
     await octokit.rest.issues.updateComment({
       comment_id: existingComment.id,
       ...commentParams,
     });
   } else {
-    console.log("building coverage reports...");
+    console.log("adding comment...");
     octokit.rest.issues.createComment({
       issue_number: github.context.issue.number,
       ...commentParams,
