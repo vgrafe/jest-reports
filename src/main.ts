@@ -4,6 +4,7 @@ import * as github from "@actions/github";
 import * as cache from "@actions/cache";
 import { exec } from "@actions/exec";
 import { compareAndPost } from "./compareAndPost";
+import { summariesToTable } from "./summaryToTable";
 
 const getCoverageAtBranch = async (sha: string, fileName: string) => {
   await exec(`git fetch`, undefined, {
@@ -86,3 +87,77 @@ const run = async () => {
 };
 
 run();
+
+const test = () => {
+  const sum1 = {
+    total: {
+      lines: { total: 10, covered: 10, skipped: 0, pct: 100 },
+      statements: { total: 12, covered: 12, skipped: 0, pct: 100 },
+      functions: { total: 3, covered: 3, skipped: 0, pct: 90 },
+      branches: { total: 4, covered: 2, skipped: 0, pct: 50 },
+      branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
+      lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+      functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+      statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+      branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
+      lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+      functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+      statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+      branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
+      lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
+      functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+      statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
+      branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
+    },
+  };
+  const sum2 = {
+    total: {
+      lines: { total: 10, covered: 10, skipped: 0, pct: 90 },
+      statements: { total: 12, covered: 12, skipped: 0, pct: 100 },
+      functions: { total: 3, covered: 3, skipped: 0, pct: 100 },
+      branches: { total: 4, covered: 2, skipped: 0, pct: 50 },
+      branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
+      lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+      functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+      statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+      branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
+      lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+      functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+      statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+      branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
+      lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
+      functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+      statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
+      branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
+    },
+  };
+
+  const a = summariesToTable(sum1, sum2);
+
+  console.log(a.summaryTable);
+  console.log(a.componentsTable);
+};
+
+// test();
+
+/*
+
+ yarn all
+ git add .
+ git tag -a -m "some update" v0.1x
+ git commit -m "update"
+ git push --follow-tags
+
+*/

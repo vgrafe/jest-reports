@@ -136,6 +136,7 @@ const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const compareAndPost_1 = __nccwpck_require__(1569);
+const summaryToTable_1 = __nccwpck_require__(1250);
 const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, exec_1.exec)(`git fetch`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
@@ -196,6 +197,75 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 run();
+const test = () => {
+    const sum1 = {
+        total: {
+            lines: { total: 10, covered: 10, skipped: 0, pct: 100 },
+            statements: { total: 12, covered: 12, skipped: 0, pct: 100 },
+            functions: { total: 3, covered: 3, skipped: 0, pct: 90 },
+            branches: { total: 4, covered: 2, skipped: 0, pct: 50 },
+            branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
+        },
+        "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
+            lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+            statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+            branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+        },
+        "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
+            lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+            statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+            branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+        },
+        "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
+            lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
+            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+            statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
+            branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
+        },
+    };
+    const sum2 = {
+        total: {
+            lines: { total: 10, covered: 10, skipped: 0, pct: 90 },
+            statements: { total: 12, covered: 12, skipped: 0, pct: 100 },
+            functions: { total: 3, covered: 3, skipped: 0, pct: 100 },
+            branches: { total: 4, covered: 2, skipped: 0, pct: 50 },
+            branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
+        },
+        "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
+            lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+            statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+            branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+        },
+        "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
+            lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+            statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+            branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+        },
+        "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
+            lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
+            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+            statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
+            branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
+        },
+    };
+    const a = (0, summaryToTable_1.summariesToTable)(sum1, sum2);
+    console.log(a.summaryTable);
+    console.log(a.componentsTable);
+};
+// test();
+/*
+
+ yarn all
+ git add .
+ git tag -a -m "some update" v0.12\n\n
+ git commit -m "update"
+ git push --follow-tags \n
+
+*/
 
 
 /***/ }),
@@ -247,9 +317,8 @@ const summariesToTable = (summary, baseSummary) => {
         ["total", "coverage", "change"],
         ...["lines", "statements", "branches", "functions"].map((field) => [
             field,
-            roundWithOneDigit(Number(summary.total[field].pct)) + "%",
-            addPlusIfPositive(roundWithOneDigit(Number(summary.total[field].pct) -
-                Number(baseSummary.total[field].pct))) + "%",
+            summary.total[field].pct + "%",
+            addPlusIfPositive(summary.total[field].pct - baseSummary.total[field].pct) + "%",
         ]),
     ], { align: ["l", "r", "r"] });
     const componentsTable = (0, markdown_table_1.markdownTable)([

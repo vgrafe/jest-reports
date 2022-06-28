@@ -58,12 +58,9 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
       ["total", "coverage", "change"],
       ...["lines", "statements", "branches", "functions"].map((field) => [
         field,
-        roundWithOneDigit(Number(summary.total[field].pct)) + "%",
+        summary.total[field].pct + "%",
         addPlusIfPositive(
-          roundWithOneDigit(
-            Number(summary.total[field].pct) -
-              Number(baseSummary.total[field].pct)
-          )
+          summary.total[field].pct - baseSummary.total[field].pct
         ) + "%",
       ]),
     ],
