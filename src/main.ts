@@ -29,10 +29,12 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
 };
 
 const run = async () => {
-  console.log("starting couette...");
+  core.info("starting couette...");
 
   try {
-    const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN");
+    const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN", {
+      required: true,
+    });
     const octokit = github.getOctokit(GITHUB_TOKEN);
     const isPullRequest = github.context.eventName === "pull_request";
 
@@ -43,7 +45,7 @@ const run = async () => {
         pull_number: github.context.issue.number,
       });
 
-      console.log("cloning repo...");
+      core.info("cloning repo...");
 
       await exec(
         `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git`,
@@ -53,7 +55,7 @@ const run = async () => {
         }
       );
 
-      console.log("computing coverage...");
+      core.info("computing coverage...");
 
       await getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
 
@@ -64,23 +66,23 @@ const run = async () => {
       await cache.restoreCache([baseCachePath], baseCoverageCacheKey);
 
       try {
-        console.log("checking for base coverage cache...");
+        core.info("checking for base coverage cache...");
         fs.readFileSync(
           `${process.cwd()}/${github.context.repo.repo}/coverage/base.json`
         );
-        console.log("hit!");
+        core.info("hit!");
       } catch {
-        console.log("not found.");
-        console.log("computing base coverage...");
+        core.info("not found.");
+        core.info("computing base coverage...");
         await getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
-        console.log("done. caching...");
+        core.info("done. caching...");
         await cache.saveCache([baseCachePath], baseCoverageCacheKey);
       }
 
       await compareAndPost(GITHUB_TOKEN);
     }
 
-    console.log("done!");
+    core.info("done!");
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
   }

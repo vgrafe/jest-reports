@@ -22,24 +22,48 @@ const roundWithOneDigit = (num: number) => Math.round(num * 1000) / 10;
 
 const addPlusIfPositive = (num: number) => (num > 0 ? "+" + num : num);
 
+const getIcon = (num: number) =>
+  roundWithOneDigit(num) < 70
+    ? "🔴"
+    : roundWithOneDigit(num) < 80
+    ? "🟠"
+    : "🟢";
+
 export const summaryToTable = (summary: any) => {
   const [_, ...summaryRows] = Object.keys(summary);
 
   const summaryTable = markdownTable(
     [
-      ["total", "coverage"],
-      ["lines", roundWithOneDigit(summary.total.lines.total) + "%"],
-      ["statements", roundWithOneDigit(summary.total.statements.total) + "%"],
-      ["branches", roundWithOneDigit(summary.total.branches.total) + "%"],
-      ["functions", roundWithOneDigit(summary.total.functions.total) + "%"],
+      ["", "total", "coverage"],
+      [
+        getIcon(summary.total.lines.total),
+        "lines",
+        roundWithOneDigit(summary.total.lines.total) + "%",
+      ],
+      [
+        getIcon(summary.total.statements.total),
+        "statements",
+        roundWithOneDigit(summary.total.statements.total) + "%",
+      ],
+      [
+        getIcon(summary.total.branches.total),
+        "branches",
+        roundWithOneDigit(summary.total.branches.total) + "%",
+      ],
+      [
+        getIcon(summary.total.functions.total),
+        "functions",
+        roundWithOneDigit(summary.total.functions.total) + "%",
+      ],
     ],
     { align: ["l", "r"] }
   );
 
   const componentsTable = markdownTable(
     [
-      ["module", "coverage"],
+      ["", "module", "coverage"],
       ...summaryRows.map((row) => [
+        getIcon(getPercent(summary[row])),
         row.replace(process.cwd(), ""),
         roundWithOneDigit(getPercent(summary[row])) + "%",
       ]),
@@ -55,8 +79,9 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
 
   const summaryTable = markdownTable(
     [
-      ["total", "coverage", "change"],
+      ["", "total", "coverage", "change"],
       ...["lines", "statements", "branches", "functions"].map((field) => [
+        getIcon(summary.total[field].pct),
         field,
         summary.total[field].pct + "%",
         addPlusIfPositive(
@@ -69,8 +94,9 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
 
   const componentsTable = markdownTable(
     [
-      ["module", "coverage", "change"],
+      ["", "module", "coverage", "change"],
       ...summaryRows.map((row) => [
+        getIcon(getPercent(summary[row])),
         row.replace(process.cwd(), ""),
         roundWithOneDigit(getPercent(summary[row])) + "%",
         addPlusIfPositive(

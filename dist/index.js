@@ -155,9 +155,11 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     });
 });
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("starting couette...");
+    core.info("starting couette...");
     try {
-        const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN");
+        const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN", {
+            required: true,
+        });
         const octokit = github.getOctokit(GITHUB_TOKEN);
         const isPullRequest = github.context.eventName === "pull_request";
         if (isPullRequest) {
@@ -166,30 +168,30 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 repo: github.context.repo.repo,
                 pull_number: github.context.issue.number,
             });
-            console.log("cloning repo...");
+            core.info("cloning repo...");
             yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git`, undefined, {
                 cwd: process.cwd(),
             });
-            console.log("computing coverage...");
+            core.info("computing coverage...");
             yield getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
             const baseCachePath = `${github.context.repo.repo}/coverage/base.json`;
             yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
             try {
-                console.log("checking for base coverage cache...");
+                core.info("checking for base coverage cache...");
                 fs_1.default.readFileSync(`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`);
-                console.log("hit!");
+                core.info("hit!");
             }
             catch (_a) {
-                console.log("not found.");
-                console.log("computing base coverage...");
+                core.info("not found.");
+                core.info("computing base coverage...");
                 yield getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
-                console.log("done. caching...");
+                core.info("done. caching...");
                 yield cache.saveCache([baseCachePath], baseCoverageCacheKey);
             }
             yield (0, compareAndPost_1.compareAndPost)(GITHUB_TOKEN);
         }
-        console.log("done!");
+        core.info("done!");
     }
     catch (error) {
         if (error instanceof Error)
@@ -292,18 +294,40 @@ const getPercent = (summaryRow) => {
 };
 const roundWithOneDigit = (num) => Math.round(num * 1000) / 10;
 const addPlusIfPositive = (num) => (num > 0 ? "+" + num : num);
+const getIcon = (num) => roundWithOneDigit(num) < 70
+    ? "🔴"
+    : roundWithOneDigit(num) < 80
+        ? "🟠"
+        : "🟢";
 const summaryToTable = (summary) => {
     const [_, ...summaryRows] = Object.keys(summary);
     const summaryTable = (0, markdown_table_1.markdownTable)([
-        ["total", "coverage"],
-        ["lines", roundWithOneDigit(summary.total.lines.total) + "%"],
-        ["statements", roundWithOneDigit(summary.total.statements.total) + "%"],
-        ["branches", roundWithOneDigit(summary.total.branches.total) + "%"],
-        ["functions", roundWithOneDigit(summary.total.functions.total) + "%"],
+        ["", "total", "coverage"],
+        [
+            getIcon(summary.total.lines.total),
+            "lines",
+            roundWithOneDigit(summary.total.lines.total) + "%",
+        ],
+        [
+            getIcon(summary.total.statements.total),
+            "statements",
+            roundWithOneDigit(summary.total.statements.total) + "%",
+        ],
+        [
+            getIcon(summary.total.branches.total),
+            "branches",
+            roundWithOneDigit(summary.total.branches.total) + "%",
+        ],
+        [
+            getIcon(summary.total.functions.total),
+            "functions",
+            roundWithOneDigit(summary.total.functions.total) + "%",
+        ],
     ], { align: ["l", "r"] });
     const componentsTable = (0, markdown_table_1.markdownTable)([
-        ["module", "coverage"],
+        ["", "module", "coverage"],
         ...summaryRows.map((row) => [
+            getIcon(getPercent(summary[row])),
             row.replace(process.cwd(), ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
         ]),
@@ -314,16 +338,18 @@ exports.summaryToTable = summaryToTable;
 const summariesToTable = (summary, baseSummary) => {
     const [_, ...summaryRows] = Object.keys(summary);
     const summaryTable = (0, markdown_table_1.markdownTable)([
-        ["total", "coverage", "change"],
+        ["", "total", "coverage", "change"],
         ...["lines", "statements", "branches", "functions"].map((field) => [
+            getIcon(summary.total[field].pct),
             field,
             summary.total[field].pct + "%",
             addPlusIfPositive(summary.total[field].pct - baseSummary.total[field].pct) + "%",
         ]),
     ], { align: ["l", "r", "r"] });
     const componentsTable = (0, markdown_table_1.markdownTable)([
-        ["module", "coverage", "change"],
+        ["", "module", "coverage", "change"],
         ...summaryRows.map((row) => [
+            getIcon(getPercent(summary[row])),
             row.replace(process.cwd(), ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
             addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) - getPercent(baseSummary[row]))) + "%",
