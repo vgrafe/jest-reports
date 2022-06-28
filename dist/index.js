@@ -303,27 +303,12 @@ const summaryToTable = (summary) => {
     const [_, ...summaryRows] = Object.keys(summary);
     const summaryTable = (0, markdown_table_1.markdownTable)([
         ["", "total", "coverage"],
-        [
-            getIcon(summary.total.lines.total),
-            "lines",
-            roundWithOneDigit(summary.total.lines.total) + "%",
-        ],
-        [
-            getIcon(summary.total.statements.total),
-            "statements",
-            roundWithOneDigit(summary.total.statements.total) + "%",
-        ],
-        [
-            getIcon(summary.total.branches.total),
-            "branches",
-            roundWithOneDigit(summary.total.branches.total) + "%",
-        ],
-        [
-            getIcon(summary.total.functions.total),
-            "functions",
-            roundWithOneDigit(summary.total.functions.total) + "%",
-        ],
-    ], { align: ["l", "r"] });
+        ...["lines", "statements", "branches", "functions"].map((field) => [
+            getIcon(summary.total[field].total),
+            field,
+            roundWithOneDigit(summary.total[field].total) + "%",
+        ]),
+    ], { align: ["l", "l", "r"] });
     const componentsTable = (0, markdown_table_1.markdownTable)([
         ["", "module", "coverage"],
         ...summaryRows.map((row) => [
@@ -331,7 +316,7 @@ const summaryToTable = (summary) => {
             row.replace(process.cwd(), ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
         ]),
-    ], { align: ["l", "r"] });
+    ], { align: ["l", "l", "r"] });
     return { summaryTable, componentsTable };
 };
 exports.summaryToTable = summaryToTable;
@@ -345,7 +330,7 @@ const summariesToTable = (summary, baseSummary) => {
             summary.total[field].pct + "%",
             addPlusIfPositive(summary.total[field].pct - baseSummary.total[field].pct) + "%",
         ]),
-    ], { align: ["l", "r", "r"] });
+    ], { align: ["l", "l", "r", "r"] });
     const componentsTable = (0, markdown_table_1.markdownTable)([
         ["", "module", "coverage", "change"],
         ...summaryRows.map((row) => [
@@ -354,7 +339,7 @@ const summariesToTable = (summary, baseSummary) => {
             roundWithOneDigit(getPercent(summary[row])) + "%",
             addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) - getPercent(baseSummary[row]))) + "%",
         ]),
-    ], { align: ["l", "r", "r"] });
+    ], { align: ["l", "l", "r", "r"] });
     return { summaryTable, componentsTable };
 };
 exports.summariesToTable = summariesToTable;

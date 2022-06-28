@@ -35,28 +35,13 @@ export const summaryToTable = (summary: any) => {
   const summaryTable = markdownTable(
     [
       ["", "total", "coverage"],
-      [
-        getIcon(summary.total.lines.total),
-        "lines",
-        roundWithOneDigit(summary.total.lines.total) + "%",
-      ],
-      [
-        getIcon(summary.total.statements.total),
-        "statements",
-        roundWithOneDigit(summary.total.statements.total) + "%",
-      ],
-      [
-        getIcon(summary.total.branches.total),
-        "branches",
-        roundWithOneDigit(summary.total.branches.total) + "%",
-      ],
-      [
-        getIcon(summary.total.functions.total),
-        "functions",
-        roundWithOneDigit(summary.total.functions.total) + "%",
-      ],
+      ...["lines", "statements", "branches", "functions"].map((field) => [
+        getIcon(summary.total[field].total),
+        field,
+        roundWithOneDigit(summary.total[field].total) + "%",
+      ]),
     ],
-    { align: ["l", "r"] }
+    { align: ["l", "l", "r"] }
   );
 
   const componentsTable = markdownTable(
@@ -68,7 +53,7 @@ export const summaryToTable = (summary: any) => {
         roundWithOneDigit(getPercent(summary[row])) + "%",
       ]),
     ],
-    { align: ["l", "r"] }
+    { align: ["l", "l", "r"] }
   );
 
   return { summaryTable, componentsTable };
@@ -89,7 +74,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
         ) + "%",
       ]),
     ],
-    { align: ["l", "r", "r"] }
+    { align: ["l", "l", "r", "r"] }
   );
 
   const componentsTable = markdownTable(
@@ -106,7 +91,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
         ) + "%",
       ]),
     ],
-    { align: ["l", "r", "r"] }
+    { align: ["l", "l", "r", "r"] }
   );
 
   return { summaryTable, componentsTable };
