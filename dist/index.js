@@ -244,24 +244,28 @@ exports.summaryToTable = summaryToTable;
 const summariesToTable = (summary, baseSummary) => {
     const [_, ...summaryRows] = Object.keys(summary);
     const summaryTable = (0, markdown_table_1.markdownTable)([
-        ["total", "coverage"],
+        ["total", "coverage", "change"],
         [
             "lines",
+            roundWithOneDigit(summary.total.lines.total) + "%",
             roundWithOneDigit(summary.total.lines.total - baseSummary.total.lines.total) + "%",
         ],
         [
             "statements",
+            roundWithOneDigit(summary.total.statements.total) + "%",
             roundWithOneDigit(summary.total.statements.total - baseSummary.total.statements.total) + "%",
         ],
         [
             "branches",
+            roundWithOneDigit(summary.total.branches.total) + "%",
             roundWithOneDigit(summary.total.branches.total - baseSummary.total.branches.total) + "%",
         ],
         [
             "functions",
+            roundWithOneDigit(summary.total.functions.total) + "%",
             roundWithOneDigit(summary.total.functions.total - baseSummary.total.functions.total) + "%",
         ],
-    ], { align: ["l", "r"] });
+    ], { align: ["l", "r", "r"] });
     const componentsTable = (0, markdown_table_1.markdownTable)([
         ["module", "coverage", "change"],
         ...summaryRows.map((row) => [
