@@ -163,7 +163,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 cwd: process.cwd(),
             });
             yield getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
-            const baseCoverageCacheKey = `covbase-test1-${pullRequest.base.sha}`;
+            const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
             yield cache.restoreCache([`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`], baseCoverageCacheKey);
             try {
                 console.log("checking if base coverage exists");
