@@ -17,7 +17,7 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
   await exec(
-    `npx jest --ci --coverage --coverageReporters="json-summary"`,
+    `npx jest --ci --coverage --coverageReporters="json-summary" --runInBand`,
     undefined,
     {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,

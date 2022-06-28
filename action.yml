@@ -1,8 +1,8 @@
-name: "Couette - jest cov report"
+name: "Couette"
 branding:
   icon: "umbrella"
   color: "blue"
-# description: "Provide a description here"
+description: "test coverage reporter"
 author: "vgrafe"
 inputs:
   github-token:
@@ -11,6 +11,7 @@ inputs:
 runs:
   using: composite
   steps:
+    # forcing node 16.10.0 since later versions have memory issues with jest
     - uses: actions/setup-node@v3
       with:
         node-version: "16.10.0"
