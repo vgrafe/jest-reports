@@ -220,8 +220,8 @@ const getPercent = (summaryRow) => {
         summaryRow.functions.covered;
     return covered / total;
 };
-const roundWithOneDigit = (num) => Math.round(Number(num) * 1000) / 10;
-const addPlusIfPositive = (num) => (Number(num) > 0 ? "+" + num : num);
+const roundWithOneDigit = (num) => Math.round(num * 1000) / 10;
+const addPlusIfPositive = (num) => (num > 0 ? "+" + num : num);
 const summaryToTable = (summary) => {
     const [_, ...summaryRows] = Object.keys(summary);
     const summaryTable = (0, markdown_table_1.markdownTable)([
@@ -245,26 +245,12 @@ const summariesToTable = (summary, baseSummary) => {
     const [_, ...summaryRows] = Object.keys(summary);
     const summaryTable = (0, markdown_table_1.markdownTable)([
         ["total", "coverage", "change"],
-        [
-            "lines",
-            roundWithOneDigit(summary.total.lines.pct) + "%",
-            addPlusIfPositive(roundWithOneDigit(summary.total.lines.pct - baseSummary.total.lines.pct)) + "%",
-        ],
-        [
-            "statements",
-            roundWithOneDigit(summary.total.statements.pct) + "%",
-            addPlusIfPositive(roundWithOneDigit(summary.total.statements.pct - baseSummary.total.statements.pct)) + "%",
-        ],
-        [
-            "branches",
-            roundWithOneDigit(summary.total.branches.pct) + "%",
-            addPlusIfPositive(roundWithOneDigit(summary.total.branches.pct - baseSummary.total.branches.pct)) + "%",
-        ],
-        [
-            "functions",
-            roundWithOneDigit(summary.total.functions.pct) + "%",
-            addPlusIfPositive(roundWithOneDigit(summary.total.functions.pct - baseSummary.total.functions.pct)) + "%",
-        ],
+        ...["lines", "statements", "branches", "functions"].map((field) => [
+            field,
+            roundWithOneDigit(Number(summary.total[field].pct)) + "%",
+            addPlusIfPositive(roundWithOneDigit(Number(summary.total[field].pct) -
+                Number(baseSummary.total[field].pct))) + "%",
+        ]),
     ], { align: ["l", "r", "r"] });
     const componentsTable = (0, markdown_table_1.markdownTable)([
         ["module", "coverage", "change"],

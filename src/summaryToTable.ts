@@ -18,9 +18,9 @@ const getPercent = (summaryRow: any) => {
   return covered / total;
 };
 
-const roundWithOneDigit = (num: number) => Math.round(Number(num) * 1000) / 10;
+const roundWithOneDigit = (num: number) => Math.round(num * 1000) / 10;
 
-const addPlusIfPositive = (num: number) => (Number(num) > 0 ? "+" + num : num);
+const addPlusIfPositive = (num: number) => (num > 0 ? "+" + num : num);
 
 export const summaryToTable = (summary: any) => {
   const [_, ...summaryRows] = Object.keys(summary);
@@ -56,42 +56,16 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
   const summaryTable = markdownTable(
     [
       ["total", "coverage", "change"],
-      [
-        "lines",
-        roundWithOneDigit(summary.total.lines.pct) + "%",
+      ...["lines", "statements", "branches", "functions"].map((field) => [
+        field,
+        roundWithOneDigit(Number(summary.total[field].pct)) + "%",
         addPlusIfPositive(
           roundWithOneDigit(
-            summary.total.lines.pct - baseSummary.total.lines.pct
+            Number(summary.total[field].pct) -
+              Number(baseSummary.total[field].pct)
           )
         ) + "%",
-      ],
-      [
-        "statements",
-        roundWithOneDigit(summary.total.statements.pct) + "%",
-        addPlusIfPositive(
-          roundWithOneDigit(
-            summary.total.statements.pct - baseSummary.total.statements.pct
-          )
-        ) + "%",
-      ],
-      [
-        "branches",
-        roundWithOneDigit(summary.total.branches.pct) + "%",
-        addPlusIfPositive(
-          roundWithOneDigit(
-            summary.total.branches.pct - baseSummary.total.branches.pct
-          )
-        ) + "%",
-      ],
-      [
-        "functions",
-        roundWithOneDigit(summary.total.functions.pct) + "%",
-        addPlusIfPositive(
-          roundWithOneDigit(
-            summary.total.functions.pct - baseSummary.total.functions.pct
-          )
-        ) + "%",
-      ],
+      ]),
     ],
     { align: ["l", "r", "r"] }
   );
