@@ -48,7 +48,7 @@ const run = async () => {
         }
       );
 
-      await getCoverageAtBranch(pullRequest.head.ref, "coverage/branch.json");
+      await getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
 
       const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
 
