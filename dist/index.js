@@ -69,7 +69,7 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
     let commentBody = "error";
     if (mainCov) {
         const tables = (0, summaryToTable_1.summariesToTable)(branchCov, mainCov);
-        commentBody = `## Coverage report\n${!mainCov ? "base branch coverage report not found.\n" : ""}\n\n${tables.summaryTable}\n\n${tables.tables.regressions}\n${tables.tables.added}\n${tables.tables.healthy}`;
+        commentBody = `## Coverage report\n${!mainCov ? "base branch coverage report not found.\n" : ""}\n### Coverage\n${tables.summaryTable}\n### Regressions\n${tables.tables.regressions}\n### New files\n${tables.tables.added}\n### Components\n${tables.tables.healthy}`;
     }
     else {
         const tables = (0, summaryToTable_1.summaryToTable)(branchCov);
@@ -257,10 +257,14 @@ const test = () => {
         },
     };
     const a = (0, summaryToTable_1.summariesToTable)(sum1, sum2);
+    console.log("summaryTable");
     console.log(a.summaryTable);
-    console.log(a.tables.added);
-    console.log(a.tables.healthy);
+    console.log("regressions");
     console.log(a.tables.regressions);
+    console.log("added");
+    console.log(a.tables.added);
+    console.log("healthy");
+    console.log(a.tables.healthy);
 };
 run();
 // test();
@@ -282,7 +286,6 @@ run();
 
 "use strict";
 
-//@ts-check
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.summariesToTable = exports.summaryToTable = void 0;
 const markdown_table_1 = __nccwpck_require__(4701);
@@ -295,9 +298,9 @@ const getPercent = (summaryRow) => {
         summaryRow.statements.covered +
         summaryRow.branches.covered +
         summaryRow.functions.covered;
-    return covered / total;
+    return (covered / total) * 100;
 };
-const roundWithOneDigit = (num) => Math.round(num * 1000) / 10;
+const roundWithOneDigit = (num) => Number(num);
 const addPlusIfPositive = (num) => (num > 0 ? "+" + num : num);
 const getIcon = (num) => roundWithOneDigit(num) < 70
     ? "🔴"

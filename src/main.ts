@@ -144,10 +144,17 @@ const test = () => {
 
   const a = summariesToTable(sum1, sum2);
 
+  console.log("summaryTable");
   console.log(a.summaryTable);
-  console.log(a.tables.added);
-  console.log(a.tables.healthy);
+
+  console.log("regressions");
   console.log(a.tables.regressions);
+
+  console.log("added");
+  console.log(a.tables.added);
+
+  console.log("healthy");
+  console.log(a.tables.healthy);
 };
 
 run();

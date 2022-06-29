@@ -1,5 +1,3 @@
-//@ts-check
-
 import { markdownTable } from "markdown-table";
 
 const getPercent = (summaryRow: any) => {
@@ -15,10 +13,10 @@ const getPercent = (summaryRow: any) => {
     summaryRow.branches.covered +
     summaryRow.functions.covered;
 
-  return covered / total;
+  return (covered / total) * 100;
 };
 
-const roundWithOneDigit = (num: number) => Math.round(num * 1000) / 10;
+const roundWithOneDigit = (num: number) => Number(num);
 
 const addPlusIfPositive = (num: number) => (num > 0 ? "+" + num : num);
 

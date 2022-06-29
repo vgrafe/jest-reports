@@ -42,9 +42,11 @@ export const compareAndPost = async (ghToken: string) => {
 
     commentBody = `## Coverage report\n${
       !mainCov ? "base branch coverage report not found.\n" : ""
-    }\n\n${tables.summaryTable}\n\n${tables.tables.regressions}\n${
-      tables.tables.added
-    }\n${tables.tables.healthy}`;
+    }\n### Coverage\n${tables.summaryTable}\n### Regressions\n${
+      tables.tables.regressions
+    }\n### New files\n${tables.tables.added}\n### Components\n${
+      tables.tables.healthy
+    }`;
   } else {
     const tables = summaryToTable(branchCov);
 
