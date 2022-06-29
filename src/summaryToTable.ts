@@ -106,7 +106,8 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
           roundWithOneDigit(getPercent(summary[row])) + "%",
           addPlusIfPositive(
             roundWithOneDigit(
-              getPercent(summary[row]) - getPercent(baseSummary[row])
+              getPercent(summary[row]) -
+                (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
             )
           ) + "%",
         ]),
