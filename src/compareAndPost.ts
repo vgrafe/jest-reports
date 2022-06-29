@@ -9,7 +9,9 @@ const collapsible = (
   title: string,
   text: string
 ) => `<details><summary>${title}</summary>
+
 ${text}
+
 </details>`;
 
 export const compareAndPost = async (ghToken: string) => {

@@ -48,7 +48,9 @@ const fs_1 = __importDefault(__nccwpck_require__(7147));
 const github = __importStar(__nccwpck_require__(5438));
 const summaryToTable_1 = __nccwpck_require__(1250);
 const collapsible = (title, text) => `<details><summary>${title}</summary>
+
 ${text}
+
 </details>`;
 const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* () {
     let mainCov;
