@@ -5,6 +5,13 @@ import * as github from "@actions/github";
 
 import { summariesToTable, summaryToTable } from "./summaryToTable";
 
+const collapsible = (
+  title: string,
+  text: string
+) => `<details><summary>${title}</summary>
+${text}
+</details>`;
+
 export const compareAndPost = async (ghToken: string) => {
   let mainCov;
   try {
@@ -45,15 +52,11 @@ export const compareAndPost = async (ghToken: string) => {
     if (tables.summaryTable)
       commentBody += `### Coverage\n${tables.summaryTable}\n`;
     if (tables.tables.regressions)
-      commentBody += `### Regressions\n${tables.tables.regressions}\n`;
+      commentBody += collapsible("Regressions", tables.tables.regressions);
     if (tables.tables.added)
-      commentBody += `### New files\n${tables.tables.added}\n`;
+      commentBody += collapsible("New files", tables.tables.added);
     if (tables.tables.healthy)
-      commentBody += `<details><summary>Unchanged</summary>
-      <p>
-      ### Components\n${tables.tables.healthy}
-      </p>
-      </details>`;
+      commentBody += collapsible("Unchanged", tables.tables.healthy);
   } else {
     const tables = summaryToTable(branchCov);
 

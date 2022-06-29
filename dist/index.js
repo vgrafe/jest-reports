@@ -47,6 +47,9 @@ exports.compareAndPost = void 0;
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const github = __importStar(__nccwpck_require__(5438));
 const summaryToTable_1 = __nccwpck_require__(1250);
+const collapsible = (title, text) => `<details><summary>${title}</summary>
+${text}
+</details>`;
 const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* () {
     let mainCov;
     try {
@@ -75,15 +78,11 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
         if (tables.summaryTable)
             commentBody += `### Coverage\n${tables.summaryTable}\n`;
         if (tables.tables.regressions)
-            commentBody += `### Regressions\n${tables.tables.regressions}\n`;
+            commentBody += collapsible("Regressions", tables.tables.regressions);
         if (tables.tables.added)
-            commentBody += `### New files\n${tables.tables.added}\n`;
+            commentBody += collapsible("New files", tables.tables.added);
         if (tables.tables.healthy)
-            commentBody += `<details><summary>Unchanged</summary>
-      <p>
-      ### Components\n${tables.tables.healthy}
-      </p>
-      </details>`;
+            commentBody += collapsible("Unchanged", tables.tables.healthy);
     }
     else {
         const tables = (0, summaryToTable_1.summaryToTable)(branchCov);
