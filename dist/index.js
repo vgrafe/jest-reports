@@ -280,8 +280,8 @@ const test = () => {
     console.log("healthy");
     console.log(a.tables.healthy);
 };
-// run();
-test();
+run();
+// test();
 /*
 
  yarn all
