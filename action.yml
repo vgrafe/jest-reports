@@ -15,5 +15,10 @@ runs:
     - uses: actions/setup-node@v3
       with:
         node-version: "16.10.0"
+
+    # needed for cache to work https://github.com/crazy-max/ghaction-github-runtime
+    - name: Expose GitHub Runtime
+      uses: crazy-max/ghaction-github-runtime@v2
+
     - run: INPUT_GITHUB_TOKEN=${{ inputs.github-token }} node ${{ github.action_path }}/dist/index.js
       shell: bash
