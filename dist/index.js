@@ -66,10 +66,20 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
         repo: github.context.repo.repo,
     });
     const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("## Coverage report"); });
-    let commentBody = "error";
+    let commentBody = "";
     if (mainCov) {
         const tables = (0, summaryToTable_1.summariesToTable)(branchCov, mainCov);
-        commentBody = `## Coverage report\n${!mainCov ? "base branch coverage report not found.\n" : ""}\n### Coverage\n${tables.summaryTable}\n### Regressions\n${tables.tables.regressions}\n### New files\n${tables.tables.added}\n### Components\n${tables.tables.healthy}`;
+        commentBody = `## Coverage report\n`;
+        if (!mainCov)
+            commentBody += "base branch coverage report not found\n";
+        if (tables.summaryTable)
+            commentBody += `### Coverage\n${tables.summaryTable}\n`;
+        if (tables.tables.regressions)
+            commentBody += `### Regressions\n${tables.tables.regressions}\n`;
+        if (tables.tables.added)
+            commentBody += `### New files\n${tables.tables.added}\n`;
+        if (tables.tables.healthy)
+            commentBody += `### Components\n${tables.tables.healthy}`;
     }
     else {
         const tables = (0, summaryToTable_1.summaryToTable)(branchCov);
@@ -272,8 +282,8 @@ run();
 
  yarn all
  git add .
- git tag -a -m "some update" v0.1x
  git commit -m "update"
+ git tag -a -m "some update" v0.1x
  git push --follow-tags
 
 */
@@ -358,15 +368,19 @@ const summariesToTable = (summary, baseSummary) => {
             }
         }
     }
-    const makeTable = (rows) => (0, markdown_table_1.markdownTable)([
-        ["", "module", "coverage", "change"],
-        ...rows.map((row) => [
-            getIcon(getPercent(summary[row])),
-            row.replace(process.cwd(), ""),
-            roundWithOneDigit(getPercent(summary[row])) + "%",
-            addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) - getPercent(baseSummary[row]))) + "%",
-        ]),
-    ], { align: ["l", "l", "r", "r"] });
+    const makeTable = (rows) => {
+        if (rows.length === 0)
+            return null;
+        (0, markdown_table_1.markdownTable)([
+            ["", "module", "coverage", "change"],
+            ...rows.map((row) => [
+                getIcon(getPercent(summary[row])),
+                row.replace(process.cwd(), ""),
+                roundWithOneDigit(getPercent(summary[row])) + "%",
+                addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) - getPercent(baseSummary[row]))) + "%",
+            ]),
+        ], { align: ["l", "l", "r", "r"] });
+    };
     const tables = {
         added: makeTable(added),
         regressions: makeTable(regressions),

@@ -35,18 +35,21 @@ export const compareAndPost = async (ghToken: string) => {
     com.body?.startsWith("## Coverage report")
   );
 
-  let commentBody = "error";
+  let commentBody = "";
 
   if (mainCov) {
     const tables = summariesToTable(branchCov, mainCov);
 
-    commentBody = `## Coverage report\n${
-      !mainCov ? "base branch coverage report not found.\n" : ""
-    }\n### Coverage\n${tables.summaryTable}\n### Regressions\n${
-      tables.tables.regressions
-    }\n### New files\n${tables.tables.added}\n### Components\n${
-      tables.tables.healthy
-    }`;
+    commentBody = `## Coverage report\n`;
+    if (!mainCov) commentBody += "base branch coverage report not found\n";
+    if (tables.summaryTable)
+      commentBody += `### Coverage\n${tables.summaryTable}\n`;
+    if (tables.tables.regressions)
+      commentBody += `### Regressions\n${tables.tables.regressions}\n`;
+    if (tables.tables.added)
+      commentBody += `### New files\n${tables.tables.added}\n`;
+    if (tables.tables.healthy)
+      commentBody += `### Components\n${tables.tables.healthy}`;
   } else {
     const tables = summaryToTable(branchCov);
 

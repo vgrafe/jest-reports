@@ -94,7 +94,9 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
     }
   }
 
-  const makeTable = (rows: string[]) =>
+  const makeTable = (rows: string[]) => {
+    if (rows.length === 0) return null;
+
     markdownTable(
       [
         ["", "module", "coverage", "change"],
@@ -111,6 +113,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
       ],
       { align: ["l", "l", "r", "r"] }
     );
+  };
 
   const tables = {
     added: makeTable(added),

@@ -165,8 +165,8 @@ run();
 
  yarn all
  git add .
- git tag -a -m "some update" v0.1x
  git commit -m "update"
+ git tag -a -m "some update" v0.1x
  git push --follow-tags
 
 */
