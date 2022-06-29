@@ -164,6 +164,8 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     yield (0, exec_1.exec)(`git checkout ${sha}`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
+    // tries to get cached dependencies
+    yield cache.restoreCache([`${github.context.repo.repo}/node_modules`], `couette-dependencies-0-${sha}`);
     yield (0, exec_1.exec)(`yarn`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
@@ -192,6 +194,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             });
             core.info("computing coverage...");
             yield getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
+            // tries to get cached base coverage
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
             const baseCachePath = `${github.context.repo.repo}/coverage/base.json`;
             yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);

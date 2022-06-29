@@ -2,6 +2,7 @@ import fs from "fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as cache from "@actions/cache";
+import * as glob from "@actions/glob";
 import { exec } from "@actions/exec";
 import { compareAndPost } from "./compareAndPost";
 import { summariesToTable } from "./summaryToTable";
@@ -13,6 +14,15 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
   await exec(`git checkout ${sha}`, undefined, {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
+
+  // tries to get cached dependencies
+  await cache.restoreCache(
+    [`${github.context.repo.repo}/node_modules`],
+    `couette-dependencies-0-${glob.hashFiles(
+      `${github.context.repo.repo}/yarn.lock`
+    )}`
+  );
+
   await exec(`yarn`, undefined, {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
@@ -57,10 +67,9 @@ const run = async () => {
 
       await getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
 
+      // tries to get cached base coverage
       const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
-
       const baseCachePath = `${github.context.repo.repo}/coverage/base.json`;
-
       await cache.restoreCache([baseCachePath], baseCoverageCacheKey);
 
       try {

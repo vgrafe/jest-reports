@@ -49,6 +49,14 @@
     "@actions/core" "^1.2.6"
     minimatch "^3.0.4"
 
+"@actions/glob@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@actions/glob/-/glob-0.3.0.tgz#beb5282a8cd936baadbe99fbb1ccd5eaf2d1fc28"
+  integrity sha512-tJP1ZhF87fd6LBnaXWlahkyvdgvsLl7WnreW1EZaC8JWjpMXmzqWzQVe/IEYslrkT9ymibVrKyJN4UMD7uQM2w==
+  dependencies:
+    "@actions/core" "^1.2.6"
+    minimatch "^3.0.4"
+
 "@actions/http-client@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@actions/http-client/-/http-client-2.0.1.tgz#873f4ca98fe32f6839462a6f046332677322f99c"
@@ -956,11 +964,6 @@ argparse@^1.0.7:
   integrity sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==
   dependencies:
     sprintf-js "~1.0.2"
-
-argparse@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/argparse/-/argparse-2.0.1.tgz#246f50f3ca78a3240f6c997e8a9bd1eac49e4b38"
-  integrity sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==
 
 asynckit@^0.4.0:
   version "0.4.0"
@@ -1947,13 +1950,6 @@ js-yaml@^3.13.1:
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
-
-js-yaml@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
-  integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
-  dependencies:
-    argparse "^2.0.1"
 
 jsesc@^2.5.1:
   version "2.5.2"
