@@ -97,7 +97,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
   const makeTable = (rows: string[]) => {
     if (rows.length === 0) return null;
 
-    markdownTable(
+    return markdownTable(
       [
         ["", "module", "coverage", "change"],
         ...rows.map((row) => [
@@ -114,7 +114,6 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
       { align: ["l", "l", "r", "r"] }
     );
   };
-
   const tables = {
     added: makeTable(added),
     regressions: makeTable(regressions),

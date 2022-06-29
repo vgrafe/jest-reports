@@ -79,7 +79,11 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
         if (tables.tables.added)
             commentBody += `### New files\n${tables.tables.added}\n`;
         if (tables.tables.healthy)
-            commentBody += `### Components\n${tables.tables.healthy}`;
+            commentBody += `<details><summary>Unchanged</summary>
+      <p>
+      ### Components\n${tables.tables.healthy}
+      </p>
+      </details>`;
     }
     else {
         const tables = (0, summaryToTable_1.summaryToTable)(branchCov);
@@ -276,8 +280,8 @@ const test = () => {
     console.log("healthy");
     console.log(a.tables.healthy);
 };
-run();
-// test();
+// run();
+test();
 /*
 
  yarn all
@@ -371,7 +375,7 @@ const summariesToTable = (summary, baseSummary) => {
     const makeTable = (rows) => {
         if (rows.length === 0)
             return null;
-        (0, markdown_table_1.markdownTable)([
+        return (0, markdown_table_1.markdownTable)([
             ["", "module", "coverage", "change"],
             ...rows.map((row) => [
                 getIcon(getPercent(summary[row])),

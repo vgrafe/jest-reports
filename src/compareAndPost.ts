@@ -49,7 +49,11 @@ export const compareAndPost = async (ghToken: string) => {
     if (tables.tables.added)
       commentBody += `### New files\n${tables.tables.added}\n`;
     if (tables.tables.healthy)
-      commentBody += `### Components\n${tables.tables.healthy}`;
+      commentBody += `<details><summary>Unchanged</summary>
+      <p>
+      ### Components\n${tables.tables.healthy}
+      </p>
+      </details>`;
   } else {
     const tables = summaryToTable(branchCov);
 

@@ -157,9 +157,9 @@ const test = () => {
   console.log(a.tables.healthy);
 };
 
-run();
+// run();
 
-// test();
+test();
 
 /*
 
