@@ -70,7 +70,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
         field,
         summary.total[field].pct + "%",
         addPlusIfPositive(
-          summary.total[field].pct - baseSummary.total[field].pct
+          getPercent(summary.total[field].pct - baseSummary.total[field].pct)
         ) + "%",
       ]),
     ],

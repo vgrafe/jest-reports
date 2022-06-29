@@ -359,7 +359,7 @@ const summariesToTable = (summary, baseSummary) => {
             getIcon(summary.total[field].pct),
             field,
             summary.total[field].pct + "%",
-            addPlusIfPositive(summary.total[field].pct - baseSummary.total[field].pct) + "%",
+            addPlusIfPositive(getPercent(summary.total[field].pct - baseSummary.total[field].pct)) + "%",
         ]),
     ], { align: ["l", "l", "r", "r"] });
     let added = [];
