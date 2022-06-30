@@ -325,13 +325,9 @@ const getPercent = (summaryRow) => {
         summaryRow.functions.covered;
     return (covered / total) * 100;
 };
-const roundWithOneDigit = (num) => Number(num);
-const addPlusIfPositive = (num) => (num > 0 ? "+" + num : num);
-const getIcon = (num) => roundWithOneDigit(num) < 70
-    ? "🔴"
-    : roundWithOneDigit(num) < 80
-        ? "🟠"
-        : "🟢";
+const roundWithOneDigit = (num) => Number(num).toFixed(1);
+const addPlusIfPositive = (num) => num.toString().includes("-") ? num : "+" + num;
+const getIcon = (num) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 const summaryToTable = (summary) => {
     const [_, ...summaryRows] = Object.keys(summary);
     const summaryTable = (0, markdown_table_1.markdownTable)([
@@ -362,8 +358,8 @@ const summariesToTable = (summary, baseSummary) => {
         ...["lines", "statements", "branches", "functions"].map((field) => [
             getIcon(summary.total[field].pct),
             field,
-            summary.total[field].pct + "%",
-            addPlusIfPositive(summary.total[field].pct - baseSummary.total[field].pct) + "%",
+            roundWithOneDigit(summary.total[field].pct) + "%",
+            addPlusIfPositive(roundWithOneDigit(summary.total[field].pct - baseSummary.total[field].pct)) + "%",
         ]),
     ], { align: ["l", "l", "r", "r"] });
     let added = [];
