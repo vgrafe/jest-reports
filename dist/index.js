@@ -201,7 +201,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             yield getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
             // tries to get cached base coverage
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
-            const baseCachePath = `${github.context.repo.repo}/coverage/base.json`;
+            const baseCachePath = `${github.context.repo.repo}/coverage`;
             yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
             try {
                 core.info("checking for base coverage cache...");

@@ -73,7 +73,7 @@ const run = async () => {
 
       // tries to get cached base coverage
       const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
-      const baseCachePath = `${github.context.repo.repo}/coverage/base.json`;
+      const baseCachePath = `${github.context.repo.repo}/coverage`;
       await cache.restoreCache([baseCachePath], baseCoverageCacheKey);
 
       try {
