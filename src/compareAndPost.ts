@@ -51,8 +51,7 @@ export const compareAndPost = async (ghToken: string) => {
 
     commentBody = `## Coverage report\n`;
     if (!mainCov) commentBody += "base branch coverage report not found\n";
-    if (tables.summaryTable)
-      commentBody += `### Coverage\n${tables.summaryTable}\n`;
+    if (tables.summaryTable) commentBody += `${tables.summaryTable}\n`;
     if (tables.tables.regressions)
       commentBody += collapsible("Regressions", tables.tables.regressions);
     if (tables.tables.added)

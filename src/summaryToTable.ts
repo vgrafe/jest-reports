@@ -92,29 +92,42 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
     }
   }
 
-  const makeTable = (rows: string[]) => {
+  const makeTable = (rows: string[], compare = true) => {
     if (rows.length === 0) return null;
 
-    return markdownTable(
-      [
-        ["", "module", "coverage", "change"],
-        ...rows.map((row) => [
-          getIcon(getPercent(summary[row])),
-          row.replace(process.cwd(), ""),
-          roundWithOneDigit(getPercent(summary[row])) + "%",
-          addPlusIfPositive(
-            roundWithOneDigit(
-              getPercent(summary[row]) -
-                (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
-            )
-          ) + "%",
-        ]),
-      ],
-      { align: ["l", "l", "r", "r"] }
-    );
+    if (compare)
+      return markdownTable(
+        [
+          ["", "module", "coverage", "change"],
+          ...rows.map((row) => [
+            getIcon(getPercent(summary[row])),
+            row.replace(process.cwd(), ""),
+            roundWithOneDigit(getPercent(summary[row])) + "%",
+            addPlusIfPositive(
+              roundWithOneDigit(
+                getPercent(summary[row]) -
+                  (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
+              )
+            ) + "%",
+          ]),
+        ],
+        { align: ["l", "l", "r", "r"] }
+      );
+    else
+      return markdownTable(
+        [
+          ["", "module", "coverage"],
+          ...rows.map((row) => [
+            getIcon(getPercent(summary[row])),
+            row.replace(process.cwd(), ""),
+            roundWithOneDigit(getPercent(summary[row])) + "%",
+          ]),
+        ],
+        { align: ["l", "l", "r", "r"] }
+      );
   };
   const tables = {
-    added: makeTable(added),
+    added: makeTable(added, false),
     regressions: makeTable(regressions),
     healthy: makeTable(healthy),
   };

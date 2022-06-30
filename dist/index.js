@@ -78,7 +78,7 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
         if (!mainCov)
             commentBody += "base branch coverage report not found\n";
         if (tables.summaryTable)
-            commentBody += `### Coverage\n${tables.summaryTable}\n`;
+            commentBody += `${tables.summaryTable}\n`;
         if (tables.tables.regressions)
             commentBody += collapsible("Regressions", tables.tables.regressions);
         if (tables.tables.added)
@@ -158,6 +158,7 @@ const glob = __importStar(__nccwpck_require__(8090));
 const exec_1 = __nccwpck_require__(1514);
 const compareAndPost_1 = __nccwpck_require__(1569);
 const summaryToTable_1 = __nccwpck_require__(1250);
+const json_summary_1 = __nccwpck_require__(5253);
 const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, exec_1.exec)(`git fetch`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
@@ -170,7 +171,7 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     yield (0, exec_1.exec)(`yarn`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
-    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters="json-summary"`, undefined, {
+    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json  >> coverage/tests-output.json`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${fileName}`, undefined, {
@@ -221,67 +222,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const test = () => {
-    const sum1 = {
-        total: {
-            lines: { total: 15, covered: 15, skipped: 0, pct: 100 },
-            statements: { total: 19, covered: 19, skipped: 0, pct: 100 },
-            functions: { total: 6, covered: 6, skipped: 0, pct: 100 },
-            branches: { total: 6, covered: 4, skipped: 0, pct: 66.66 },
-            branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
-        },
-        "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
-            lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
-            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-            statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
-            branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
-        },
-        "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
-            lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
-            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-            statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
-            branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
-        },
-        "/Users/vgrafe/Code/with-jest-app/components/TextSwitch3.tsx": {
-            lines: { total: 5, covered: 5, skipped: 0, pct: 100 },
-            functions: { total: 3, covered: 3, skipped: 0, pct: 100 },
-            statements: { total: 7, covered: 7, skipped: 0, pct: 100 },
-            branches: { total: 2, covered: 2, skipped: 0, pct: 100 },
-        },
-        "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
-            lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
-            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-            statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
-            branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
-        },
-    };
-    const sum2 = {
-        total: {
-            lines: { total: 15, covered: 15, skipped: 0, pct: 100 },
-            statements: { total: 19, covered: 19, skipped: 0, pct: 100 },
-            functions: { total: 6, covered: 6, skipped: 0, pct: 100 },
-            branches: { total: 6, covered: 4, skipped: 0, pct: 66.66 },
-            branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
-        },
-        "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
-            lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
-            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-            statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
-            branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
-        },
-        "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
-            lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
-            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-            statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
-            branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
-        },
-        "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
-            lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
-            functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-            statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
-            branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
-        },
-    };
-    const a = (0, summaryToTable_1.summariesToTable)(sum1, sum2);
+    const a = (0, summaryToTable_1.summariesToTable)(json_summary_1.summary1, json_summary_1.summary2);
     console.log("summaryTable");
     console.log(a.summaryTable);
     console.log("regressions");
@@ -302,6 +243,77 @@ run();
  git push --follow-tags
 
 */
+
+
+/***/ }),
+
+/***/ 5253:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.summary2 = exports.summary1 = void 0;
+exports.summary1 = {
+    total: {
+        lines: { total: 15, covered: 15, skipped: 0, pct: 100 },
+        statements: { total: 19, covered: 19, skipped: 0, pct: 100 },
+        functions: { total: 6, covered: 6, skipped: 0, pct: 100 },
+        branches: { total: 6, covered: 4, skipped: 0, pct: 66.66 },
+        branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
+        lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+        statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+        branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
+        lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+        statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+        branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch3.tsx": {
+        lines: { total: 5, covered: 5, skipped: 0, pct: 100 },
+        functions: { total: 3, covered: 3, skipped: 0, pct: 100 },
+        statements: { total: 7, covered: 7, skipped: 0, pct: 100 },
+        branches: { total: 2, covered: 2, skipped: 0, pct: 100 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
+        lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
+        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+        statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
+        branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
+    },
+};
+exports.summary2 = {
+    total: {
+        lines: { total: 15, covered: 15, skipped: 0, pct: 100 },
+        statements: { total: 19, covered: 19, skipped: 0, pct: 100 },
+        functions: { total: 6, covered: 6, skipped: 0, pct: 100 },
+        branches: { total: 6, covered: 4, skipped: 0, pct: 66.66 },
+        branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
+        lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+        statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+        branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
+        lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
+        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+        statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
+        branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
+    },
+    "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
+        lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
+        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
+        statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
+        branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
+    },
+};
 
 
 /***/ }),
@@ -379,22 +391,32 @@ const summariesToTable = (summary, baseSummary) => {
             }
         }
     }
-    const makeTable = (rows) => {
+    const makeTable = (rows, compare = true) => {
         if (rows.length === 0)
             return null;
-        return (0, markdown_table_1.markdownTable)([
-            ["", "module", "coverage", "change"],
-            ...rows.map((row) => [
-                getIcon(getPercent(summary[row])),
-                row.replace(process.cwd(), ""),
-                roundWithOneDigit(getPercent(summary[row])) + "%",
-                addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) -
-                    (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
-            ]),
-        ], { align: ["l", "l", "r", "r"] });
+        if (compare)
+            return (0, markdown_table_1.markdownTable)([
+                ["", "module", "coverage", "change"],
+                ...rows.map((row) => [
+                    getIcon(getPercent(summary[row])),
+                    row.replace(process.cwd(), ""),
+                    roundWithOneDigit(getPercent(summary[row])) + "%",
+                    addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) -
+                        (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
+                ]),
+            ], { align: ["l", "l", "r", "r"] });
+        else
+            return (0, markdown_table_1.markdownTable)([
+                ["", "module", "coverage"],
+                ...rows.map((row) => [
+                    getIcon(getPercent(summary[row])),
+                    row.replace(process.cwd(), ""),
+                    roundWithOneDigit(getPercent(summary[row])) + "%",
+                ]),
+            ], { align: ["l", "l", "r", "r"] });
     };
     const tables = {
-        added: makeTable(added),
+        added: makeTable(added, false),
         regressions: makeTable(regressions),
         healthy: makeTable(healthy),
     };

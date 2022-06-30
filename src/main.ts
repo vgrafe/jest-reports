@@ -6,7 +6,7 @@ import * as glob from "@actions/glob";
 import { exec } from "@actions/exec";
 import { compareAndPost } from "./compareAndPost";
 import { summariesToTable } from "./summaryToTable";
-import { summary1, summary2 } from "../mock/json-summary";
+import { summary1, summary2 } from "./mock/json-summary";
 
 const getCoverageAtBranch = async (sha: string, fileName: string) => {
   await exec(`git fetch`, undefined, {
@@ -28,7 +28,7 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
   await exec(
-    `npx jest --ci --coverage --coverageReporters="json-summary"`,
+    `npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json  >> coverage/tests-output.json`,
     undefined,
     {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
