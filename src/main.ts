@@ -28,11 +28,8 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
   await exec(`yarn`, undefined, {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
-  await exec(`mkdir coverage`, undefined, {
-    cwd: `${process.cwd()}/${github.context.repo.repo}`,
-  });
   await exec(
-    `npx jest --passWithNoTests --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json  >> coverage/tests-output.json`,
+    `npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary`, // --json  >> coverage/tests-output.json
     undefined,
     {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
