@@ -171,6 +171,9 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     yield (0, exec_1.exec)(`yarn`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
+    yield (0, exec_1.exec)(`mkdir coverage`, undefined, {
+        cwd: `${process.cwd()}/${github.context.repo.repo}`,
+    });
     yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json  >> coverage/tests-output.json`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
@@ -413,7 +416,7 @@ const summariesToTable = (summary, baseSummary) => {
                     row.replace(process.cwd(), ""),
                     roundWithOneDigit(getPercent(summary[row])) + "%",
                 ]),
-            ], { align: ["l", "l", "r", "r"] });
+            ], { align: ["l", "l", "r"] });
     };
     const tables = {
         added: makeTable(added, false),

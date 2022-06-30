@@ -123,7 +123,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
             roundWithOneDigit(getPercent(summary[row])) + "%",
           ]),
         ],
-        { align: ["l", "l", "r", "r"] }
+        { align: ["l", "l", "r"] }
       );
   };
   const tables = {
