@@ -1,4 +1,3 @@
-import fs from "fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as cache from "@actions/cache";
@@ -17,12 +16,14 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
   });
 
   // tries to get cached dependencies
-  await cache.restoreCache(
+  core.info("restoring node_modules cache...");
+  const found = await cache.restoreCache(
     [`${github.context.repo.repo}/node_modules`],
     `couette-dependencies-0-${glob.hashFiles(
       `${github.context.repo.repo}/yarn.lock`
     )}`
   );
+  found ? core.info("found!") : core.info("not found");
 
   await exec(`yarn`, undefined, {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
@@ -31,7 +32,7 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
   await exec(
-    `npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json  >> coverage/tests-output.json`,
+    `npx jest --passWithNoTests --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json  >> coverage/tests-output.json`,
     undefined,
     {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
@@ -74,15 +75,14 @@ const run = async () => {
       // tries to get cached base coverage
       const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
       const baseCachePath = `${github.context.repo.repo}/coverage`;
-      await cache.restoreCache([baseCachePath], baseCoverageCacheKey);
-
-      try {
-        core.info("checking for base coverage cache...");
-        fs.readFileSync(
-          `${process.cwd()}/${github.context.repo.repo}/coverage/base.json`
-        );
-        core.info("hit!");
-      } catch {
+      core.info("checking for base coverage cache...");
+      const found = await cache.restoreCache(
+        [baseCachePath],
+        baseCoverageCacheKey
+      );
+      if (found) {
+        core.info("found!");
+      } else {
         core.info("not found.");
         core.info("computing base coverage...");
         await getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");

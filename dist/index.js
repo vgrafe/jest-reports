@@ -146,11 +146,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const fs_1 = __importDefault(__nccwpck_require__(7147));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
@@ -167,14 +163,16 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
     // tries to get cached dependencies
-    yield cache.restoreCache([`${github.context.repo.repo}/node_modules`], `couette-dependencies-0-${glob.hashFiles(`${github.context.repo.repo}/yarn.lock`)}`);
+    core.info("restoring node_modules cache...");
+    const found = yield cache.restoreCache([`${github.context.repo.repo}/node_modules`], `couette-dependencies-0-${glob.hashFiles(`${github.context.repo.repo}/yarn.lock`)}`);
+    found ? core.info("found!") : core.info("not found");
     yield (0, exec_1.exec)(`yarn`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
     yield (0, exec_1.exec)(`mkdir coverage`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
-    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json  >> coverage/tests-output.json`, undefined, {
+    yield (0, exec_1.exec)(`npx jest --passWithNoTests --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json  >> coverage/tests-output.json`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${fileName}`, undefined, {
@@ -202,13 +200,12 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             // tries to get cached base coverage
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
             const baseCachePath = `${github.context.repo.repo}/coverage`;
-            yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
-            try {
-                core.info("checking for base coverage cache...");
-                fs_1.default.readFileSync(`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`);
-                core.info("hit!");
+            core.info("checking for base coverage cache...");
+            const found = yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
+            if (found) {
+                core.info("found!");
             }
-            catch (_a) {
+            else {
                 core.info("not found.");
                 core.info("computing base coverage...");
                 yield getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
