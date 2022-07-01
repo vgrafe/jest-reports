@@ -23,13 +23,17 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
       `${github.context.repo.repo}/yarn.lock`
     )}`
   );
-  found ? core.info("found!") : core.info("not found");
 
-  await exec(`yarn`, undefined, {
-    cwd: `${process.cwd()}/${github.context.repo.repo}`,
-  });
+  if (found) core.info("found!");
+  else {
+    core.info("not found");
+    await exec(`yarn`, undefined, {
+      cwd: `${process.cwd()}/${github.context.repo.repo}`,
+    });
+  }
+
   await exec(
-    `npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`,
+    `npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`,
     undefined,
     {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
@@ -39,6 +43,13 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
 };
+
+// to merge shard reports
+// npx nyc merge coverage coverage/merged-coverage.json
+// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
+// nyc is deprecated, so let's do:L
+// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
+// ok istambul is also deprecated, wtf
 
 const run = async () => {
   core.info("starting couette...");

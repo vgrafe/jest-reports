@@ -165,17 +165,27 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     // tries to get cached dependencies
     core.info("restoring node_modules cache...");
     const found = yield cache.restoreCache([`${github.context.repo.repo}/node_modules`], `couette-dependencies-0-${glob.hashFiles(`${github.context.repo.repo}/yarn.lock`)}`);
-    found ? core.info("found!") : core.info("not found");
-    yield (0, exec_1.exec)(`yarn`, undefined, {
-        cwd: `${process.cwd()}/${github.context.repo.repo}`,
-    });
-    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`, undefined, {
+    if (found)
+        core.info("found!");
+    else {
+        core.info("not found");
+        yield (0, exec_1.exec)(`yarn`, undefined, {
+            cwd: `${process.cwd()}/${github.context.repo.repo}`,
+        });
+    }
+    yield (0, exec_1.exec)(`npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${fileName}`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
 });
+// to merge shard reports
+// npx nyc merge coverage coverage/merged-coverage.json
+// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
+// nyc is deprecated, so let's do:L
+// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
+// ok istambul is also deprecated, wtf
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting couette...");
     try {
