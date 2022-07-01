@@ -29,11 +29,10 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
   await exec(
-    `npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary`, // --json  >> coverage/tests-output.json
+    `npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`,
     undefined,
     {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
-      failOnStdErr: false,
     }
   );
   await exec(`mv coverage/coverage-summary.json ${fileName}`, undefined, {
