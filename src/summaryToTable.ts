@@ -129,7 +129,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
   const tables = {
     added: makeTable(added, false),
     regressions: makeTable(regressions),
-    healthy: makeTable(healthy),
+    healthy: makeTable(healthy, false),
   };
 
   return { summaryTable, tables };
