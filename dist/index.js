@@ -377,7 +377,7 @@ const summaryToTable = (summary) => {
             ["", "module", "coverage"],
             ...summaryRows.map((row) => [
                 getIcon(getPercent(summary[row])),
-                row.replace(process.cwd() + `/${github.context.repo.repo}`, ""),
+                row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
                 roundWithOneDigit(getPercent(summary[row])) + "%",
             ]),
         ], { align: ["l", "l", "r"] }),
