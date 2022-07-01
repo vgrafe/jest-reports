@@ -33,6 +33,7 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     undefined,
     {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
+      failOnStdErr: false,
     }
   );
   await exec(`mv coverage/coverage-summary.json ${fileName}`, undefined, {
