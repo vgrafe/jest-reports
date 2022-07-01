@@ -102,7 +102,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
           ["", "module", "coverage", "change"],
           ...rows.map((row) => [
             getIcon(getPercent(summary[row])),
-            row.replace(process.cwd() + "/" + github.context.repo.repo, ""),
+            row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
             addPlusIfPositive(
               roundWithOneDigit(
@@ -120,7 +120,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
           ["", "module", "coverage"],
           ...rows.map((row) => [
             getIcon(getPercent(summary[row])),
-            row.replace(process.cwd() + "/" + github.context.repo.repo, ""),
+            row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
           ]),
         ],
