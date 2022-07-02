@@ -166,30 +166,15 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     yield (0, exec_1.exec)(`git checkout ${sha}`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
-    // // tries to get cached dependencies
-    // let yarnCacheDir = "";
-    // await exec(`yarn cache dir`, undefined, {
-    //   listeners: {
-    //     stdout: (data: Buffer) => {
-    //       yarnCacheDir = data.toString();
-    //     },
-    //   },
-    // });
-    // core.info(`restoring yarn cache from ${yarnCacheDir}..`);
-    // const found = await cache.restoreCache(
-    //   [yarnCacheDir],
-    //   `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
-    // );
+    core.info(`restoring node_modules...`);
     const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(`**/yarn.lock`)}`;
     const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
-    if (found)
-        core.info("found!");
-    else {
-        core.info("not found. running yarn...");
+    if (!found) {
+        core.info("running yarn...");
         yield (0, exec_1.exec)(`yarn`, undefined, {
             cwd: `${process.cwd()}/${github.context.repo.repo}`,
         });
-        core.info("caching yarn cache...");
+        core.info("caching node_modules...");
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
     yield (0, exec_1.exec)(`npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`, undefined, {
@@ -222,11 +207,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const baseCachePath = `${github.context.repo.repo}/coverage`;
             core.info("checking for base coverage cache...");
             const found = yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
-            if (found) {
-                core.info("found!");
-            }
-            else {
-                core.info("not found.");
+            if (!found) {
                 core.info("computing base coverage...");
                 yield getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
                 core.info("done. caching...");

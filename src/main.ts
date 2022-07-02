@@ -15,22 +15,7 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
 
-  // // tries to get cached dependencies
-  // let yarnCacheDir = "";
-  // await exec(`yarn cache dir`, undefined, {
-  //   listeners: {
-  //     stdout: (data: Buffer) => {
-  //       yarnCacheDir = data.toString();
-  //     },
-  //   },
-  // });
-  // core.info(`restoring yarn cache from ${yarnCacheDir}..`);
-
-  // const found = await cache.restoreCache(
-  //   [yarnCacheDir],
-  //   `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
-  // );
-
+  core.info(`restoring node_modules...`);
   const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(
     `**/yarn.lock`
   )}`;
@@ -40,13 +25,12 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     dependenciesCacheKey
   );
 
-  if (found) core.info("found!");
-  else {
-    core.info("not found. running yarn...");
+  if (!found) {
+    core.info("running yarn...");
     await exec(`yarn`, undefined, {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
-    core.info("caching yarn cache...");
+    core.info("caching node_modules...");
     await cache.saveCache(["**/node_modules"], dependenciesCacheKey);
   }
 
@@ -99,10 +83,7 @@ const run = async () => {
         [baseCachePath],
         baseCoverageCacheKey
       );
-      if (found) {
-        core.info("found!");
-      } else {
-        core.info("not found.");
+      if (!found) {
         core.info("computing base coverage...");
         await getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
         core.info("done. caching...");
