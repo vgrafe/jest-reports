@@ -1,6 +1,103 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 5598:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.formatCoverageAnnotations = exports.createCoverageAnnotations = void 0;
+const path_1 = __nccwpck_require__(1017);
+const github = __importStar(__nccwpck_require__(5438));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const github_1 = __nccwpck_require__(5438);
+const isValidNumber = (value) => typeof value === "number" && !isNaN(value);
+const getLocation = (start = { line: 0, column: undefined }, end = { line: 0, column: undefined }) => ({
+    start_line: start.line,
+    end_line: end.line,
+    start_column: start.line === end.line && start.column !== null && end.column !== null
+        ? start.column
+        : undefined,
+    end_column: start.line === end.line && start.column !== null && end.column !== null
+        ? end.column
+        : undefined,
+});
+const createCoverageAnnotations = () => {
+    const annotations = [];
+    const testsOutput = fs_1.default.readFileSync(`${process.cwd()}/${github.context.repo.repo}/coverage/tests-output.json`);
+    const jsonReport = JSON.parse(testsOutput.toString());
+    Object.entries(jsonReport.coverageMap).forEach(([fileName, fileCoverage]) => {
+        const normalizedFilename = (0, path_1.relative)(process.cwd(), fileName);
+        Object.entries(fileCoverage.statementMap).forEach(([statementIndex, statementCoverage]) => {
+            if (fileCoverage.s[+statementIndex] === 0) {
+                annotations.push(Object.assign(Object.assign({}, getLocation(statementCoverage.start, statementCoverage.end)), { path: normalizedFilename, annotation_level: "warning", title: "notCoveredStatementTitle", message: "notCoveredStatementMessage" }));
+            }
+        });
+        Object.entries(fileCoverage.branchMap).forEach(([branchIndex, branchCoverage]) => {
+            if (branchCoverage.locations) {
+                branchCoverage.locations.forEach((location, locationIndex) => {
+                    if (fileCoverage.b[+branchIndex][locationIndex] === 0) {
+                        annotations.push(Object.assign(Object.assign({}, getLocation(location.start, location.end)), { path: normalizedFilename, annotation_level: "warning", title: "notCoveredBranchTitle", message: "notCoveredBranchMessage" }));
+                    }
+                });
+            }
+        });
+        Object.entries(fileCoverage.fnMap).forEach(([functionIndex, functionCoverage]) => {
+            if (fileCoverage.f[+functionIndex] === 0) {
+                annotations.push(Object.assign(Object.assign({}, getLocation(functionCoverage.decl.start, functionCoverage.decl.end)), { path: normalizedFilename, annotation_level: "warning", title: "notCoveredFunctionTitle", message: "notCoveredFunctionMessage" }));
+            }
+        });
+    });
+    return annotations.filter((annotation) => isValidNumber(annotation.start_line) && isValidNumber(annotation.end_line));
+};
+exports.createCoverageAnnotations = createCoverageAnnotations;
+const formatCoverageAnnotations = (annotations) => {
+    var _a, _b;
+    return (Object.assign(Object.assign({}, github_1.context.repo), { status: "completed", head_sha: (_b = (_a = github_1.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.sha) !== null && _b !== void 0 ? _b : github_1.context.sha, conclusion: "success", name: "coveredCheckName", output: {
+            title: "coverageTitle",
+            summary: "coverageAnnotations",
+            text: [
+                "coverageAnnotationsText",
+                annotations.length > 50 &&
+                    `hiding ${annotations.length - 50} annotations`,
+            ]
+                .filter(Boolean)
+                .join("\n"),
+            annotations: annotations.slice(0, 49),
+        } }));
+};
+exports.formatCoverageAnnotations = formatCoverageAnnotations;
+
+
+/***/ }),
+
 /***/ 4008:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -233,6 +330,7 @@ const compareAndPost_1 = __nccwpck_require__(1569);
 const summaryToTable_1 = __nccwpck_require__(1250);
 const json_summary_1 = __nccwpck_require__(5253);
 const checkoutAndRunTests_1 = __nccwpck_require__(4008);
+const annotations_1 = __nccwpck_require__(5598);
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting couette...");
     try {
@@ -251,6 +349,8 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             });
             core.info("computing PR coverage...");
             yield (0, checkoutAndRunTests_1.checkoutAndBuildCoverage)(pullRequest.head.sha, "coverage/branch.json");
+            const annotations = (0, annotations_1.createCoverageAnnotations)();
+            yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
             core.info("checking if base coverage was cached...");
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
             const baseCachePath = `${github.context.repo.repo}/coverage`;
@@ -261,7 +361,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 core.info("done. caching...");
                 yield cache.saveCache([baseCachePath], baseCoverageCacheKey);
             }
-            console.log("converting coverage file into mardown table...");
+            core.info("converting coverage file into mardown table...");
             yield (0, compareAndPost_1.compareAndPost)(GITHUB_TOKEN);
         }
         core.info("done!");

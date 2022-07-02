@@ -6,6 +6,10 @@ import { compareAndPost } from "./compareAndPost";
 import { summariesToTable } from "./summaryToTable";
 import { summary1, summary2 } from "./mock/json-summary";
 import { checkoutAndBuildCoverage } from "./checkoutAndRunTests";
+import {
+  createCoverageAnnotations,
+  formatCoverageAnnotations,
+} from "./annotations";
 
 const run = async () => {
   core.info("starting couette...");
@@ -39,6 +43,9 @@ const run = async () => {
         "coverage/branch.json"
       );
 
+      const annotations = createCoverageAnnotations();
+      await octokit.rest.checks.create(formatCoverageAnnotations(annotations));
+
       core.info("checking if base coverage was cached...");
 
       const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
@@ -57,7 +64,7 @@ const run = async () => {
         await cache.saveCache([baseCachePath], baseCoverageCacheKey);
       }
 
-      console.log("converting coverage file into mardown table...");
+      core.info("converting coverage file into mardown table...");
       await compareAndPost(GITHUB_TOKEN);
     }
 

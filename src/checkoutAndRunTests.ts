@@ -41,6 +41,7 @@ export const checkoutAndBuildCoverage = async (
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
     }
   );
+
   await exec(`mv coverage/coverage-summary.json ${targetFileName}`, undefined, {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
