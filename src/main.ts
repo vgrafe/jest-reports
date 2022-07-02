@@ -15,19 +15,24 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     cwd: `${process.cwd()}/${github.context.repo.repo}`,
   });
 
-  // tries to get cached dependencies
-  let yarnCacheDir = "";
-  await exec(`yarn cache dir`, undefined, {
-    listeners: {
-      stdout: (data: Buffer) => {
-        yarnCacheDir = data.toString();
-      },
-    },
-  });
-  core.info(`restoring yarn cache from ${yarnCacheDir}..`);
+  // // tries to get cached dependencies
+  // let yarnCacheDir = "";
+  // await exec(`yarn cache dir`, undefined, {
+  //   listeners: {
+  //     stdout: (data: Buffer) => {
+  //       yarnCacheDir = data.toString();
+  //     },
+  //   },
+  // });
+  // core.info(`restoring yarn cache from ${yarnCacheDir}..`);
+
+  // const found = await cache.restoreCache(
+  //   [yarnCacheDir],
+  //   `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
+  // );
 
   const found = await cache.restoreCache(
-    [yarnCacheDir],
+    ["**/node_modules"],
     `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
   );
 
@@ -39,7 +44,7 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
     });
     core.info("caching yarn cache...");
     await cache.saveCache(
-      [yarnCacheDir],
+      ["**/node_modules"],
       `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
     );
   }

@@ -166,17 +166,21 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     yield (0, exec_1.exec)(`git checkout ${sha}`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
-    // tries to get cached dependencies
-    let yarnCacheDir = "";
-    yield (0, exec_1.exec)(`yarn cache dir`, undefined, {
-        listeners: {
-            stdout: (data) => {
-                yarnCacheDir = data.toString();
-            },
-        },
-    });
-    core.info(`restoring yarn cache from ${yarnCacheDir}..`);
-    const found = yield cache.restoreCache([yarnCacheDir], `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`);
+    // // tries to get cached dependencies
+    // let yarnCacheDir = "";
+    // await exec(`yarn cache dir`, undefined, {
+    //   listeners: {
+    //     stdout: (data: Buffer) => {
+    //       yarnCacheDir = data.toString();
+    //     },
+    //   },
+    // });
+    // core.info(`restoring yarn cache from ${yarnCacheDir}..`);
+    // const found = await cache.restoreCache(
+    //   [yarnCacheDir],
+    //   `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
+    // );
+    const found = yield cache.restoreCache(["**/node_modules"], `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`);
     if (found)
         core.info("found!");
     else {
@@ -185,7 +189,7 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
             cwd: `${process.cwd()}/${github.context.repo.repo}`,
         });
         core.info("caching yarn cache...");
-        yield cache.saveCache([yarnCacheDir], `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`);
+        yield cache.saveCache(["**/node_modules"], `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`);
     }
     yield (0, exec_1.exec)(`npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
