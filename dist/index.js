@@ -1,6 +1,80 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 4008:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkoutAndBuildCoverage = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+const cache = __importStar(__nccwpck_require__(7799));
+const exec_1 = __nccwpck_require__(1514);
+const glob = __importStar(__nccwpck_require__(8090));
+const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void 0, void 0, function* () {
+    yield (0, exec_1.exec)(`git fetch`, undefined, {
+        cwd: `${process.cwd()}/${github.context.repo.repo}`,
+    });
+    yield (0, exec_1.exec)(`git checkout ${sha}`, undefined, {
+        cwd: `${process.cwd()}/${github.context.repo.repo}`,
+    });
+    core.info(`restoring node_modules...`);
+    const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(`**/yarn.lock`)}`;
+    const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
+    if (!found) {
+        core.info("running yarn...");
+        yield (0, exec_1.exec)(`yarn`, undefined, {
+            cwd: `${process.cwd()}/${github.context.repo.repo}`,
+        });
+        core.info("caching node_modules...");
+        yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
+    }
+    yield (0, exec_1.exec)(`npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`, undefined, {
+        cwd: `${process.cwd()}/${github.context.repo.repo}`,
+    });
+    yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`, undefined, {
+        cwd: `${process.cwd()}/${github.context.repo.repo}`,
+    });
+});
+exports.checkoutAndBuildCoverage = checkoutAndBuildCoverage;
+
+
+/***/ }),
+
 /***/ 1569:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -46,6 +120,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.compareAndPost = void 0;
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const github = __importStar(__nccwpck_require__(5438));
+const core = __importStar(__nccwpck_require__(2186));
 const summaryToTable_1 = __nccwpck_require__(1250);
 const collapsible = (title, text) => `<details><summary>${title}</summary>
 
@@ -59,12 +134,11 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
         mainCov = JSON.parse(mainCoverage.toString());
     }
     catch (_a) {
-        console.log("No main coverage file found");
+        core.info("No main coverage file found");
     }
     const branchCoverage = fs_1.default.readFileSync(process.cwd() + `/${github.context.repo.repo}/coverage/branch.json`);
     const branchCov = JSON.parse(branchCoverage.toString());
     const octokit = github.getOctokit(ghToken);
-    console.log("building coverage reports...");
     const allComments = yield octokit.rest.issues.listComments({
         issue_number: github.context.issue.number,
         owner: github.context.repo.owner,
@@ -100,11 +174,11 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
         body: commentBody,
     };
     if (existingComment) {
-        console.log("updating comment...");
+        core.info("updating comment...");
         yield octokit.rest.issues.updateComment(Object.assign({ comment_id: existingComment.id }, commentParams));
     }
     else {
-        console.log("adding comment...");
+        core.info("adding comment...");
         octokit.rest.issues.createComment(Object.assign({ issue_number: github.context.issue.number }, commentParams));
     }
 });
@@ -154,36 +228,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
-const glob = __importStar(__nccwpck_require__(8090));
 const exec_1 = __nccwpck_require__(1514);
 const compareAndPost_1 = __nccwpck_require__(1569);
 const summaryToTable_1 = __nccwpck_require__(1250);
 const json_summary_1 = __nccwpck_require__(5253);
-const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, exec_1.exec)(`git fetch`, undefined, {
-        cwd: `${process.cwd()}/${github.context.repo.repo}`,
-    });
-    yield (0, exec_1.exec)(`git checkout ${sha}`, undefined, {
-        cwd: `${process.cwd()}/${github.context.repo.repo}`,
-    });
-    core.info(`restoring node_modules...`);
-    const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(`**/yarn.lock`)}`;
-    const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
-    if (!found) {
-        core.info("running yarn...");
-        yield (0, exec_1.exec)(`yarn`, undefined, {
-            cwd: `${process.cwd()}/${github.context.repo.repo}`,
-        });
-        core.info("caching node_modules...");
-        yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
-    }
-    yield (0, exec_1.exec)(`npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`, undefined, {
-        cwd: `${process.cwd()}/${github.context.repo.repo}`,
-    });
-    yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${fileName}`, undefined, {
-        cwd: `${process.cwd()}/${github.context.repo.repo}`,
-    });
-});
+const checkoutAndRunTests_1 = __nccwpck_require__(4008);
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting couette...");
     try {
@@ -196,23 +245,23 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 repo: github.context.repo.repo,
                 pull_number: github.context.issue.number,
             });
-            core.info("cloning repo...");
+            core.info(`cloning ${github.context.repo.repo}...`);
             yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git`, undefined, {
                 cwd: process.cwd(),
             });
-            core.info("computing coverage...");
-            yield getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
-            // tries to get cached base coverage
+            core.info("computing PR coverage...");
+            yield (0, checkoutAndRunTests_1.checkoutAndBuildCoverage)(pullRequest.head.sha, "coverage/branch.json");
+            core.info("checking if base coverage was cached...");
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
             const baseCachePath = `${github.context.repo.repo}/coverage`;
-            core.info("checking for base coverage cache...");
             const found = yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
             if (!found) {
                 core.info("computing base coverage...");
-                yield getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
+                yield (0, checkoutAndRunTests_1.checkoutAndBuildCoverage)(pullRequest.base.sha, "coverage/base.json");
                 core.info("done. caching...");
                 yield cache.saveCache([baseCachePath], baseCoverageCacheKey);
             }
+            console.log("converting coverage file into mardown table...");
             yield (0, compareAndPost_1.compareAndPost)(GITHUB_TOKEN);
         }
         core.info("done!");

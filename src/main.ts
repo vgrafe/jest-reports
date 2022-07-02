@@ -1,50 +1,11 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as cache from "@actions/cache";
-import * as glob from "@actions/glob";
 import { exec } from "@actions/exec";
 import { compareAndPost } from "./compareAndPost";
 import { summariesToTable } from "./summaryToTable";
 import { summary1, summary2 } from "./mock/json-summary";
-
-const getCoverageAtBranch = async (sha: string, fileName: string) => {
-  await exec(`git fetch`, undefined, {
-    cwd: `${process.cwd()}/${github.context.repo.repo}`,
-  });
-  await exec(`git checkout ${sha}`, undefined, {
-    cwd: `${process.cwd()}/${github.context.repo.repo}`,
-  });
-
-  core.info(`restoring node_modules...`);
-  const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(
-    `**/yarn.lock`
-  )}`;
-
-  const found = await cache.restoreCache(
-    ["**/node_modules"],
-    dependenciesCacheKey
-  );
-
-  if (!found) {
-    core.info("running yarn...");
-    await exec(`yarn`, undefined, {
-      cwd: `${process.cwd()}/${github.context.repo.repo}`,
-    });
-    core.info("caching node_modules...");
-    await cache.saveCache(["**/node_modules"], dependenciesCacheKey);
-  }
-
-  await exec(
-    `npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`,
-    undefined,
-    {
-      cwd: `${process.cwd()}/${github.context.repo.repo}`,
-    }
-  );
-  await exec(`mv coverage/coverage-summary.json ${fileName}`, undefined, {
-    cwd: `${process.cwd()}/${github.context.repo.repo}`,
-  });
-};
+import { checkoutAndBuildCoverage } from "./checkoutAndRunTests";
 
 const run = async () => {
   core.info("starting couette...");
@@ -61,7 +22,7 @@ const run = async () => {
         pull_number: github.context.issue.number,
       });
 
-      core.info("cloning repo...");
+      core.info(`cloning ${github.context.repo.repo}...`);
 
       await exec(
         `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git`,
@@ -71,25 +32,32 @@ const run = async () => {
         }
       );
 
-      core.info("computing coverage...");
+      core.info("computing PR coverage...");
 
-      await getCoverageAtBranch(pullRequest.head.sha, "coverage/branch.json");
+      await checkoutAndBuildCoverage(
+        pullRequest.head.sha,
+        "coverage/branch.json"
+      );
 
-      // tries to get cached base coverage
+      core.info("checking if base coverage was cached...");
+
       const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
       const baseCachePath = `${github.context.repo.repo}/coverage`;
-      core.info("checking for base coverage cache...");
       const found = await cache.restoreCache(
         [baseCachePath],
         baseCoverageCacheKey
       );
       if (!found) {
         core.info("computing base coverage...");
-        await getCoverageAtBranch(pullRequest.base.sha, "coverage/base.json");
+        await checkoutAndBuildCoverage(
+          pullRequest.base.sha,
+          "coverage/base.json"
+        );
         core.info("done. caching...");
         await cache.saveCache([baseCachePath], baseCoverageCacheKey);
       }
 
+      console.log("converting coverage file into mardown table...");
       await compareAndPost(GITHUB_TOKEN);
     }
 

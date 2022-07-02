@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import * as github from "@actions/github";
+import * as core from "@actions/core";
 
 import { summariesToTable, summaryToTable } from "./summaryToTable";
 
@@ -22,7 +23,7 @@ export const compareAndPost = async (ghToken: string) => {
     );
     mainCov = JSON.parse(mainCoverage.toString());
   } catch {
-    console.log("No main coverage file found");
+    core.info("No main coverage file found");
   }
 
   const branchCoverage = fs.readFileSync(
@@ -31,8 +32,6 @@ export const compareAndPost = async (ghToken: string) => {
   const branchCov = JSON.parse(branchCoverage.toString());
 
   const octokit = github.getOctokit(ghToken);
-
-  console.log("building coverage reports...");
 
   const allComments = await octokit.rest.issues.listComments({
     issue_number: github.context.issue.number,
@@ -76,13 +75,13 @@ export const compareAndPost = async (ghToken: string) => {
   };
 
   if (existingComment) {
-    console.log("updating comment...");
+    core.info("updating comment...");
     await octokit.rest.issues.updateComment({
       comment_id: existingComment.id,
       ...commentParams,
     });
   } else {
-    console.log("adding comment...");
+    core.info("adding comment...");
     octokit.rest.issues.createComment({
       issue_number: github.context.issue.number,
       ...commentParams,
