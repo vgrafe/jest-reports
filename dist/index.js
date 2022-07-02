@@ -73,18 +73,22 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
     const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("## Coverage report"); });
     let commentBody = "";
     if (mainCov) {
-        const tables = (0, summaryToTable_1.summariesToTable)(branchCov, mainCov);
+        const reports = (0, summaryToTable_1.summariesToTable)(branchCov, mainCov);
         commentBody = `## Coverage report\n`;
-        if (!mainCov)
-            commentBody += "base branch coverage report not found\n";
-        if (tables.summaryTable)
-            commentBody += `${tables.summaryTable}\n`;
-        if (tables.tables.regressions)
-            commentBody += collapsible("Regressions", tables.tables.regressions);
-        if (tables.tables.added)
-            commentBody += collapsible("New files", tables.tables.added);
-        if (tables.tables.healthy)
-            commentBody += collapsible("Unchanged", tables.tables.healthy);
+        if (reports.error)
+            commentBody += reports.error;
+        else {
+            if (!mainCov)
+                commentBody += "base branch coverage report not found\n";
+            if (reports.summaryTable)
+                commentBody += `${reports.summaryTable}\n`;
+            if (reports.tables.regressions)
+                commentBody += collapsible("Regressions", reports.tables.regressions);
+            if (reports.tables.added)
+                commentBody += collapsible("New files", reports.tables.added);
+            if (reports.tables.healthy)
+                commentBody += collapsible("Unchanged", reports.tables.healthy);
+        }
     }
     else {
         const tables = (0, summaryToTable_1.summaryToTable)(branchCov);
@@ -180,12 +184,6 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
 });
-// to merge shard reports
-// npx nyc merge coverage coverage/merged-coverage.json
-// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
-// nyc is deprecated, so let's do:L
-// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
-// ok istambul is also deprecated, wtf
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting couette...");
     try {
@@ -250,6 +248,12 @@ run();
  git push --follow-tags
 
 */
+// to merge shard reports
+// npx nyc merge coverage coverage/merged-coverage.json
+// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
+// nyc is deprecated, so let's do:L
+// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
+// ok istambul is also deprecated, wtf
 
 
 /***/ }),
@@ -396,6 +400,9 @@ const summaryToTable = (summary) => {
 exports.summaryToTable = summaryToTable;
 const summariesToTable = (summary, baseSummary) => {
     const [_, ...summaryRows] = Object.keys(summary);
+    const error = summary.total.lines.total === "Unknown"
+        ? "The tests ran without error, but coverage could not be calculated."
+        : null;
     const summaryTable = (0, markdown_table_1.markdownTable)([
         ["", "total", "coverage", "change"],
         ...["lines", "statements", "branches", "functions"].map((field) => [
@@ -451,7 +458,7 @@ const summariesToTable = (summary, baseSummary) => {
         regressions: makeTable(regressions),
         healthy: makeTable(healthy, false),
     };
-    return { summaryTable, tables };
+    return { summaryTable, tables, error };
 };
 exports.summariesToTable = summariesToTable;
 
