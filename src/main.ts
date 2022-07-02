@@ -31,7 +31,7 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
   }
 
   await exec(
-    `npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`,
+    `npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`,
     undefined,
     {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
