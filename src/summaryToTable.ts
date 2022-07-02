@@ -59,6 +59,11 @@ export const summaryToTable = (summary: any) => {
 export const summariesToTable = (summary: any, baseSummary: any) => {
   const [_, ...summaryRows] = Object.keys(summary);
 
+  const error =
+    summary.total.lines.total === "Unknown"
+      ? "The tests ran without error, but coverage could not be calculated."
+      : null;
+
   const summaryTable = markdownTable(
     [
       ["", "total", "coverage", "change"],
@@ -133,5 +138,5 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
     healthy: makeTable(healthy, false),
   };
 
-  return { summaryTable, tables };
+  return { summaryTable, tables, error };
 };

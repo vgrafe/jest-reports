@@ -44,13 +44,6 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
   });
 };
 
-// to merge shard reports
-// npx nyc merge coverage coverage/merged-coverage.json
-// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
-// nyc is deprecated, so let's do:L
-// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
-// ok istambul is also deprecated, wtf
-
 const run = async () => {
   core.info("starting couette...");
 
@@ -136,3 +129,10 @@ run();
  git push --follow-tags
 
 */
+
+// to merge shard reports
+// npx nyc merge coverage coverage/merged-coverage.json
+// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
+// nyc is deprecated, so let's do:L
+// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
+// ok istambul is also deprecated, wtf
