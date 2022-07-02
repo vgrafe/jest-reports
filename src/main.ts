@@ -16,7 +16,6 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
   });
 
   // tries to get cached dependencies
-  core.info("restoring node_modules cache...");
   let yarnCacheDir = "";
   await exec(`yarn cache dir`, undefined, {
     listeners: {
@@ -25,6 +24,7 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
       },
     },
   });
+  core.info(`restoring yarn cache from ${yarnCacheDir}..`);
 
   const found = await cache.restoreCache(
     [yarnCacheDir],

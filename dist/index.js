@@ -167,7 +167,6 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
     // tries to get cached dependencies
-    core.info("restoring node_modules cache...");
     let yarnCacheDir = "";
     yield (0, exec_1.exec)(`yarn cache dir`, undefined, {
         listeners: {
@@ -176,6 +175,7 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
             },
         },
     });
+    core.info(`restoring yarn cache from ${yarnCacheDir}..`);
     const found = yield cache.restoreCache([yarnCacheDir], `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`);
     if (found)
         core.info("found!");
