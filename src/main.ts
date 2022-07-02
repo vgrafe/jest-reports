@@ -33,10 +33,15 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
 
   if (found) core.info("found!");
   else {
-    core.info("not found");
+    core.info("not found. running yarn...");
     await exec(`yarn`, undefined, {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
+    core.info("caching yarn cache...");
+    await cache.saveCache(
+      [yarnCacheDir],
+      `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
+    );
   }
 
   await exec(

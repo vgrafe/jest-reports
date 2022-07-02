@@ -180,10 +180,12 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     if (found)
         core.info("found!");
     else {
-        core.info("not found");
+        core.info("not found. running yarn...");
         yield (0, exec_1.exec)(`yarn`, undefined, {
             cwd: `${process.cwd()}/${github.context.repo.repo}`,
         });
+        core.info("caching yarn cache...");
+        yield cache.saveCache([yarnCacheDir], `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`);
     }
     yield (0, exec_1.exec)(`npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,
