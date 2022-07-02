@@ -17,9 +17,18 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
 
   // tries to get cached dependencies
   core.info("restoring node_modules cache...");
+  let yarnCacheDir = "";
+  await exec(`yarn cache dir`, undefined, {
+    listeners: {
+      stdout: (data: Buffer) => {
+        yarnCacheDir = data.toString();
+      },
+    },
+  });
+
   const found = await cache.restoreCache(
-    [`**/node_modules`],
-    `couette-dependencies-1-${glob.hashFiles(`**/yarn.lock`)}`
+    [yarnCacheDir],
+    `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
   );
 
   if (found) core.info("found!");
