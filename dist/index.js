@@ -180,7 +180,8 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
     //   [yarnCacheDir],
     //   `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
     // );
-    const found = yield cache.restoreCache(["**/node_modules"], `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`);
+    const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(`**/yarn.lock`)}`;
+    const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
     if (found)
         core.info("found!");
     else {
@@ -189,7 +190,7 @@ const getCoverageAtBranch = (sha, fileName) => __awaiter(void 0, void 0, void 0,
             cwd: `${process.cwd()}/${github.context.repo.repo}`,
         });
         core.info("caching yarn cache...");
-        yield cache.saveCache(["**/node_modules"], `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`);
+        yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
     yield (0, exec_1.exec)(`npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`, undefined, {
         cwd: `${process.cwd()}/${github.context.repo.repo}`,

@@ -31,9 +31,13 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
   //   `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
   // );
 
+  const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(
+    `**/yarn.lock`
+  )}`;
+
   const found = await cache.restoreCache(
     ["**/node_modules"],
-    `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
+    dependenciesCacheKey
   );
 
   if (found) core.info("found!");
@@ -43,10 +47,7 @@ const getCoverageAtBranch = async (sha: string, fileName: string) => {
       cwd: `${process.cwd()}/${github.context.repo.repo}`,
     });
     core.info("caching yarn cache...");
-    await cache.saveCache(
-      ["**/node_modules"],
-      `couette-dependencies-2-${glob.hashFiles(`**/yarn.lock`)}`
-    );
+    await cache.saveCache(["**/node_modules"], dependenciesCacheKey);
   }
 
   await exec(
