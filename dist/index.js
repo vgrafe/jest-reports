@@ -380,10 +380,10 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 yield cache.saveCache([baseCachePath], baseCoverageCacheKey);
             }
             core.info("converting coverage file into mardown table...");
-            const mainCoverage = fs_1.default.readFileSync(`${process.cwd()}/coverage/base.json`);
-            const mainCov = JSON.parse(mainCoverage.toString());
-            const branchCoverage = fs_1.default.readFileSync(process.cwd() + `/coverage/branch.json`);
-            const branchCov = JSON.parse(branchCoverage.toString());
+            const mainCoverageFileStr = fs_1.default.readFileSync(`${process.cwd()}/coverage/base.json`);
+            const mainCoverage = JSON.parse(mainCoverageFileStr.toString());
+            const branchCoverageFileStr = fs_1.default.readFileSync(process.cwd() + `/coverage/branch.json`);
+            const branchCoverage = JSON.parse(branchCoverageFileStr.toString());
             const coverageMarkdownReport = (0, covReportsToSummary_1.covReportsToSummary)(branchCoverage, mainCoverage);
             yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
         }

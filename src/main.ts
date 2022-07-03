@@ -71,15 +71,15 @@ const run = async () => {
 
       core.info("converting coverage file into mardown table...");
 
-      const mainCoverage = fs.readFileSync(
+      const mainCoverageFileStr = fs.readFileSync(
         `${process.cwd()}/coverage/base.json`
       );
-      const mainCov = JSON.parse(mainCoverage.toString());
+      const mainCoverage = JSON.parse(mainCoverageFileStr.toString());
 
-      const branchCoverage = fs.readFileSync(
+      const branchCoverageFileStr = fs.readFileSync(
         process.cwd() + `/coverage/branch.json`
       );
-      const branchCov = JSON.parse(branchCoverage.toString());
+      const branchCoverage = JSON.parse(branchCoverageFileStr.toString());
 
       const coverageMarkdownReport = covReportsToSummary(
         branchCoverage,
