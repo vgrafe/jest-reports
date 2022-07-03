@@ -3,7 +3,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as cache from "@actions/cache";
 import { exec } from "@actions/exec";
-import { compareAndPost } from "./compareAndPost";
+import { postToGithub } from "./postToGithub";
 import { covReportsToSummary } from "./covReportsToSummary";
 import { summary1, summary2 } from "./mock/json-summary";
 import { success } from "./mock/json-result";
@@ -19,20 +19,22 @@ const run = async () => {
   try {
     const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
     const octokit = github.getOctokit(GITHUB_TOKEN);
-    const isPullRequest = github.context.eventName === "pull_request";
 
+    core.info(`cloning ${github.context.repo.repo}...`);
+
+    await exec(
+      `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`
+    );
+
+    const isPullRequest = github.context.eventName === "pull_request";
     if (isPullRequest) {
+      core.info(`starting the pull request workflow...`);
+
       const { data: pullRequest } = await octokit.rest.pulls.get({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
         pull_number: github.context.issue.number,
       });
-
-      core.info(`cloning ${github.context.repo.repo}...`);
-
-      await exec(
-        `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`
-      );
 
       core.info("computing PR coverage...");
 
@@ -68,7 +70,23 @@ const run = async () => {
       }
 
       core.info("converting coverage file into mardown table...");
-      await compareAndPost(GITHUB_TOKEN);
+
+      const mainCoverage = fs.readFileSync(
+        `${process.cwd()}/coverage/base.json`
+      );
+      const mainCov = JSON.parse(mainCoverage.toString());
+
+      const branchCoverage = fs.readFileSync(
+        process.cwd() + `/coverage/branch.json`
+      );
+      const branchCov = JSON.parse(branchCoverage.toString());
+
+      const coverageMarkdownReport = covReportsToSummary(
+        branchCoverage,
+        mainCoverage
+      );
+
+      await postToGithub(coverageMarkdownReport);
     }
 
     core.info("done!");

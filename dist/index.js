@@ -159,120 +159,6 @@ exports.checkoutAndBuildCoverage = checkoutAndBuildCoverage;
 
 /***/ }),
 
-/***/ 1569:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.compareAndPost = void 0;
-const fs_1 = __importDefault(__nccwpck_require__(7147));
-const github = __importStar(__nccwpck_require__(5438));
-const core = __importStar(__nccwpck_require__(2186));
-const covReportsToSummary_1 = __nccwpck_require__(9752);
-const collapsible = (title, text) => `<details><summary>${title}</summary>
-
-${text}
-
-</details>`;
-const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* () {
-    let mainCov;
-    try {
-        const mainCoverage = fs_1.default.readFileSync(`${process.cwd()}/coverage/base.json`);
-        mainCov = JSON.parse(mainCoverage.toString());
-    }
-    catch (_a) {
-        core.info("No main coverage file found");
-    }
-    const branchCoverage = fs_1.default.readFileSync(process.cwd() + `/coverage/branch.json`);
-    const branchCov = JSON.parse(branchCoverage.toString());
-    const octokit = github.getOctokit(ghToken);
-    const allComments = yield octokit.rest.issues.listComments({
-        issue_number: github.context.issue.number,
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-    });
-    const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("## Coverage report"); });
-    let commentBody = "";
-    if (mainCov) {
-        const reports = (0, covReportsToSummary_1.covReportsToSummary)(branchCov, mainCov);
-        commentBody = `## Coverage report\n`;
-        if (reports.error)
-            commentBody += reports.error;
-        else {
-            if (!mainCov)
-                commentBody += "base branch coverage report not found\n";
-            if (reports.summaryTable)
-                commentBody += `${reports.summaryTable}\n`;
-            if (reports.tables.regressions)
-                commentBody += collapsible("Regressions", reports.tables.regressions);
-            if (reports.tables.added)
-                commentBody += collapsible("New files", reports.tables.added);
-            // no value in showing this table, but leaving it in for future reference
-            // if (reports.tables.healthy)
-            //   commentBody += collapsible("Unchanged", reports.tables.healthy);
-        }
-    }
-    else {
-        // const tables = summaryToTable(branchCov);
-        // commentBody = `## Coverage report\n${
-        //   !mainCov ? "base branch coverage report not found.\n" : ""
-        // }\n\n${tables.summaryTable}\n\n${tables.tables.all}`;
-    }
-    const commentParams = {
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-        body: commentBody,
-    };
-    if (existingComment) {
-        core.info("updating comment...");
-        yield octokit.rest.issues.updateComment(Object.assign({ comment_id: existingComment.id }, commentParams));
-    }
-    else {
-        core.info("adding comment...");
-        octokit.rest.issues.createComment(Object.assign({ issue_number: github.context.issue.number }, commentParams));
-    }
-});
-exports.compareAndPost = compareAndPost;
-
-
-/***/ }),
-
 /***/ 9752:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -456,7 +342,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
-const compareAndPost_1 = __nccwpck_require__(1569);
+const postToGithub_1 = __nccwpck_require__(9847);
 const covReportsToSummary_1 = __nccwpck_require__(9752);
 const json_summary_1 = __nccwpck_require__(5253);
 const json_result_1 = __nccwpck_require__(8316);
@@ -467,15 +353,16 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
         const octokit = github.getOctokit(GITHUB_TOKEN);
+        core.info(`cloning ${github.context.repo.repo}...`);
+        yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
         const isPullRequest = github.context.eventName === "pull_request";
         if (isPullRequest) {
+            core.info(`starting the pull request workflow...`);
             const { data: pullRequest } = yield octokit.rest.pulls.get({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 pull_number: github.context.issue.number,
             });
-            core.info(`cloning ${github.context.repo.repo}...`);
-            yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
             core.info("computing PR coverage...");
             yield (0, checkoutAndRunTests_1.checkoutAndBuildCoverage)(pullRequest.head.sha, "coverage/branch.json");
             const testsOutput = fs_1.default.readFileSync(`${process.cwd()}/coverage/tests-output.json`);
@@ -493,7 +380,12 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 yield cache.saveCache([baseCachePath], baseCoverageCacheKey);
             }
             core.info("converting coverage file into mardown table...");
-            yield (0, compareAndPost_1.compareAndPost)(GITHUB_TOKEN);
+            const mainCoverage = fs_1.default.readFileSync(`${process.cwd()}/coverage/base.json`);
+            const mainCov = JSON.parse(mainCoverage.toString());
+            const branchCoverage = fs_1.default.readFileSync(process.cwd() + `/coverage/branch.json`);
+            const branchCov = JSON.parse(branchCoverage.toString());
+            const coverageMarkdownReport = (0, covReportsToSummary_1.covReportsToSummary)(branchCoverage, mainCoverage);
+            yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
         }
         core.info("done!");
         // clears buffer in case stuff was left out, which would be written.
@@ -839,6 +731,102 @@ exports.summary2 = {
         branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
     },
 };
+
+
+/***/ }),
+
+/***/ 9847:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.postToGithub = void 0;
+const github = __importStar(__nccwpck_require__(5438));
+const core = __importStar(__nccwpck_require__(2186));
+const collapsible = (title, text) => `<details><summary>${title}</summary>
+
+${text}
+
+</details>`;
+const postToGithub = (reportSections) => __awaiter(void 0, void 0, void 0, function* () {
+    const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
+    const octokit = github.getOctokit(GITHUB_TOKEN);
+    const allComments = yield octokit.rest.issues.listComments({
+        issue_number: github.context.issue.number,
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+    });
+    const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("## Coverage report"); });
+    let commentBody = "";
+    // if (baseCoverage) {
+    commentBody = `## Coverage report\n`;
+    if (reportSections.error)
+        commentBody += reportSections.error;
+    else {
+        if (reportSections.summaryTable)
+            commentBody += `${reportSections.summaryTable}\n`;
+        if (reportSections.tables.regressions)
+            commentBody += collapsible("Regressions", reportSections.tables.regressions);
+        if (reportSections.tables.added)
+            commentBody += collapsible("New files", reportSections.tables.added);
+        // no value in showing this table, but leaving it in for future reference
+        // if (reportSections.tables.healthy)
+        //   commentBody += collapsible("Unchanged", reportSections.tables.healthy);
+        // }
+        // } else {
+        // const tables = summaryToTable(branchCov);
+        // commentBody = `## Coverage report\n${
+        //   !mainCov ? "base branch coverage report not found.\n" : ""
+        // }\n\n${tables.summaryTable}\n\n${tables.tables.all}`;
+    }
+    const commentParams = {
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        body: commentBody,
+    };
+    if (existingComment) {
+        core.info("updating comment...");
+        yield octokit.rest.issues.updateComment(Object.assign({ comment_id: existingComment.id }, commentParams));
+    }
+    else {
+        core.info("adding comment...");
+        octokit.rest.issues.createComment(Object.assign({ issue_number: github.context.issue.number }, commentParams));
+    }
+});
+exports.postToGithub = postToGithub;
 
 
 /***/ }),
