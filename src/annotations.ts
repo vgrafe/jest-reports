@@ -28,13 +28,32 @@ const getLocation = (
 export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
   const annotations: any[] = [];
 
+  const addOrAppendAnnotation = (newAnnotation: any) => {
+    const existingAnnotation = annotations.find(
+      (annotation: any) =>
+        annotation.path === newAnnotation.path &&
+        annotation.start_line === newAnnotation.start_line &&
+        annotation.end_line === newAnnotation.end_line
+    );
+
+    if (
+      existingAnnotation &&
+      !existingAnnotation.message.includes(newAnnotation.message)
+    ) {
+      existingAnnotation.message =
+        existingAnnotation.message + `\n${newAnnotation.annotations[0]}`;
+    } else {
+      annotations.push(newAnnotation);
+    }
+  };
+
   Object.entries(jsonReport.coverageMap).forEach(
     ([fileName, fileCoverage]: [string, any]) => {
       const normalizedFilename = relative(process.cwd(), fileName);
       Object.entries(fileCoverage.statementMap).forEach(
         ([statementIndex, statementCoverage]: [string, any]) => {
           if (fileCoverage.s[+statementIndex] === 0) {
-            annotations.push({
+            addOrAppendAnnotation({
               ...getLocation(statementCoverage.start, statementCoverage.end),
               path: normalizedFilename,
               annotation_level: "warning",
@@ -50,7 +69,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
             branchCoverage.locations.forEach(
               (location: any, locationIndex: any) => {
                 if (fileCoverage.b[+branchIndex][locationIndex] === 0) {
-                  annotations.push({
+                  addOrAppendAnnotation({
                     ...getLocation(location.start, location.end),
                     path: normalizedFilename,
                     annotation_level: "warning",
@@ -66,7 +85,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
       Object.entries(fileCoverage.fnMap).forEach(
         ([functionIndex, functionCoverage]: [string, any]) => {
           if (fileCoverage.f[+functionIndex] === 0) {
-            annotations.push({
+            addOrAppendAnnotation({
               ...getLocation(
                 functionCoverage.decl.start,
                 functionCoverage.decl.end
