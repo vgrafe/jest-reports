@@ -143,7 +143,7 @@ const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void
         core.info("caching node_modules...");
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
-    yield (0, exec_1.exec)(`npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`, undefined, {
+    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`, undefined, {
         cwd: process.cwd(),
     });
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`, undefined, {
