@@ -31,11 +31,7 @@ const run = async () => {
       core.info(`cloning ${github.context.repo.repo}...`);
 
       await exec(
-        `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`,
-        undefined,
-        {
-          cwd: process.cwd(),
-        }
+        `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`
       );
 
       core.info("computing PR coverage...");

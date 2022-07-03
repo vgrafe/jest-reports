@@ -126,29 +126,19 @@ const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
 const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, exec_1.exec)(`git fetch`, undefined, {
-        cwd: process.cwd(),
-    });
-    yield (0, exec_1.exec)(`git checkout ${sha}`, undefined, {
-        cwd: process.cwd(),
-    });
+    yield (0, exec_1.exec)(`git fetch`);
+    yield (0, exec_1.exec)(`git checkout ${sha}`);
     core.info(`restoring node_modules...`);
     const dependenciesCacheKey = `couette-dependencies-9-${glob.hashFiles(`**/yarn.lock`)}`;
     const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
     if (!found) {
         core.info("running yarn...");
-        yield (0, exec_1.exec)(`yarn`, undefined, {
-            cwd: process.cwd(),
-        });
+        yield (0, exec_1.exec)(`yarn`);
         core.info("caching node_modules...");
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
-    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`, undefined, {
-        cwd: process.cwd(),
-    });
-    yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`, undefined, {
-        cwd: process.cwd(),
-    });
+    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`);
+    yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`);
 });
 exports.checkoutAndBuildCoverage = checkoutAndBuildCoverage;
 
@@ -503,9 +493,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 pull_number: github.context.issue.number,
             });
             core.info(`cloning ${github.context.repo.repo}...`);
-            yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`, undefined, {
-                cwd: process.cwd(),
-            });
+            yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
             core.info("computing PR coverage...");
             yield (0, checkoutAndRunTests_1.checkoutAndBuildCoverage)(pullRequest.head.sha, "coverage/branch.json");
             const testsOutput = fs_1.default.readFileSync(`${process.cwd()}/coverage/tests-output.json`);
