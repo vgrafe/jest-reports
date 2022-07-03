@@ -48,16 +48,16 @@ const createCoverageAnnotationsFromReport = (jsonReport) => {
     return annotations.filter((annotation) => isValidNumber(annotation.start_line) && isValidNumber(annotation.end_line));
 };
 exports.createCoverageAnnotationsFromReport = createCoverageAnnotationsFromReport;
-const maxReportedAnnotations = 100;
+const maxReportedAnnotations = 50;
 const formatCoverageAnnotations = (annotations) => {
     var _a, _b;
     return (Object.assign(Object.assign({}, github_1.context.repo), { status: "completed", head_sha: (_b = (_a = github_1.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.sha) !== null && _b !== void 0 ? _b : github_1.context.sha, conclusion: "success", name: "annotate-cov", output: {
             title: "Coverage annotations",
             summary: "See below the parts of the submission that are not covered",
             text: [
-                `${annotations.length} occurences reported, only the first ${maxReportedAnnotations} are shown.`,
-                annotations.length > maxReportedAnnotations &&
-                    `hiding ${annotations.length - maxReportedAnnotations} annotations`,
+                annotations.length > maxReportedAnnotations
+                    ? `${annotations.length} occurences were reported, but Github limits the maximum annotations per CI job to ${maxReportedAnnotations}.`
+                    : `${annotations.length} occurences were reported.`,
             ]
                 .filter(Boolean)
                 .join("\n"),
@@ -328,6 +328,20 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const testsOutput = fs_1.default.readFileSync(`${process.cwd()}/${github.context.repo.repo}/coverage/tests-output.json`);
             const jsonReport = JSON.parse(testsOutput.toString());
             const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(jsonReport);
+            // await core.summary
+            //   .addHeading("Test Results")
+            //   .addCodeBlock(generateTestResults(), "js")
+            //   .addTable([
+            //     [
+            //       { data: "File", header: true },
+            //       { data: "Result", header: true },
+            //     ],
+            //     ["foo.js", "Pass ✅"],
+            //     ["bar.js", "Fail ❌"],
+            //     ["test.js", "Pass ✅"],
+            //   ])
+            //   .addLink("View staging deployment!", "https://github.com")
+            //   .write();
             yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
             core.info("checking if base coverage was cached...");
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
@@ -718,6 +732,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.summariesToTable = exports.summaryToTable = void 0;
+const core = __importStar(__nccwpck_require__(2186));
 const markdown_table_1 = __nccwpck_require__(4701);
 const github = __importStar(__nccwpck_require__(5438));
 const getPercent = (summaryRow) => {
@@ -792,8 +807,14 @@ const summariesToTable = (summary, baseSummary) => {
         if (rows.length === 0)
             return null;
         if (compare)
-            return (0, markdown_table_1.markdownTable)([
-                ["", "module", "coverage", "change"],
+            return core.summary
+                .addTable([
+                [
+                    { data: "", header: true },
+                    { data: "module", header: true },
+                    { data: "coverage", header: true },
+                    { data: "change", header: true },
+                ],
                 ...rows.map((row) => [
                     getIcon(getPercent(summary[row])),
                     row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
@@ -801,7 +822,8 @@ const summariesToTable = (summary, baseSummary) => {
                     addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) -
                         (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
                 ]),
-            ], { align: ["l", "l", "r", "r"] });
+            ])
+                .stringify();
         else
             return (0, markdown_table_1.markdownTable)([
                 ["", "module", "coverage"],

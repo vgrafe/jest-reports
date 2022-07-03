@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import { markdownTable } from "markdown-table";
 import * as github from "@actions/github";
 
@@ -102,9 +103,14 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
     if (rows.length === 0) return null;
 
     if (compare)
-      return markdownTable(
-        [
-          ["", "module", "coverage", "change"],
+      return core.summary
+        .addTable([
+          [
+            { data: "", header: true },
+            { data: "module", header: true },
+            { data: "coverage", header: true },
+            { data: "change", header: true },
+          ],
           ...rows.map((row) => [
             getIcon(getPercent(summary[row])),
             row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
@@ -116,9 +122,8 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
               )
             ) + "%",
           ]),
-        ],
-        { align: ["l", "l", "r", "r"] }
-      );
+        ])
+        .stringify();
     else
       return markdownTable(
         [

@@ -87,7 +87,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
   );
 };
 
-const maxReportedAnnotations = 100;
+const maxReportedAnnotations = 50;
 
 export const formatCoverageAnnotations = (annotations: any) => ({
   ...context.repo,
@@ -99,9 +99,9 @@ export const formatCoverageAnnotations = (annotations: any) => ({
     title: "Coverage annotations",
     summary: "See below the parts of the submission that are not covered",
     text: [
-      `${annotations.length} occurences reported, only the first ${maxReportedAnnotations} are shown.`,
-      annotations.length > maxReportedAnnotations &&
-        `hiding ${annotations.length - maxReportedAnnotations} annotations`,
+      annotations.length > maxReportedAnnotations
+        ? `${annotations.length} occurences were reported, but Github limits the maximum annotations per CI job to ${maxReportedAnnotations}.`
+        : `${annotations.length} occurences were reported.`,
     ]
       .filter(Boolean)
       .join("\n"),
