@@ -31,7 +31,7 @@ const run = async () => {
       core.info(`cloning ${github.context.repo.repo}...`);
 
       await exec(
-        `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git`,
+        `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`,
         undefined,
         {
           cwd: process.cwd(),
@@ -46,34 +46,17 @@ const run = async () => {
       );
 
       const testsOutput = fs.readFileSync(
-        `${process.cwd()}/${
-          github.context.repo.repo
-        }/coverage/tests-output.json`
+        `${process.cwd()}/coverage/tests-output.json`
       );
       const jsonReport = JSON.parse(testsOutput.toString());
 
       const annotations = createCoverageAnnotationsFromReport(jsonReport);
-      // await core.summary
-      //   .addHeading("Test Results")
-      //   .addCodeBlock(generateTestResults(), "js")
-      //   .addTable([
-      //     [
-      //       { data: "File", header: true },
-      //       { data: "Result", header: true },
-      //     ],
-      //     ["foo.js", "Pass ✅"],
-      //     ["bar.js", "Fail ❌"],
-      //     ["test.js", "Pass ✅"],
-      //   ])
-      //   .addLink("View staging deployment!", "https://github.com")
-      //   .write();
-
       await octokit.rest.checks.create(formatCoverageAnnotations(annotations));
 
       core.info("checking if base coverage was cached...");
 
       const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
-      const baseCachePath = `${github.context.repo.repo}/coverage`;
+      const baseCachePath = `coverage`;
       const found = await cache.restoreCache(
         [baseCachePath],
         baseCoverageCacheKey
@@ -93,6 +76,9 @@ const run = async () => {
     }
 
     core.info("done!");
+
+    // clears buffer in case stuff was left out, which would be written.
+    core.summary.clear();
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
   }

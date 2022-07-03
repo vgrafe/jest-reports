@@ -1,5 +1,4 @@
 import * as core from "@actions/core";
-import * as github from "@actions/github";
 
 const getPercent = (summaryRow: any) => {
   const total =
@@ -54,7 +53,7 @@ const getIcon = (num: number) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢"
 //         ],
 //         ...summaryRows.map((row) => [
 //           getIcon(getPercent(summary[row])),
-//           row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
+//           row.replace(process.cwd() + `/`, ""),
 //           roundWithOneDigit(getPercent(summary[row])) + "%",
 //         ]),
 //       ])
@@ -128,7 +127,7 @@ export const covReportsToSummary = (summary: any, baseSummary: any) => {
           ],
           ...rows.map((row) => [
             getIcon(getPercent(summary[row])),
-            row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
+            row.replace(process.cwd() + `/`, ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
             addPlusIfPositive(
               roundWithOneDigit(
@@ -149,7 +148,7 @@ export const covReportsToSummary = (summary: any, baseSummary: any) => {
           ],
           ...rows.map((row) => [
             getIcon(getPercent(summary[row])),
-            row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
+            row.replace(process.cwd() + `/`, ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
           ]),
         ])

@@ -18,16 +18,14 @@ ${text}
 export const compareAndPost = async (ghToken: string) => {
   let mainCov;
   try {
-    const mainCoverage = fs.readFileSync(
-      `${process.cwd()}/${github.context.repo.repo}/coverage/base.json`
-    );
+    const mainCoverage = fs.readFileSync(`${process.cwd()}/coverage/base.json`);
     mainCov = JSON.parse(mainCoverage.toString());
   } catch {
     core.info("No main coverage file found");
   }
 
   const branchCoverage = fs.readFileSync(
-    process.cwd() + `/${github.context.repo.repo}/coverage/branch.json`
+    process.cwd() + `/coverage/branch.json`
   );
   const branchCov = JSON.parse(branchCoverage.toString());
 

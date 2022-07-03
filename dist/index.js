@@ -109,16 +109,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.checkoutAndBuildCoverage = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
 const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, exec_1.exec)(`git fetch`, undefined, {
-        cwd: `${process.cwd()}/${github.context.repo.repo}`,
+        cwd: process.cwd(),
     });
     yield (0, exec_1.exec)(`git checkout ${sha}`, undefined, {
-        cwd: `${process.cwd()}/${github.context.repo.repo}`,
+        cwd: process.cwd(),
     });
     core.info(`restoring node_modules...`);
     const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(`**/yarn.lock`)}`;
@@ -126,16 +125,16 @@ const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void
     if (!found) {
         core.info("running yarn...");
         yield (0, exec_1.exec)(`yarn`, undefined, {
-            cwd: `${process.cwd()}/${github.context.repo.repo}`,
+            cwd: process.cwd(),
         });
         core.info("caching node_modules...");
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
     yield (0, exec_1.exec)(`npx jest --maxWorkers=2 --ci --coverage --coverageReporters=json --coverageReporters=json-summary --reporters=github-actions --json --outputFile=coverage/tests-output.json`, undefined, {
-        cwd: `${process.cwd()}/${github.context.repo.repo}`,
+        cwd: process.cwd(),
     });
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`, undefined, {
-        cwd: `${process.cwd()}/${github.context.repo.repo}`,
+        cwd: process.cwd(),
     });
 });
 exports.checkoutAndBuildCoverage = checkoutAndBuildCoverage;
@@ -198,13 +197,13 @@ ${text}
 const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* () {
     let mainCov;
     try {
-        const mainCoverage = fs_1.default.readFileSync(`${process.cwd()}/${github.context.repo.repo}/coverage/base.json`);
+        const mainCoverage = fs_1.default.readFileSync(`${process.cwd()}/coverage/base.json`);
         mainCov = JSON.parse(mainCoverage.toString());
     }
     catch (_a) {
         core.info("No main coverage file found");
     }
-    const branchCoverage = fs_1.default.readFileSync(process.cwd() + `/${github.context.repo.repo}/coverage/branch.json`);
+    const branchCoverage = fs_1.default.readFileSync(process.cwd() + `/coverage/branch.json`);
     const branchCov = JSON.parse(branchCoverage.toString());
     const octokit = github.getOctokit(ghToken);
     const allComments = yield octokit.rest.issues.listComments({
@@ -288,7 +287,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.covReportsToSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const github = __importStar(__nccwpck_require__(5438));
 const getPercent = (summaryRow) => {
     const total = summaryRow.lines.total +
         summaryRow.statements.total +
@@ -330,7 +328,7 @@ const getIcon = (num) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 //         ],
 //         ...summaryRows.map((row) => [
 //           getIcon(getPercent(summary[row])),
-//           row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
+//           row.replace(process.cwd() + `/`, ""),
 //           roundWithOneDigit(getPercent(summary[row])) + "%",
 //         ]),
 //       ])
@@ -392,7 +390,7 @@ const covReportsToSummary = (summary, baseSummary) => {
                 ],
                 ...rows.map((row) => [
                     getIcon(getPercent(summary[row])),
-                    row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
+                    row.replace(process.cwd() + `/`, ""),
                     roundWithOneDigit(getPercent(summary[row])) + "%",
                     addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) -
                         (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
@@ -409,7 +407,7 @@ const covReportsToSummary = (summary, baseSummary) => {
                 ],
                 ...rows.map((row) => [
                     getIcon(getPercent(summary[row])),
-                    row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
+                    row.replace(process.cwd() + `/`, ""),
                     roundWithOneDigit(getPercent(summary[row])) + "%",
                 ]),
             ])
@@ -492,32 +490,18 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 pull_number: github.context.issue.number,
             });
             core.info(`cloning ${github.context.repo.repo}...`);
-            yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git`, undefined, {
+            yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`, undefined, {
                 cwd: process.cwd(),
             });
             core.info("computing PR coverage...");
             yield (0, checkoutAndRunTests_1.checkoutAndBuildCoverage)(pullRequest.head.sha, "coverage/branch.json");
-            const testsOutput = fs_1.default.readFileSync(`${process.cwd()}/${github.context.repo.repo}/coverage/tests-output.json`);
+            const testsOutput = fs_1.default.readFileSync(`${process.cwd()}/coverage/tests-output.json`);
             const jsonReport = JSON.parse(testsOutput.toString());
             const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(jsonReport);
-            // await core.summary
-            //   .addHeading("Test Results")
-            //   .addCodeBlock(generateTestResults(), "js")
-            //   .addTable([
-            //     [
-            //       { data: "File", header: true },
-            //       { data: "Result", header: true },
-            //     ],
-            //     ["foo.js", "Pass ✅"],
-            //     ["bar.js", "Fail ❌"],
-            //     ["test.js", "Pass ✅"],
-            //   ])
-            //   .addLink("View staging deployment!", "https://github.com")
-            //   .write();
             yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
             core.info("checking if base coverage was cached...");
             const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
-            const baseCachePath = `${github.context.repo.repo}/coverage`;
+            const baseCachePath = `coverage`;
             const found = yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
             if (!found) {
                 core.info("computing base coverage...");
@@ -529,6 +513,8 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             yield (0, compareAndPost_1.compareAndPost)(GITHUB_TOKEN);
         }
         core.info("done!");
+        // clears buffer in case stuff was left out, which would be written.
+        core.summary.clear();
     }
     catch (error) {
         if (error instanceof Error)
