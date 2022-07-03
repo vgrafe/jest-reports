@@ -27,10 +27,10 @@ const createCoverageAnnotationsFromReport = (jsonReport) => {
         const existingAnnotation = annotations.find((annotation) => annotation.path === newAnnotation.path &&
             annotation.start_line === newAnnotation.start_line &&
             annotation.end_line === newAnnotation.end_line);
-        if (existingAnnotation &&
-            !existingAnnotation.message.includes(newAnnotation.message)) {
-            existingAnnotation.message =
-                existingAnnotation.message + `\n${newAnnotation.message}`;
+        if (existingAnnotation) {
+            if (!existingAnnotation.message.includes(newAnnotation.message))
+                existingAnnotation.message =
+                    existingAnnotation.message + `\n${newAnnotation.message}`;
         }
         else {
             annotations.push(newAnnotation);
