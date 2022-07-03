@@ -38,8 +38,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
               ...getLocation(statementCoverage.start, statementCoverage.end),
               path: normalizedFilename,
               annotation_level: "warning",
-              title: "Statement not covered",
-              // message: "notCoveredStatementMessage",
+              message: "Statement not covered",
             });
           }
         }
@@ -55,8 +54,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
                     ...getLocation(location.start, location.end),
                     path: normalizedFilename,
                     annotation_level: "warning",
-                    title: "Branch not covered",
-                    // message: "notCoveredBranchMessage",
+                    message: "Branch not covered",
                   });
                 }
               }
@@ -75,8 +73,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
               ),
               path: normalizedFilename,
               annotation_level: "warning",
-              title: "Function not covered",
-              // message: "notCoveredFunctionMessage",
+              message: "Function not covered",
             });
           }
         }

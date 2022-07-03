@@ -27,21 +27,21 @@ const createCoverageAnnotationsFromReport = (jsonReport) => {
         const normalizedFilename = (0, path_1.relative)(process.cwd(), fileName);
         Object.entries(fileCoverage.statementMap).forEach(([statementIndex, statementCoverage]) => {
             if (fileCoverage.s[+statementIndex] === 0) {
-                annotations.push(Object.assign(Object.assign({}, getLocation(statementCoverage.start, statementCoverage.end)), { path: normalizedFilename, annotation_level: "warning", title: "Statement not covered" }));
+                annotations.push(Object.assign(Object.assign({}, getLocation(statementCoverage.start, statementCoverage.end)), { path: normalizedFilename, annotation_level: "warning", message: "Statement not covered" }));
             }
         });
         Object.entries(fileCoverage.branchMap).forEach(([branchIndex, branchCoverage]) => {
             if (branchCoverage.locations) {
                 branchCoverage.locations.forEach((location, locationIndex) => {
                     if (fileCoverage.b[+branchIndex][locationIndex] === 0) {
-                        annotations.push(Object.assign(Object.assign({}, getLocation(location.start, location.end)), { path: normalizedFilename, annotation_level: "warning", title: "Branch not covered" }));
+                        annotations.push(Object.assign(Object.assign({}, getLocation(location.start, location.end)), { path: normalizedFilename, annotation_level: "warning", message: "Branch not covered" }));
                     }
                 });
             }
         });
         Object.entries(fileCoverage.fnMap).forEach(([functionIndex, functionCoverage]) => {
             if (fileCoverage.f[+functionIndex] === 0) {
-                annotations.push(Object.assign(Object.assign({}, getLocation(functionCoverage.decl.start, functionCoverage.decl.end)), { path: normalizedFilename, annotation_level: "warning", title: "Function not covered" }));
+                annotations.push(Object.assign(Object.assign({}, getLocation(functionCoverage.decl.start, functionCoverage.decl.end)), { path: normalizedFilename, annotation_level: "warning", message: "Function not covered" }));
             }
         });
     });
