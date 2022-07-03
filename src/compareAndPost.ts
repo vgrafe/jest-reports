@@ -53,8 +53,10 @@ export const compareAndPost = async (ghToken: string) => {
         commentBody += collapsible("Regressions", reports.tables.regressions);
       if (reports.tables.added)
         commentBody += collapsible("New files", reports.tables.added);
-      if (reports.tables.healthy)
-        commentBody += collapsible("Unchanged", reports.tables.healthy);
+
+      // no value in showing this table, but leaving it in for future reference
+      // if (reports.tables.healthy)
+      //   commentBody += collapsible("Unchanged", reports.tables.healthy);
     }
   } else {
     // const tables = summaryToTable(branchCov);

@@ -137,8 +137,7 @@ const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void
         core.info("caching node_modules...");
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
-    // --json outputs all tests results, including coverageMap used for coverage annotations
-    // --coverageReporters=json seems to output only the coverageMap from the file above, could be removed?
+    // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
     // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
     yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`);
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`);
@@ -232,8 +231,9 @@ const compareAndPost = (ghToken) => __awaiter(void 0, void 0, void 0, function* 
                 commentBody += collapsible("Regressions", reports.tables.regressions);
             if (reports.tables.added)
                 commentBody += collapsible("New files", reports.tables.added);
-            if (reports.tables.healthy)
-                commentBody += collapsible("Unchanged", reports.tables.healthy);
+            // no value in showing this table, but leaving it in for future reference
+            // if (reports.tables.healthy)
+            //   commentBody += collapsible("Unchanged", reports.tables.healthy);
         }
     }
     else {
