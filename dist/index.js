@@ -120,7 +120,7 @@ const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void
         cwd: process.cwd(),
     });
     core.info(`restoring node_modules...`);
-    const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(`**/yarn.lock`)}`;
+    const dependenciesCacheKey = `couette-dependencies-9-${glob.hashFiles(`**/yarn.lock`)}`;
     const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
     if (!found) {
         core.info("running yarn...");
@@ -500,7 +500,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(jsonReport);
             yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
             core.info("checking if base coverage was cached...");
-            const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
+            const baseCoverageCacheKey = `couette-covbase-9-${pullRequest.base.sha}`;
             const baseCachePath = `coverage`;
             const found = yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
             if (!found) {

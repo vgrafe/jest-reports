@@ -15,7 +15,7 @@ export const checkoutAndBuildCoverage = async (
   });
 
   core.info(`restoring node_modules...`);
-  const dependenciesCacheKey = `couette-dependencies-3-${glob.hashFiles(
+  const dependenciesCacheKey = `couette-dependencies-9-${glob.hashFiles(
     `**/yarn.lock`
   )}`;
 

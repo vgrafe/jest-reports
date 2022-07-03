@@ -55,7 +55,7 @@ const run = async () => {
 
       core.info("checking if base coverage was cached...");
 
-      const baseCoverageCacheKey = `couette-covbase-0-${pullRequest.base.sha}`;
+      const baseCoverageCacheKey = `couette-covbase-9-${pullRequest.base.sha}`;
       const baseCachePath = `coverage`;
       const found = await cache.restoreCache(
         [baseCachePath],
