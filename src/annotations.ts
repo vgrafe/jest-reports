@@ -45,8 +45,8 @@ export const createCoverageAnnotations = () => {
               ...getLocation(statementCoverage.start, statementCoverage.end),
               path: normalizedFilename,
               annotation_level: "warning",
-              title: "notCoveredStatementTitle",
-              message: "notCoveredStatementMessage",
+              title: "Statement not covered",
+              // message: "notCoveredStatementMessage",
             });
           }
         }
@@ -62,8 +62,8 @@ export const createCoverageAnnotations = () => {
                     ...getLocation(location.start, location.end),
                     path: normalizedFilename,
                     annotation_level: "warning",
-                    title: "notCoveredBranchTitle",
-                    message: "notCoveredBranchMessage",
+                    title: "Branch not covered",
+                    // message: "notCoveredBranchMessage",
                   });
                 }
               }
@@ -82,8 +82,8 @@ export const createCoverageAnnotations = () => {
               ),
               path: normalizedFilename,
               annotation_level: "warning",
-              title: "notCoveredFunctionTitle",
-              message: "notCoveredFunctionMessage",
+              title: "Function not covered",
+              // message: "notCoveredFunctionMessage",
             });
           }
         }
@@ -97,22 +97,24 @@ export const createCoverageAnnotations = () => {
   );
 };
 
+const maxReportedAnnotations = 100;
+
 export const formatCoverageAnnotations = (annotations: any) => ({
   ...context.repo,
   status: "completed",
   head_sha: context.payload.pull_request?.head.sha ?? context.sha,
   conclusion: "success",
-  name: "coveredCheckName",
+  name: "annotate-cov",
   output: {
-    title: "coverageTitle",
-    summary: "coverageAnnotations",
+    title: "Coverage annotations",
+    summary: "See below the parts of the submission that are not covered",
     text: [
-      "coverageAnnotationsText",
-      annotations.length > 50 &&
-        `hiding ${annotations.length - 50} annotations`,
+      `${annotations.length} occurences reported, only the first ${maxReportedAnnotations} are shown.`,
+      annotations.length > maxReportedAnnotations &&
+        `hiding ${annotations.length - maxReportedAnnotations} annotations`,
     ]
       .filter(Boolean)
       .join("\n"),
-    annotations: annotations.slice(0, 49),
+    annotations: annotations.slice(0, maxReportedAnnotations - 1),
   },
 });

@@ -57,40 +57,41 @@ const createCoverageAnnotations = () => {
         const normalizedFilename = (0, path_1.relative)(process.cwd(), fileName);
         Object.entries(fileCoverage.statementMap).forEach(([statementIndex, statementCoverage]) => {
             if (fileCoverage.s[+statementIndex] === 0) {
-                annotations.push(Object.assign(Object.assign({}, getLocation(statementCoverage.start, statementCoverage.end)), { path: normalizedFilename, annotation_level: "warning", title: "notCoveredStatementTitle", message: "notCoveredStatementMessage" }));
+                annotations.push(Object.assign(Object.assign({}, getLocation(statementCoverage.start, statementCoverage.end)), { path: normalizedFilename, annotation_level: "warning", title: "Statement not covered" }));
             }
         });
         Object.entries(fileCoverage.branchMap).forEach(([branchIndex, branchCoverage]) => {
             if (branchCoverage.locations) {
                 branchCoverage.locations.forEach((location, locationIndex) => {
                     if (fileCoverage.b[+branchIndex][locationIndex] === 0) {
-                        annotations.push(Object.assign(Object.assign({}, getLocation(location.start, location.end)), { path: normalizedFilename, annotation_level: "warning", title: "notCoveredBranchTitle", message: "notCoveredBranchMessage" }));
+                        annotations.push(Object.assign(Object.assign({}, getLocation(location.start, location.end)), { path: normalizedFilename, annotation_level: "warning", title: "Branch not covered" }));
                     }
                 });
             }
         });
         Object.entries(fileCoverage.fnMap).forEach(([functionIndex, functionCoverage]) => {
             if (fileCoverage.f[+functionIndex] === 0) {
-                annotations.push(Object.assign(Object.assign({}, getLocation(functionCoverage.decl.start, functionCoverage.decl.end)), { path: normalizedFilename, annotation_level: "warning", title: "notCoveredFunctionTitle", message: "notCoveredFunctionMessage" }));
+                annotations.push(Object.assign(Object.assign({}, getLocation(functionCoverage.decl.start, functionCoverage.decl.end)), { path: normalizedFilename, annotation_level: "warning", title: "Function not covered" }));
             }
         });
     });
     return annotations.filter((annotation) => isValidNumber(annotation.start_line) && isValidNumber(annotation.end_line));
 };
 exports.createCoverageAnnotations = createCoverageAnnotations;
+const maxReportedAnnotations = 100;
 const formatCoverageAnnotations = (annotations) => {
     var _a, _b;
-    return (Object.assign(Object.assign({}, github_1.context.repo), { status: "completed", head_sha: (_b = (_a = github_1.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.sha) !== null && _b !== void 0 ? _b : github_1.context.sha, conclusion: "success", name: "coveredCheckName", output: {
-            title: "coverageTitle",
-            summary: "coverageAnnotations",
+    return (Object.assign(Object.assign({}, github_1.context.repo), { status: "completed", head_sha: (_b = (_a = github_1.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.sha) !== null && _b !== void 0 ? _b : github_1.context.sha, conclusion: "success", name: "annotate-cov", output: {
+            title: "Coverage annotations",
+            summary: "See below the parts of the submission that are not covered",
             text: [
-                "coverageAnnotationsText",
-                annotations.length > 50 &&
-                    `hiding ${annotations.length - 50} annotations`,
+                `${annotations.length} occurences reported, only the first ${maxReportedAnnotations} are shown.`,
+                annotations.length > maxReportedAnnotations &&
+                    `hiding ${annotations.length - maxReportedAnnotations} annotations`,
             ]
                 .filter(Boolean)
                 .join("\n"),
-            annotations: annotations.slice(0, 49),
+            annotations: annotations.slice(0, maxReportedAnnotations - 1),
         } }));
 };
 exports.formatCoverageAnnotations = formatCoverageAnnotations;
