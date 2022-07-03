@@ -1,3 +1,4 @@
+import fs from "fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as cache from "@actions/cache";
@@ -5,9 +6,10 @@ import { exec } from "@actions/exec";
 import { compareAndPost } from "./compareAndPost";
 import { summariesToTable } from "./summaryToTable";
 import { summary1, summary2 } from "./mock/json-summary";
+import { success } from "./mock/json-result";
 import { checkoutAndBuildCoverage } from "./checkoutAndRunTests";
 import {
-  createCoverageAnnotations,
+  createCoverageAnnotationsFromReport,
   formatCoverageAnnotations,
 } from "./annotations";
 
@@ -43,7 +45,14 @@ const run = async () => {
         "coverage/branch.json"
       );
 
-      const annotations = createCoverageAnnotations();
+      const testsOutput = fs.readFileSync(
+        `${process.cwd()}/${
+          github.context.repo.repo
+        }/coverage/tests-output.json`
+      );
+      const jsonReport = JSON.parse(testsOutput.toString());
+
+      const annotations = createCoverageAnnotationsFromReport(jsonReport);
       await octokit.rest.checks.create(formatCoverageAnnotations(annotations));
 
       core.info("checking if base coverage was cached...");
@@ -88,6 +97,11 @@ const test = () => {
 
   console.log("healthy");
   console.log(a.tables.healthy);
+
+  console.log("annotations");
+
+  const annotations = createCoverageAnnotationsFromReport(success);
+  console.log(formatCoverageAnnotations(annotations));
 };
 
 run();

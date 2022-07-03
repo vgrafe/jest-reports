@@ -1,6 +1,4 @@
 import { relative } from "path";
-import * as github from "@actions/github";
-import fs from "fs";
 import { context } from "@actions/github";
 
 const isValidNumber = (value: unknown): value is number =>
@@ -27,13 +25,8 @@ const getLocation = (
       : undefined,
 });
 
-export const createCoverageAnnotations = () => {
+export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
   const annotations: any[] = [];
-
-  const testsOutput = fs.readFileSync(
-    `${process.cwd()}/${github.context.repo.repo}/coverage/tests-output.json`
-  );
-  const jsonReport = JSON.parse(testsOutput.toString());
 
   Object.entries(jsonReport.coverageMap).forEach(
     ([fileName, fileCoverage]: [string, any]) => {

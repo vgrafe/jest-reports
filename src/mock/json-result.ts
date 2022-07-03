@@ -1,4 +1,4 @@
-const fail = {
+export const fail = {
   numFailedTestSuites: 1,
   numFailedTests: 1,
   numPassedTestSuites: 3,
@@ -112,7 +112,7 @@ const fail = {
   wasInterrupted: false,
 };
 
-const success = {
+export const success = {
   numFailedTestSuites: 0,
   numFailedTests: 0,
   numPassedTestSuites: 4,
