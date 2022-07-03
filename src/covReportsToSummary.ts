@@ -23,47 +23,10 @@ const addPlusIfPositive = (num: number | string) =>
 
 const getIcon = (num: number) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 
-// export const summaryToTable = (summary: any) => {
-//   core.summary.clear();
-
-//   const [_, ...summaryRows] = Object.keys(summary);
-
-//   const summaryTable = core.summary
-//     .addTable([
-//       [
-//         { data: "", header: true },
-//         { data: "total", header: true },
-//         { data: "coverage", header: true },
-//       ],
-//       ...["lines", "statements", "branches", "functions"].map((field) => [
-//         getIcon(summary.total[field].total),
-//         field,
-//         roundWithOneDigit(summary.total[field].total) + "%",
-//       ]),
-//     ])
-//     .stringify();
-
-//   const tables = {
-//     all: core.summary
-//       .addTable([
-//         [
-//           { data: "", header: true },
-//           { data: "module", header: true },
-//           { data: "coverage", header: true },
-//         ],
-//         ...summaryRows.map((row) => [
-//           getIcon(getPercent(summary[row])),
-//           row.replace(process.cwd() + `/`, ""),
-//           roundWithOneDigit(getPercent(summary[row])) + "%",
-//         ]),
-//       ])
-//       .stringify(),
-//   };
-
-//   return { summaryTable, tables };
-// };
-
 export const covReportsToSummary = (summary: any, baseSummary: any) => {
+  // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
+  // we're abusing of the summary api to avoid relying on a crappier dependency
+  // to generage markdown tables. Using summaries could add value in the future.
   core.summary.clear();
 
   const [_, ...summaryRows] = Object.keys(summary);

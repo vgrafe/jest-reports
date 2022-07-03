@@ -137,7 +137,10 @@ const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void
         core.info("caching node_modules...");
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
-    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`);
+    // --json outputs all tests results, including coverageMap used for coverage annotations
+    // --coverageReporters=json seems to output only the coverageMap from the file above, could be removed?
+    // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
+    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`);
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`);
 });
 exports.checkoutAndBuildCoverage = checkoutAndBuildCoverage;
@@ -150,7 +153,6 @@ exports.checkoutAndBuildCoverage = checkoutAndBuildCoverage;
 
 "use strict";
 
-// @ts-check
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -304,42 +306,10 @@ const getPercent = (summaryRow) => {
 const roundWithOneDigit = (num) => Number(num).toFixed(1);
 const addPlusIfPositive = (num) => num.toString().includes("-") ? num : "+" + num;
 const getIcon = (num) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
-// export const summaryToTable = (summary: any) => {
-//   core.summary.clear();
-//   const [_, ...summaryRows] = Object.keys(summary);
-//   const summaryTable = core.summary
-//     .addTable([
-//       [
-//         { data: "", header: true },
-//         { data: "total", header: true },
-//         { data: "coverage", header: true },
-//       ],
-//       ...["lines", "statements", "branches", "functions"].map((field) => [
-//         getIcon(summary.total[field].total),
-//         field,
-//         roundWithOneDigit(summary.total[field].total) + "%",
-//       ]),
-//     ])
-//     .stringify();
-//   const tables = {
-//     all: core.summary
-//       .addTable([
-//         [
-//           { data: "", header: true },
-//           { data: "module", header: true },
-//           { data: "coverage", header: true },
-//         ],
-//         ...summaryRows.map((row) => [
-//           getIcon(getPercent(summary[row])),
-//           row.replace(process.cwd() + `/`, ""),
-//           roundWithOneDigit(getPercent(summary[row])) + "%",
-//         ]),
-//       ])
-//       .stringify(),
-//   };
-//   return { summaryTable, tables };
-// };
 const covReportsToSummary = (summary, baseSummary) => {
+    // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
+    // we're abusing of the summary api to avoid relying on a crappier dependency
+    // to generage markdown tables. Using summaries could add value in the future.
     core.summary.clear();
     const [_, ...summaryRows] = Object.keys(summary);
     const error = summary.total.lines.total === "Unknown"

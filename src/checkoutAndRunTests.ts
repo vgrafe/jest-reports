@@ -27,8 +27,11 @@ export const checkoutAndBuildCoverage = async (
     await cache.saveCache(["**/node_modules"], dependenciesCacheKey);
   }
 
+  // --json outputs all tests results, including coverageMap used for coverage annotations
+  // --coverageReporters=json seems to output only the coverageMap from the file above, could be removed?
+  // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
   await exec(
-    `npx jest --ci --coverage --coverageReporters=json --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`
+    `npx jest --ci --coverage --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`
   );
 
   await exec(`mv coverage/coverage-summary.json ${targetFileName}`);
