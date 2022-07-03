@@ -1,5 +1,4 @@
 import * as core from "@actions/core";
-import { markdownTable } from "markdown-table";
 import * as github from "@actions/github";
 
 const getPercent = (summaryRow: any) => {
@@ -28,30 +27,36 @@ const getIcon = (num: number) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢"
 export const summaryToTable = (summary: any) => {
   const [_, ...summaryRows] = Object.keys(summary);
 
-  const summaryTable = markdownTable(
-    [
-      ["", "total", "coverage"],
+  const summaryTable = core.summary
+    .addTable([
+      [
+        { data: "", header: true },
+        { data: "total", header: true },
+        { data: "coverage", header: true },
+      ],
       ...["lines", "statements", "branches", "functions"].map((field) => [
         getIcon(summary.total[field].total),
         field,
         roundWithOneDigit(summary.total[field].total) + "%",
       ]),
-    ],
-    { align: ["l", "l", "r"] }
-  );
+    ])
+    .stringify();
 
   const tables = {
-    all: markdownTable(
-      [
-        ["", "module", "coverage"],
+    all: core.summary
+      .addTable([
+        [
+          { data: "", header: true },
+          { data: "module", header: true },
+          { data: "coverage", header: true },
+        ],
         ...summaryRows.map((row) => [
           getIcon(getPercent(summary[row])),
           row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
           roundWithOneDigit(getPercent(summary[row])) + "%",
         ]),
-      ],
-      { align: ["l", "l", "r"] }
-    ),
+      ])
+      .stringify(),
   };
 
   return { summaryTable, tables };
@@ -65,9 +70,14 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
       ? "The tests ran without error, but coverage could not be calculated."
       : null;
 
-  const summaryTable = markdownTable(
-    [
-      ["", "total", "coverage", "change"],
+  const summaryTable = core.summary
+    .addTable([
+      [
+        { data: "", header: true },
+        { data: "total", header: true },
+        { data: "coverage", header: true },
+        { data: "change", header: true },
+      ],
       ...["lines", "statements", "branches", "functions"].map((field) => [
         getIcon(summary.total[field].pct),
         field,
@@ -78,9 +88,8 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
           )
         ) + "%",
       ]),
-    ],
-    { align: ["l", "l", "r", "r"] }
-  );
+    ])
+    .stringify();
 
   let added: string[] = [];
   let regressions: string[] = [];
@@ -125,17 +134,20 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
         ])
         .stringify();
     else
-      return markdownTable(
-        [
-          ["", "module", "coverage"],
+      return core.summary
+        .addTable([
+          [
+            { data: "", header: true },
+            { data: "module", header: true },
+            { data: "coverage", header: true },
+          ],
           ...rows.map((row) => [
             getIcon(getPercent(summary[row])),
             row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
             roundWithOneDigit(getPercent(summary[row])) + "%",
           ]),
-        ],
-        { align: ["l", "l", "r"] }
-      );
+        ])
+        .stringify();
   };
   const tables = {
     added: makeTable(added, false),

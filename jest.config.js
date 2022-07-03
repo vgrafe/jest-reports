@@ -5,7 +5,6 @@ module.exports = {
   transform: {
     "^.+\\.ts$": "ts-jest",
   },
-  transformIgnorePatterns: [`/node_modules/(?!markdown-table)`],
   globals: {
     "ts-jest": {
       tsconfig: "<rootDir>/tsconfig.json",
