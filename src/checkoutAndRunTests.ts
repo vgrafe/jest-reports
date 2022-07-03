@@ -27,11 +27,22 @@ export const checkoutAndBuildCoverage = async (
     await cache.saveCache(["**/node_modules"], dependenciesCacheKey);
   }
 
-  // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
-  // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
-  await exec(
-    `npx jest --ci --coverage --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`
-  );
+  // TODO
+  // const INPUT_CHANGES_ONLY = process.env.INPUT_INPUT_CHANGES_ONLY as string;
+  // const since =
+  //   INPUT_CHANGES_ONLY == "True" ? `--changedSince=${INPUT_CHANGES_ONLY}` : "";
+
+  await exec(`npx`, [
+    `jest`,
+    // since,
+    "--ci",
+    "--coverage",
+    // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
+    "--coverageReporters=json-summary",
+    // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
+    "--json",
+    "--outputFile=coverage/tests-output.json",
+  ]);
 
   await exec(`mv coverage/coverage-summary.json ${targetFileName}`);
 };

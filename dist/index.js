@@ -137,9 +137,21 @@ const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void
         core.info("caching node_modules...");
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
-    // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
-    // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
-    yield (0, exec_1.exec)(`npx jest --ci --coverage --coverageReporters=json-summary --json --outputFile=coverage/tests-output.json`);
+    // TODO
+    // const INPUT_CHANGES_ONLY = process.env.INPUT_INPUT_CHANGES_ONLY as string;
+    // const since =
+    //   INPUT_CHANGES_ONLY == "True" ? `--changedSince=${INPUT_CHANGES_ONLY}` : "";
+    yield (0, exec_1.exec)(`npx`, [
+        `jest`,
+        // since,
+        "--ci",
+        "--coverage",
+        // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
+        "--coverageReporters=json-summary",
+        // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
+        "--json",
+        "--outputFile=coverage/tests-output.json",
+    ]);
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`);
 });
 exports.checkoutAndBuildCoverage = checkoutAndBuildCoverage;
