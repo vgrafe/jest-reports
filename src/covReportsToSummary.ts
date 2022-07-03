@@ -24,45 +24,49 @@ const addPlusIfPositive = (num: number | string) =>
 
 const getIcon = (num: number) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 
-export const summaryToTable = (summary: any) => {
-  const [_, ...summaryRows] = Object.keys(summary);
+// export const summaryToTable = (summary: any) => {
+//   core.summary.clear();
 
-  const summaryTable = core.summary
-    .addTable([
-      [
-        { data: "", header: true },
-        { data: "total", header: true },
-        { data: "coverage", header: true },
-      ],
-      ...["lines", "statements", "branches", "functions"].map((field) => [
-        getIcon(summary.total[field].total),
-        field,
-        roundWithOneDigit(summary.total[field].total) + "%",
-      ]),
-    ])
-    .stringify();
+//   const [_, ...summaryRows] = Object.keys(summary);
 
-  const tables = {
-    all: core.summary
-      .addTable([
-        [
-          { data: "", header: true },
-          { data: "module", header: true },
-          { data: "coverage", header: true },
-        ],
-        ...summaryRows.map((row) => [
-          getIcon(getPercent(summary[row])),
-          row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
-          roundWithOneDigit(getPercent(summary[row])) + "%",
-        ]),
-      ])
-      .stringify(),
-  };
+//   const summaryTable = core.summary
+//     .addTable([
+//       [
+//         { data: "", header: true },
+//         { data: "total", header: true },
+//         { data: "coverage", header: true },
+//       ],
+//       ...["lines", "statements", "branches", "functions"].map((field) => [
+//         getIcon(summary.total[field].total),
+//         field,
+//         roundWithOneDigit(summary.total[field].total) + "%",
+//       ]),
+//     ])
+//     .stringify();
 
-  return { summaryTable, tables };
-};
+//   const tables = {
+//     all: core.summary
+//       .addTable([
+//         [
+//           { data: "", header: true },
+//           { data: "module", header: true },
+//           { data: "coverage", header: true },
+//         ],
+//         ...summaryRows.map((row) => [
+//           getIcon(getPercent(summary[row])),
+//           row.replace(process.cwd() + `/${github.context.repo.repo}/`, ""),
+//           roundWithOneDigit(getPercent(summary[row])) + "%",
+//         ]),
+//       ])
+//       .stringify(),
+//   };
 
-export const summariesToTable = (summary: any, baseSummary: any) => {
+//   return { summaryTable, tables };
+// };
+
+export const covReportsToSummary = (summary: any, baseSummary: any) => {
+  core.summary.clear();
+
   const [_, ...summaryRows] = Object.keys(summary);
 
   const error =
@@ -109,6 +113,8 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
   }
 
   const makeTable = (rows: string[], compare = true) => {
+    core.summary.clear();
+
     if (rows.length === 0) return null;
 
     if (compare)
@@ -149,6 +155,7 @@ export const summariesToTable = (summary: any, baseSummary: any) => {
         ])
         .stringify();
   };
+
   const tables = {
     added: makeTable(added, false),
     regressions: makeTable(regressions),

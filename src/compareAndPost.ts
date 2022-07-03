@@ -4,7 +4,7 @@ import fs from "fs";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 
-import { summariesToTable, summaryToTable } from "./summaryToTable";
+import { covReportsToSummary } from "./covReportsToSummary";
 
 const collapsible = (
   title: string,
@@ -46,7 +46,7 @@ export const compareAndPost = async (ghToken: string) => {
   let commentBody = "";
 
   if (mainCov) {
-    const reports = summariesToTable(branchCov, mainCov);
+    const reports = covReportsToSummary(branchCov, mainCov);
 
     commentBody = `## Coverage report\n`;
     if (reports.error) commentBody += reports.error;
@@ -61,11 +61,10 @@ export const compareAndPost = async (ghToken: string) => {
         commentBody += collapsible("Unchanged", reports.tables.healthy);
     }
   } else {
-    const tables = summaryToTable(branchCov);
-
-    commentBody = `## Coverage report\n${
-      !mainCov ? "base branch coverage report not found.\n" : ""
-    }\n\n${tables.summaryTable}\n\n${tables.tables.all}`;
+    // const tables = summaryToTable(branchCov);
+    // commentBody = `## Coverage report\n${
+    //   !mainCov ? "base branch coverage report not found.\n" : ""
+    // }\n\n${tables.summaryTable}\n\n${tables.tables.all}`;
   }
 
   const commentParams = {

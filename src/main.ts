@@ -4,7 +4,7 @@ import * as github from "@actions/github";
 import * as cache from "@actions/cache";
 import { exec } from "@actions/exec";
 import { compareAndPost } from "./compareAndPost";
-import { summariesToTable } from "./summaryToTable";
+import { covReportsToSummary } from "./covReportsToSummary";
 import { summary1, summary2 } from "./mock/json-summary";
 import { success } from "./mock/json-result";
 import { checkoutAndBuildCoverage } from "./checkoutAndRunTests";
@@ -99,7 +99,7 @@ const run = async () => {
 };
 
 const test = () => {
-  const a = summariesToTable(summary1, summary2);
+  const a = covReportsToSummary(summary1, summary2);
 
   console.log("summaryTable");
   console.log(a.summaryTable);

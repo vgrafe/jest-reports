@@ -1,8 +1,9 @@
 import { expect, test } from "@jest/globals";
-import { summariesToTable } from "../src/summaryToTable";
+import { covReportsToSummary } from "../src/covReportsToSummary";
+import { summary1, summary2 } from "./mock/json-summary";
 
 test("throws invalid number", async () => {
-  // const a = summariesToTable(sum1, sum2);
+  // const a = covReportsToSummary(summary1, summary2);
   // console.log(a);
   expect(1).toBe(1);
 });
@@ -12,7 +13,7 @@ test("throws invalid number", async () => {
 const test = () => {
  
 
-  const a = summariesToTable(sum1, sum2);
+  const a = covReportsToSummary(sum1, sum2);
 
   console.log("summaryTable");
   console.log(a.summaryTable);
