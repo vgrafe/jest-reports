@@ -21,13 +21,13 @@ export const postToGithub = async (body: string) => {
   });
 
   const existingComment = allComments.data.find((com) =>
-    com.body?.startsWith("# Coverage report")
+    com.body?.startsWith(`☂️`)
   );
 
   const commentParams = {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    body: `# Coverage reports\n${body}`,
+    body: `☂️\n${body}`,
   };
 
   if (existingComment) {

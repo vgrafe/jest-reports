@@ -268,10 +268,11 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const failedTests = prCoverageSinceBase.testsOutput.testResults.filter((a) => a.status !== "passed");
             if (failedTests.length > 0) {
                 //todo report tests in comment, exit with code != 0
-                core.summary
-                    .addHeading("Coverage report", 1)
+                const error = core.summary
                     .addRaw(`The following tests failed:`)
-                    .addList(failedTests.map((ft) => ft.name));
+                    .addList(failedTests.map((ft) => ft.name))
+                    .stringify();
+                (0, postToGithub_1.postToGithub)(error);
                 core.setFailed(`${failedTests.length} tests failed!`);
             }
             if (prCoverageSinceBase.testsOutput)
@@ -680,11 +681,11 @@ const postToGithub = (body) => __awaiter(void 0, void 0, void 0, function* () {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
     });
-    const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("# Coverage report"); });
+    const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith(`☂️`); });
     const commentParams = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        body: `# Coverage reports\n${body}`,
+        body: `☂️\n${body}`,
     };
     if (existingComment) {
         core.info("updating comment...");

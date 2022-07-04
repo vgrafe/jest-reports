@@ -64,10 +64,13 @@ const run = async () => {
       ).testResults.filter((a: any) => a.status !== "passed");
       if (failedTests.length > 0) {
         //todo report tests in comment, exit with code != 0
-        core.summary
-          .addHeading("Coverage report", 1)
+        const error = core.summary
           .addRaw(`The following tests failed:`)
-          .addList(failedTests.map((ft: any) => ft.name));
+          .addList(failedTests.map((ft: any) => ft.name))
+          .stringify();
+
+        postToGithub(error);
+
         core.setFailed(`${failedTests.length} tests failed!`);
       }
 
