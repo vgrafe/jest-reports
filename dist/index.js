@@ -246,19 +246,22 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 repo: github.context.repo.repo,
                 pull_number: github.context.issue.number,
             });
+            core.info("computing PR coverage since base...");
+            const branchCoverageSince = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
+            core.info("creating annotations...");
+            const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(branchCoverageSince.testsOutput);
+            yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
             core.info("computing PR total coverage...");
             const branchCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
-            core.info("creating annotations...");
-            const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(branchCoverage.testsOutput);
-            yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
             core.info("computing base coverage...");
             const mainCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
             core.info("converting coverage file into mardown table...");
             const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(branchCoverage.coverageSummary, mainCoverage.coverageSummary);
+            core.info("posting result to github, almost done!");
             yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
         }
-        core.info("done!");
-        // clears buffer in case stuff was left out, which would be written.
+        core.info("done, see you.");
+        // clears buffer in case stuff was left out, which would be written when the action ends
         core.summary.clear();
     }
     catch (error) {

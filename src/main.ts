@@ -34,14 +34,20 @@ const run = async () => {
         pull_number: github.context.issue.number,
       });
 
-      core.info("computing PR total coverage...");
-      const branchCoverage = await getCoverageForSha(pullRequest.head.sha);
+      core.info("computing PR coverage since base...");
+      const branchCoverageSince = await getCoverageForSha(
+        pullRequest.head.sha,
+        pullRequest.base.sha
+      );
 
       core.info("creating annotations...");
       const annotations = createCoverageAnnotationsFromReport(
-        branchCoverage.testsOutput
+        branchCoverageSince.testsOutput
       );
       await octokit.rest.checks.create(formatCoverageAnnotations(annotations));
+
+      core.info("computing PR total coverage...");
+      const branchCoverage = await getCoverageForSha(pullRequest.head.sha);
 
       core.info("computing base coverage...");
       const mainCoverage = await getCoverageForSha(pullRequest.base.sha);
@@ -52,12 +58,13 @@ const run = async () => {
         mainCoverage.coverageSummary
       );
 
+      core.info("posting result to github, almost done!");
       await postToGithub(coverageMarkdownReport);
     }
 
-    core.info("done!");
+    core.info("done, see you.");
 
-    // clears buffer in case stuff was left out, which would be written.
+    // clears buffer in case stuff was left out, which would be written when the action ends
     core.summary.clear();
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message);
