@@ -46,8 +46,10 @@ const run = async () => {
         baseCoverage.coverageSummary
       );
 
-      core.info("posting mardown reports to github...");
-      await postToGithub(coverageMarkdownReport);
+      if (coverageMarkdownReport.length) {
+        core.info("posting mardown reports to github...");
+        await postToGithub(coverageMarkdownReport);
+      }
 
       core.info("onwards to generate annotations!");
 

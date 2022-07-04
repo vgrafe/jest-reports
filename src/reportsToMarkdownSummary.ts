@@ -48,25 +48,29 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
     (field) => summary.total[field].pct - baseSummary.total[field].pct !== 0
   );
 
-  if (hasImpactOnTotalCoverage)
-    core.summary.addHeading("Impact on total coverage", 2).addTable([
-      [
-        { data: "", header: true },
-        { data: "total", header: true },
-        { data: "coverage", header: true },
-        { data: "change", header: true },
-      ],
-      ...["lines", "statements", "branches", "functions"].map((field) => [
-        getIcon(summary.total[field].pct),
-        field,
-        roundWithDigits(summary.total[field].pct) + "%",
-        addPlusIfPositive(
-          roundWithDigits(
-            summary.total[field].pct - baseSummary.total[field].pct
-          )
-        ) + "%",
-      ]),
+  const columns = ["lines", "statements", "branches", "functions"];
+
+  if (hasImpactOnTotalCoverage) {
+    const headers = columns.map((c) => ({ data: c, header: true }));
+
+    const cells = columns.map((c) => [
+      `${getIcon(summary.total.lines.pct)} ${roundWithDigits(
+        summary.total[c].pct
+      )}% ${
+        summary.total[c].pct - baseSummary.total[c].pct > 0
+          ? "(" +
+            addPlusIfPositive(
+              roundWithDigits(summary.total[c].pct - baseSummary.total[c].pct)
+            ) +
+            "%)"
+          : ""
+      }`,
     ]);
+
+    core.summary
+      .addHeading("Impact on total coverage", 2)
+      .addTable([headers, ...cells]);
+  }
 
   let added: string[] = [];
   let regressions: string[] = [];

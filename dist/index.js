@@ -256,8 +256,10 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
             core.info("converting coverage file into mardown reports...");
             const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
-            core.info("posting mardown reports to github...");
-            yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
+            if (coverageMarkdownReport.length) {
+                core.info("posting mardown reports to github...");
+                yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
+            }
             core.info("onwards to generate annotations!");
             core.info("computing PR coverage since base...");
             const prCoverageSinceBase = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
@@ -666,11 +668,11 @@ const postToGithub = (body) => __awaiter(void 0, void 0, void 0, function* () {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
     });
-    const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("## Coverage report"); });
+    const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("# Coverage report"); });
     const commentParams = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        body,
+        body: `# Coverage reports\n${body}`,
     };
     if (existingComment) {
         core.info("updating comment...");
@@ -747,21 +749,20 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
         "branches",
         "functions",
     ].some((field) => summary.total[field].pct - baseSummary.total[field].pct !== 0);
-    if (hasImpactOnTotalCoverage)
-        core.summary.addHeading("Impact on total coverage", 2).addTable([
-            [
-                { data: "", header: true },
-                { data: "total", header: true },
-                { data: "coverage", header: true },
-                { data: "change", header: true },
-            ],
-            ...["lines", "statements", "branches", "functions"].map((field) => [
-                getIcon(summary.total[field].pct),
-                field,
-                roundWithDigits(summary.total[field].pct) + "%",
-                addPlusIfPositive(roundWithDigits(summary.total[field].pct - baseSummary.total[field].pct)) + "%",
-            ]),
+    const columns = ["lines", "statements", "branches", "functions"];
+    if (hasImpactOnTotalCoverage) {
+        const headers = columns.map((c) => ({ data: c, header: true }));
+        const cells = columns.map((c) => [
+            `${getIcon(summary.total.lines.pct)} ${roundWithDigits(summary.total[c].pct)}% ${summary.total[c].pct - baseSummary.total[c].pct > 0
+                ? "(" +
+                    addPlusIfPositive(roundWithDigits(summary.total[c].pct - baseSummary.total[c].pct)) +
+                    "%)"
+                : ""}`,
         ]);
+        core.summary
+            .addHeading("Impact on total coverage", 2)
+            .addTable([headers, ...cells]);
+    }
     let added = [];
     let regressions = [];
     let healthy = [];
