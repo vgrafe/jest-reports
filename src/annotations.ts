@@ -25,8 +25,12 @@ const getLocation = (
       : undefined,
 });
 
-export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
-  const annotations: any[] = [];
+export const createCoverageAnnotationsFromReport = (
+  jsonReport: any,
+  level: "warning" | "info",
+  appendToExistingAnnotations?: any
+) => {
+  const annotations: any[] = appendToExistingAnnotations || [];
 
   const addOrAppendAnnotation = (newAnnotation: any) => {
     const existingAnnotation = annotations.find(
@@ -54,7 +58,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
             addOrAppendAnnotation({
               ...getLocation(statementCoverage.start, statementCoverage.end),
               path: normalizedFilename,
-              annotation_level: "warning",
+              annotation_level: level,
               message: "Statement not covered",
             });
           }
@@ -70,7 +74,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
                   addOrAppendAnnotation({
                     ...getLocation(location.start, location.end),
                     path: normalizedFilename,
-                    annotation_level: "warning",
+                    annotation_level: level,
                     message: "Branch not covered",
                   });
                 }
@@ -89,7 +93,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
                 functionCoverage.decl.end
               ),
               path: normalizedFilename,
-              annotation_level: "warning",
+              annotation_level: level,
               message: "Function not covered",
             });
           }
@@ -106,7 +110,7 @@ export const createCoverageAnnotationsFromReport = (jsonReport: any) => {
 
 const maxReportedAnnotations = 50;
 
-export const formatCoverageAnnotations = (annotations: any) => ({
+export const formatCoverageAnnotations = (annotations: any[]) => ({
   ...context.repo,
   status: "completed",
   head_sha: context.payload.pull_request?.head.sha ?? context.sha,

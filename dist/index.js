@@ -21,8 +21,8 @@ const getLocation = (start = { line: 0, column: undefined }, end = { line: 0, co
         ? end.column
         : undefined,
 });
-const createCoverageAnnotationsFromReport = (jsonReport) => {
-    const annotations = [];
+const createCoverageAnnotationsFromReport = (jsonReport, level, appendToExistingAnnotations) => {
+    const annotations = appendToExistingAnnotations || [];
     const addOrAppendAnnotation = (newAnnotation) => {
         const existingAnnotation = annotations.find((annotation) => annotation.path === newAnnotation.path &&
             annotation.start_line === newAnnotation.start_line &&
@@ -40,21 +40,21 @@ const createCoverageAnnotationsFromReport = (jsonReport) => {
         const normalizedFilename = (0, path_1.relative)(process.cwd(), fileName);
         Object.entries(fileCoverage.statementMap).forEach(([statementIndex, statementCoverage]) => {
             if (fileCoverage.s[+statementIndex] === 0) {
-                addOrAppendAnnotation(Object.assign(Object.assign({}, getLocation(statementCoverage.start, statementCoverage.end)), { path: normalizedFilename, annotation_level: "warning", message: "Statement not covered" }));
+                addOrAppendAnnotation(Object.assign(Object.assign({}, getLocation(statementCoverage.start, statementCoverage.end)), { path: normalizedFilename, annotation_level: level, message: "Statement not covered" }));
             }
         });
         Object.entries(fileCoverage.branchMap).forEach(([branchIndex, branchCoverage]) => {
             if (branchCoverage.locations) {
                 branchCoverage.locations.forEach((location, locationIndex) => {
                     if (fileCoverage.b[+branchIndex][locationIndex] === 0) {
-                        addOrAppendAnnotation(Object.assign(Object.assign({}, getLocation(location.start, location.end)), { path: normalizedFilename, annotation_level: "warning", message: "Branch not covered" }));
+                        addOrAppendAnnotation(Object.assign(Object.assign({}, getLocation(location.start, location.end)), { path: normalizedFilename, annotation_level: level, message: "Branch not covered" }));
                     }
                 });
             }
         });
         Object.entries(fileCoverage.fnMap).forEach(([functionIndex, functionCoverage]) => {
             if (fileCoverage.f[+functionIndex] === 0) {
-                addOrAppendAnnotation(Object.assign(Object.assign({}, getLocation(functionCoverage.decl.start, functionCoverage.decl.end)), { path: normalizedFilename, annotation_level: "warning", message: "Function not covered" }));
+                addOrAppendAnnotation(Object.assign(Object.assign({}, getLocation(functionCoverage.decl.start, functionCoverage.decl.end)), { path: normalizedFilename, annotation_level: level, message: "Function not covered" }));
             }
         });
     });
@@ -248,11 +248,12 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             });
             core.info("computing PR coverage since base...");
             const branchCoverageSince = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
-            core.info("creating annotations...");
-            const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(branchCoverageSince.testsOutput);
-            yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
             core.info("computing PR total coverage...");
             const branchCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
+            core.info("creating annotations for PR changes...");
+            const prAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(branchCoverageSince.testsOutput, "warning");
+            const allAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(branchCoverage.testsOutput, "info", prAnnotations);
+            yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(allAnnotations));
             core.info("computing base coverage...");
             const mainCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
             core.info("converting coverage file into mardown table...");
@@ -280,7 +281,7 @@ const test = () => {
     console.log("healthy");
     console.log(a.tables.healthy);
     console.log("annotations");
-    const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(json_result_1.success);
+    const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(json_result_1.success, "warning");
     console.log((0, annotations_1.formatCoverageAnnotations)(annotations));
 };
 run();

@@ -40,14 +40,22 @@ const run = async () => {
         pullRequest.base.sha
       );
 
-      core.info("creating annotations...");
-      const annotations = createCoverageAnnotationsFromReport(
-        branchCoverageSince.testsOutput
-      );
-      await octokit.rest.checks.create(formatCoverageAnnotations(annotations));
-
       core.info("computing PR total coverage...");
       const branchCoverage = await getCoverageForSha(pullRequest.head.sha);
+
+      core.info("creating annotations for PR changes...");
+      const prAnnotations = createCoverageAnnotationsFromReport(
+        branchCoverageSince.testsOutput,
+        "warning"
+      );
+      const allAnnotations = createCoverageAnnotationsFromReport(
+        branchCoverage.testsOutput,
+        "info",
+        prAnnotations
+      );
+      await octokit.rest.checks.create(
+        formatCoverageAnnotations(allAnnotations)
+      );
 
       core.info("computing base coverage...");
       const mainCoverage = await getCoverageForSha(pullRequest.base.sha);
@@ -88,7 +96,7 @@ const test = () => {
 
   console.log("annotations");
 
-  const annotations = createCoverageAnnotationsFromReport(success);
+  const annotations = createCoverageAnnotationsFromReport(success, "warning");
   console.log(formatCoverageAnnotations(annotations));
 };
 
