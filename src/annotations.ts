@@ -28,13 +28,14 @@ const getLocation = (
 export const createCoverageAnnotationsFromReport = (
   jsonReport: any,
   level: "warning" | "info",
-  appendToExistingAnnotations?: any
+  appendToExistingAnnotations?: any[]
 ) => {
-  const annotations: any[] = appendToExistingAnnotations || [];
+  let annotations: any[] = appendToExistingAnnotations || [];
 
   const addOrAppendAnnotation = (newAnnotation: any) => {
     const existingAnnotation = annotations.find(
       (annotation: any) =>
+        annotation.annotation_level === newAnnotation.annotation_level &&
         annotation.path === newAnnotation.path &&
         annotation.start_line === newAnnotation.start_line &&
         annotation.end_line === newAnnotation.end_line

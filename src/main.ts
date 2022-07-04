@@ -35,35 +35,36 @@ const run = async () => {
       });
 
       core.info("computing PR coverage since base...");
-      const branchCoverageSince = await getCoverageForSha(
+      const prCoverageSinceBase = await getCoverageForSha(
         pullRequest.head.sha,
         pullRequest.base.sha
       );
 
       core.info("computing PR total coverage...");
-      const branchCoverage = await getCoverageForSha(pullRequest.head.sha);
+      const prCoverage = await getCoverageForSha(pullRequest.head.sha);
 
-      core.info("creating annotations for PR changes...");
-      const prAnnotations = createCoverageAnnotationsFromReport(
-        branchCoverageSince.testsOutput,
+      core.info("building 'warning' coverage annotations for PR changes...");
+      const annotationsForPrImact = createCoverageAnnotationsFromReport(
+        prCoverageSinceBase.testsOutput,
         "warning"
       );
+      core.info("appending 'info' coverage annotations for existing work...");
       const allAnnotations = createCoverageAnnotationsFromReport(
-        branchCoverage.testsOutput,
+        prCoverage.testsOutput,
         "info",
-        prAnnotations
+        annotationsForPrImact
       );
       await octokit.rest.checks.create(
         formatCoverageAnnotations(allAnnotations)
       );
 
       core.info("computing base coverage...");
-      const mainCoverage = await getCoverageForSha(pullRequest.base.sha);
+      const baseCoverage = await getCoverageForSha(pullRequest.base.sha);
 
       core.info("converting coverage file into mardown table...");
       const coverageMarkdownReport = reportsToMarkdownSummary(
-        branchCoverage.coverageSummary,
-        mainCoverage.coverageSummary
+        prCoverage.coverageSummary,
+        baseCoverage.coverageSummary
       );
 
       core.info("posting result to github, almost done!");

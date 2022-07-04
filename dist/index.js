@@ -22,9 +22,10 @@ const getLocation = (start = { line: 0, column: undefined }, end = { line: 0, co
         : undefined,
 });
 const createCoverageAnnotationsFromReport = (jsonReport, level, appendToExistingAnnotations) => {
-    const annotations = appendToExistingAnnotations || [];
+    let annotations = appendToExistingAnnotations || [];
     const addOrAppendAnnotation = (newAnnotation) => {
-        const existingAnnotation = annotations.find((annotation) => annotation.path === newAnnotation.path &&
+        const existingAnnotation = annotations.find((annotation) => annotation.annotation_level === newAnnotation.annotation_level &&
+            annotation.path === newAnnotation.path &&
             annotation.start_line === newAnnotation.start_line &&
             annotation.end_line === newAnnotation.end_line);
         if (existingAnnotation) {
@@ -247,17 +248,18 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 pull_number: github.context.issue.number,
             });
             core.info("computing PR coverage since base...");
-            const branchCoverageSince = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
+            const prCoverageSinceBase = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
             core.info("computing PR total coverage...");
-            const branchCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
-            core.info("creating annotations for PR changes...");
-            const prAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(branchCoverageSince.testsOutput, "warning");
-            const allAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(branchCoverage.testsOutput, "info", prAnnotations);
+            const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
+            core.info("building 'warning' coverage annotations for PR changes...");
+            const annotationsForPrImact = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverageSinceBase.testsOutput, "warning");
+            core.info("appending 'info' coverage annotations for existing work...");
+            const allAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "info", annotationsForPrImact);
             yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(allAnnotations));
             core.info("computing base coverage...");
-            const mainCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
+            const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
             core.info("converting coverage file into mardown table...");
-            const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(branchCoverage.coverageSummary, mainCoverage.coverageSummary);
+            const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
             core.info("posting result to github, almost done!");
             yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
         }
