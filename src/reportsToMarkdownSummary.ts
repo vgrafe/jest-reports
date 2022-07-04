@@ -55,15 +55,15 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
 
     const cells = columns.map(
       (c) =>
-        `${getIcon(summary.total.lines.pct)} ${roundWithDigits(
+        `${getIcon(summary.total[c].pct)} ${roundWithDigits(
           summary.total[c].pct
         )}% ${
-          summary.total[c].pct - baseSummary.total[c].pct > 0
-            ? "(" +
+          summary.total[c].pct - baseSummary.total[c].pct !== 0
+            ? "(**" +
               addPlusIfPositive(
                 roundWithDigits(summary.total[c].pct - baseSummary.total[c].pct)
               ) +
-              "%)"
+              "%**)"
             : ""
         }`
     );
