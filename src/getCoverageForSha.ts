@@ -13,12 +13,14 @@ export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
 
   const baseCachePath = `coverage`;
 
+  core.info(`restoring coverage outputs for ${coverageCacheKey}...`);
   const foundCoverageOutputs = await cache.restoreCache(
     [baseCachePath],
     coverageCacheKey
   );
 
   if (foundCoverageOutputs) {
+    core.info(`found.`);
     const summaryFile = fs.readFileSync(
       `${process.cwd()}/coverage/coverage-summary.json`
     );
@@ -29,6 +31,7 @@ export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
     );
     mainCoverage.testsOutput = JSON.parse(testsOutputFile.toString());
   } else {
+    core.info(`not found, let's checkout and run jest...`);
     mainCoverage = await computeCoverageForSha(sha, sinceSha);
     core.info("done. caching...");
     await cache.saveCache([baseCachePath], coverageCacheKey);
@@ -39,7 +42,7 @@ export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
 
 const computeCoverageForSha = async (sha: string, sinceSha?: string) => {
   await exec(`git fetch`);
-  await exec(`git checkout ${sha}`);
+  await exec(`git -c advice.detachedHead=false checkout ${sha}`);
 
   core.info(`restoring node_modules...`);
   const dependenciesCacheKey = `couette-dependencies-9-${glob.hashFiles(

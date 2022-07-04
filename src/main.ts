@@ -34,29 +34,8 @@ const run = async () => {
         pull_number: github.context.issue.number,
       });
 
-      core.info("computing PR coverage since base...");
-      const prCoverageSinceBase = await getCoverageForSha(
-        pullRequest.head.sha,
-        pullRequest.base.sha
-      );
-
       core.info("computing PR total coverage...");
       const prCoverage = await getCoverageForSha(pullRequest.head.sha);
-
-      core.info("building 'warning' coverage annotations for PR changes...");
-      const annotationsForPrImact = createCoverageAnnotationsFromReport(
-        prCoverageSinceBase.testsOutput,
-        "warning"
-      );
-      core.info("appending 'info' coverage annotations for existing work...");
-      const allAnnotations = createCoverageAnnotationsFromReport(
-        prCoverage.testsOutput,
-        "notice",
-        annotationsForPrImact
-      );
-      await octokit.rest.checks.create(
-        formatCoverageAnnotations(allAnnotations)
-      );
 
       core.info("computing base coverage...");
       const baseCoverage = await getCoverageForSha(pullRequest.base.sha);
@@ -69,6 +48,27 @@ const run = async () => {
 
       core.info("posting result to github, almost done!");
       await postToGithub(coverageMarkdownReport);
+
+      // core.info("computing PR coverage since base...");
+      // const prCoverageSinceBase = await getCoverageForSha(
+      //   pullRequest.head.sha,
+      //   pullRequest.base.sha
+      // );
+
+      // core.info("building 'warning' coverage annotations for PR changes...");
+      // const annotationsForPrImact = createCoverageAnnotationsFromReport(
+      //   prCoverageSinceBase.testsOutput,
+      //   "warning"
+      // );
+      // core.info("appending 'info' coverage annotations for existing work...");
+      // const allAnnotations = createCoverageAnnotationsFromReport(
+      //   prCoverage.testsOutput,
+      //   "notice",
+      //   annotationsForPrImact
+      // );
+      // await octokit.rest.checks.create(
+      //   formatCoverageAnnotations(allAnnotations)
+      // );
     }
 
     core.info("done, see you.");

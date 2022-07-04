@@ -24,8 +24,7 @@ const getLocation = (start = { line: 0, column: undefined }, end = { line: 0, co
 const createCoverageAnnotationsFromReport = (jsonReport, level, appendToExistingAnnotations) => {
     let annotations = appendToExistingAnnotations || [];
     const addOrAppendAnnotation = (newAnnotation) => {
-        const existingAnnotation = annotations.find((annotation) => annotation.annotation_level === newAnnotation.annotation_level &&
-            annotation.path === newAnnotation.path &&
+        const existingAnnotation = annotations.find((annotation) => annotation.path === newAnnotation.path &&
             annotation.start_line === newAnnotation.start_line &&
             annotation.end_line === newAnnotation.end_line);
         if (existingAnnotation) {
@@ -136,14 +135,17 @@ const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, f
         ? `couette-coverage-for-${sha}-since-${sinceSha}`
         : `couette-coverage-for-${sha}`;
     const baseCachePath = `coverage`;
+    core.info(`restoring coverage outputs for ${coverageCacheKey}...`);
     const foundCoverageOutputs = yield cache.restoreCache([baseCachePath], coverageCacheKey);
     if (foundCoverageOutputs) {
+        core.info(`found.`);
         const summaryFile = fs_1.default.readFileSync(`${process.cwd()}/coverage/coverage-summary.json`);
         mainCoverage.coverageSummary = JSON.parse(summaryFile.toString());
         const testsOutputFile = fs_1.default.readFileSync(`${process.cwd()}/coverage/tests-output.json`);
         mainCoverage.testsOutput = JSON.parse(testsOutputFile.toString());
     }
     else {
+        core.info(`not found, let's checkout and run jest...`);
         mainCoverage = yield computeCoverageForSha(sha, sinceSha);
         core.info("done. caching...");
         yield cache.saveCache([baseCachePath], coverageCacheKey);
@@ -153,7 +155,7 @@ const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, f
 exports.getCoverageForSha = getCoverageForSha;
 const computeCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, exec_1.exec)(`git fetch`);
-    yield (0, exec_1.exec)(`git checkout ${sha}`);
+    yield (0, exec_1.exec)(`git -c advice.detachedHead=false checkout ${sha}`);
     core.info(`restoring node_modules...`);
     const dependenciesCacheKey = `couette-dependencies-9-${glob.hashFiles(`**/yarn.lock`)}`;
     const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
@@ -247,21 +249,33 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 repo: github.context.repo.repo,
                 pull_number: github.context.issue.number,
             });
-            core.info("computing PR coverage since base...");
-            const prCoverageSinceBase = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
             core.info("computing PR total coverage...");
             const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
-            core.info("building 'warning' coverage annotations for PR changes...");
-            const annotationsForPrImact = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverageSinceBase.testsOutput, "warning");
-            core.info("appending 'info' coverage annotations for existing work...");
-            const allAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotationsForPrImact);
-            yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(allAnnotations));
             core.info("computing base coverage...");
             const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
             core.info("converting coverage file into mardown table...");
             const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
             core.info("posting result to github, almost done!");
             yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
+            // core.info("computing PR coverage since base...");
+            // const prCoverageSinceBase = await getCoverageForSha(
+            //   pullRequest.head.sha,
+            //   pullRequest.base.sha
+            // );
+            // core.info("building 'warning' coverage annotations for PR changes...");
+            // const annotationsForPrImact = createCoverageAnnotationsFromReport(
+            //   prCoverageSinceBase.testsOutput,
+            //   "warning"
+            // );
+            // core.info("appending 'info' coverage annotations for existing work...");
+            // const allAnnotations = createCoverageAnnotationsFromReport(
+            //   prCoverage.testsOutput,
+            //   "notice",
+            //   annotationsForPrImact
+            // );
+            // await octokit.rest.checks.create(
+            //   formatCoverageAnnotations(allAnnotations)
+            // );
         }
         core.info("done, see you.");
         // clears buffer in case stuff was left out, which would be written when the action ends
