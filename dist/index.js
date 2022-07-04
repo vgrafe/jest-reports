@@ -82,7 +82,7 @@ exports.formatCoverageAnnotations = formatCoverageAnnotations;
 
 /***/ }),
 
-/***/ 4008:
+/***/ 2574:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -119,13 +119,40 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.checkoutAndBuildCoverage = void 0;
+exports.getCoverageForSha = void 0;
+const fs_1 = __importDefault(__nccwpck_require__(7147));
 const core = __importStar(__nccwpck_require__(2186));
 const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
-const checkoutAndBuildCoverage = (sha, targetFileName, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
+const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
+    let mainCoverage = { coverageSummary: {}, testsOutput: {} };
+    // first, check if those outputs were cached
+    const coverageCacheKey = sinceSha
+        ? `couette-coverage-for-${sha}-since-${sinceSha}`
+        : `couette-coverage-for-${sha}`;
+    const baseCachePath = `coverage`;
+    const foundCoverageOutputs = yield cache.restoreCache([baseCachePath], coverageCacheKey);
+    if (foundCoverageOutputs) {
+        const summaryFile = fs_1.default.readFileSync(`${process.cwd()}/coverage/coverage-summary.json`);
+        mainCoverage.coverageSummary = JSON.parse(summaryFile.toString());
+        const testsOutputFile = fs_1.default.readFileSync(`${process.cwd()}/coverage/tests-output.json`);
+        mainCoverage.testsOutput = JSON.parse(testsOutputFile.toString());
+    }
+    else {
+        core.info("computing base coverage...");
+        mainCoverage = yield computeCoverageForSha(sha, sinceSha);
+        core.info("done. caching...");
+        yield cache.saveCache([baseCachePath], coverageCacheKey);
+    }
+    return mainCoverage;
+});
+exports.getCoverageForSha = getCoverageForSha;
+const computeCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, exec_1.exec)(`git fetch`);
     yield (0, exec_1.exec)(`git checkout ${sha}`);
     core.info(`restoring node_modules...`);
@@ -149,9 +176,12 @@ const checkoutAndBuildCoverage = (sha, targetFileName, sinceSha) => __awaiter(vo
         "--json",
         "--outputFile=coverage/tests-output.json",
     ]);
-    yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`);
+    const summaryFile = fs_1.default.readFileSync(`${process.cwd()}/coverage/coverage-summary.json`);
+    const coverageSummary = JSON.parse(summaryFile.toString());
+    const testsOutputFile = fs_1.default.readFileSync(`${process.cwd()}/coverage/tests-output.json`);
+    const testsOutput = JSON.parse(testsOutputFile.toString());
+    return { coverageSummary, testsOutput };
 });
-exports.checkoutAndBuildCoverage = checkoutAndBuildCoverage;
 
 
 /***/ }),
@@ -200,13 +230,12 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const postToGithub_1 = __nccwpck_require__(9847);
 const reportsToMarkdownSummary_1 = __nccwpck_require__(5785);
 const json_summary_1 = __nccwpck_require__(5253);
 const json_result_1 = __nccwpck_require__(8316);
-const checkoutAndRunTests_1 = __nccwpck_require__(4008);
+const getCoverageForSha_1 = __nccwpck_require__(2574);
 const annotations_1 = __nccwpck_require__(5598);
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting couette...");
@@ -223,28 +252,17 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 repo: github.context.repo.repo,
                 pull_number: github.context.issue.number,
             });
-            core.info("computing PR coverage...");
-            yield (0, checkoutAndRunTests_1.checkoutAndBuildCoverage)(pullRequest.head.sha, "coverage/branch.json");
+            core.info("computing PR total coverage...");
+            const branchCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
+            core.info("creating annotations...");
             const testsOutput = fs_1.default.readFileSync(`${process.cwd()}/coverage/tests-output.json`);
             const jsonReport = JSON.parse(testsOutput.toString());
             const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(jsonReport);
             yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
-            core.info("checking if base coverage was cached...");
-            const baseCoverageCacheKey = `couette-covbase-9-${pullRequest.base.sha}`;
-            const baseCachePath = `coverage`;
-            const found = yield cache.restoreCache([baseCachePath], baseCoverageCacheKey);
-            if (!found) {
-                core.info("computing base coverage...");
-                yield (0, checkoutAndRunTests_1.checkoutAndBuildCoverage)(pullRequest.base.sha, "coverage/base.json");
-                core.info("done. caching...");
-                yield cache.saveCache([baseCachePath], baseCoverageCacheKey);
-            }
+            core.info("computing base coverage...");
+            const mainCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
             core.info("converting coverage file into mardown table...");
-            const mainCoverageFileStr = fs_1.default.readFileSync(`${process.cwd()}/coverage/base.json`);
-            const mainCoverage = JSON.parse(mainCoverageFileStr.toString());
-            const branchCoverageFileStr = fs_1.default.readFileSync(process.cwd() + `/coverage/branch.json`);
-            const branchCoverage = JSON.parse(branchCoverageFileStr.toString());
-            const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(branchCoverage, mainCoverage);
+            const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(branchCoverage.coverageSummary, mainCoverage.coverageSummary);
             yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
         }
         core.info("done!");

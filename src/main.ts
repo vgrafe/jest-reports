@@ -7,7 +7,7 @@ import { postToGithub } from "./postToGithub";
 import { reportsToMarkdownSummary } from "./reportsToMarkdownSummary";
 import { summary1, summary2 } from "./mock/json-summary";
 import { success } from "./mock/json-result";
-import { checkoutAndBuildCoverage } from "./checkoutAndRunTests";
+import { getCoverageForSha } from "./getCoverageForSha";
 import {
   createCoverageAnnotationsFromReport,
   formatCoverageAnnotations,
@@ -36,13 +36,10 @@ const run = async () => {
         pull_number: github.context.issue.number,
       });
 
-      core.info("computing PR coverage...");
+      core.info("computing PR total coverage...");
+      const branchCoverage = await getCoverageForSha(pullRequest.head.sha);
 
-      await checkoutAndBuildCoverage(
-        pullRequest.head.sha,
-        "coverage/branch.json"
-      );
-
+      core.info("creating annotations...");
       const testsOutput = fs.readFileSync(
         `${process.cwd()}/coverage/tests-output.json`
       );
@@ -51,39 +48,13 @@ const run = async () => {
       const annotations = createCoverageAnnotationsFromReport(jsonReport);
       await octokit.rest.checks.create(formatCoverageAnnotations(annotations));
 
-      core.info("checking if base coverage was cached...");
-
-      const baseCoverageCacheKey = `couette-covbase-9-${pullRequest.base.sha}`;
-      const baseCachePath = `coverage`;
-      const found = await cache.restoreCache(
-        [baseCachePath],
-        baseCoverageCacheKey
-      );
-      if (!found) {
-        core.info("computing base coverage...");
-        await checkoutAndBuildCoverage(
-          pullRequest.base.sha,
-          "coverage/base.json"
-        );
-        core.info("done. caching...");
-        await cache.saveCache([baseCachePath], baseCoverageCacheKey);
-      }
+      core.info("computing base coverage...");
+      const mainCoverage = await getCoverageForSha(pullRequest.base.sha);
 
       core.info("converting coverage file into mardown table...");
-
-      const mainCoverageFileStr = fs.readFileSync(
-        `${process.cwd()}/coverage/base.json`
-      );
-      const mainCoverage = JSON.parse(mainCoverageFileStr.toString());
-
-      const branchCoverageFileStr = fs.readFileSync(
-        process.cwd() + `/coverage/branch.json`
-      );
-      const branchCoverage = JSON.parse(branchCoverageFileStr.toString());
-
       const coverageMarkdownReport = reportsToMarkdownSummary(
-        branchCoverage,
-        mainCoverage
+        branchCoverage.coverageSummary,
+        mainCoverage.coverageSummary
       );
 
       await postToGithub(coverageMarkdownReport);
