@@ -32,6 +32,7 @@ export const createCoverageAnnotationsFromReport = (
 ) => {
   let annotations: any[] = appendToExistingAnnotations || [];
 
+  // instead of stacking multiple annotations per location, this aggregates comments into one
   const addOrAppendAnnotation = (newAnnotation: any) => {
     const existingAnnotation = annotations.find(
       (annotation: any) =>

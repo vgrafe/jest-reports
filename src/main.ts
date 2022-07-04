@@ -62,12 +62,18 @@ const run = async () => {
         prCoverageSinceBase.testsOutput,
         "warning"
       );
+
+      // not sure if necessary!
       core.info("appending 'info' coverage annotations for existing work...");
       const allAnnotations = createCoverageAnnotationsFromReport(
         prCoverage.testsOutput,
         "notice",
         annotationsForPrImact
       );
+
+      // converting to individual annotations and posting them.
+      // in the future, we could decide to aggregate them more aggressively if their number is
+      // over github's limit.
       await octokit.rest.checks.create(
         formatCoverageAnnotations(allAnnotations)
       );

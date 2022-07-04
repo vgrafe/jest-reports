@@ -39,7 +39,7 @@ export const postToGithub = async (reportSections: any) => {
     if (reportSections.tables.added)
       commentBody += collapsible("New files", reportSections.tables.added);
 
-    // no value in showing this table, but leaving it in for future reference
+    // no value in showing this table in a PR, but leaving it in for future reference
     // if (reportSections.tables.healthy)
     //   commentBody += collapsible("Unchanged", reportSections.tables.healthy);
     // }
