@@ -728,7 +728,7 @@ const getPercent = (summaryRow) => {
         summaryRow.functions.covered;
     return (covered / total) * 100;
 };
-const roundWithTwoDigits = (num) => Number(num).toFixed(2);
+const roundWithDigits = (num, digits = 1) => Number(num).toFixed(digits);
 const addPlusIfPositive = (num) => num.toString().includes("-") ? num : "+" + num;
 const getIcon = (num) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 const reportsToMarkdownSummary = (summary, baseSummary) => {
@@ -758,8 +758,8 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
             ...["lines", "statements", "branches", "functions"].map((field) => [
                 getIcon(summary.total[field].pct),
                 field,
-                roundWithTwoDigits(summary.total[field].pct) + "%",
-                addPlusIfPositive(roundWithTwoDigits(summary.total[field].pct - baseSummary.total[field].pct)) + "%",
+                roundWithDigits(summary.total[field].pct) + "%",
+                addPlusIfPositive(roundWithDigits(summary.total[field].pct - baseSummary.total[field].pct)) + "%",
             ]),
         ]);
     let added = [];
@@ -796,8 +796,8 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
                 ...rows.map((row) => [
                     getIcon(getPercent(summary[row])),
                     row.replace(process.cwd() + `/`, ""),
-                    roundWithTwoDigits(getPercent(summary[row])) + "%",
-                    addPlusIfPositive(roundWithTwoDigits(getPercent(summary[row]) -
+                    roundWithDigits(getPercent(summary[row])) + "%",
+                    addPlusIfPositive(roundWithDigits(getPercent(summary[row]) -
                         (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
                 ]),
             ]);
@@ -811,7 +811,7 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
                 ...rows.map((row) => [
                     getIcon(getPercent(summary[row])),
                     row.replace(process.cwd() + `/`, ""),
-                    roundWithTwoDigits(getPercent(summary[row])) + "%",
+                    roundWithDigits(getPercent(summary[row])) + "%",
                 ]),
             ]);
     };

@@ -16,7 +16,8 @@ const getPercent = (summaryRow: any) => {
   return (covered / total) * 100;
 };
 
-const roundWithTwoDigits = (num: number) => Number(num).toFixed(2);
+const roundWithDigits = (num: number, digits = 1) =>
+  Number(num).toFixed(digits);
 
 const addPlusIfPositive = (num: number | string) =>
   num.toString().includes("-") ? num : "+" + num;
@@ -58,9 +59,9 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
       ...["lines", "statements", "branches", "functions"].map((field) => [
         getIcon(summary.total[field].pct),
         field,
-        roundWithTwoDigits(summary.total[field].pct) + "%",
+        roundWithDigits(summary.total[field].pct) + "%",
         addPlusIfPositive(
-          roundWithTwoDigits(
+          roundWithDigits(
             summary.total[field].pct - baseSummary.total[field].pct
           )
         ) + "%",
@@ -101,9 +102,9 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
         ...rows.map((row) => [
           getIcon(getPercent(summary[row])),
           row.replace(process.cwd() + `/`, ""),
-          roundWithTwoDigits(getPercent(summary[row])) + "%",
+          roundWithDigits(getPercent(summary[row])) + "%",
           addPlusIfPositive(
-            roundWithTwoDigits(
+            roundWithDigits(
               getPercent(summary[row]) -
                 (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
             )
@@ -120,7 +121,7 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
         ...rows.map((row) => [
           getIcon(getPercent(summary[row])),
           row.replace(process.cwd() + `/`, ""),
-          roundWithTwoDigits(getPercent(summary[row])) + "%",
+          roundWithDigits(getPercent(summary[row])) + "%",
         ]),
       ]);
   };
