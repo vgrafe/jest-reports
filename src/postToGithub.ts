@@ -26,8 +26,6 @@ export const postToGithub = async (reportSections: any) => {
 
   let commentBody = "";
 
-  // if (baseCoverage) {
-
   commentBody = `## Coverage report\n`;
   if (reportSections.error) commentBody += reportSections.error;
   else {
@@ -45,11 +43,6 @@ export const postToGithub = async (reportSections: any) => {
     // if (reportSections.tables.healthy)
     //   commentBody += collapsible("Unchanged", reportSections.tables.healthy);
     // }
-    // } else {
-    // const tables = summaryToTable(branchCov);
-    // commentBody = `## Coverage report\n${
-    //   !mainCov ? "base branch coverage report not found.\n" : ""
-    // }\n\n${tables.summaryTable}\n\n${tables.tables.all}`;
   }
 
   const commentParams = {

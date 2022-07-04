@@ -5,7 +5,8 @@ import * as glob from "@actions/glob";
 
 export const checkoutAndBuildCoverage = async (
   sha: string,
-  targetFileName: string
+  targetFileName: string,
+  sinceSha?: string
 ) => {
   await exec(`git fetch`);
   await exec(`git checkout ${sha}`);
@@ -27,14 +28,11 @@ export const checkoutAndBuildCoverage = async (
     await cache.saveCache(["**/node_modules"], dependenciesCacheKey);
   }
 
-  // TODO
-  // const INPUT_CHANGES_ONLY = process.env.INPUT_INPUT_CHANGES_ONLY as string;
-  // const since =
-  //   INPUT_CHANGES_ONLY == "True" ? `--changedSince=${INPUT_CHANGES_ONLY}` : "";
+  const since = sinceSha ? `--changedSince=${sinceSha}` : "";
 
   await exec(`npx`, [
     `jest`,
-    // since,
+    since,
     "--ci",
     "--coverage",
     // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment

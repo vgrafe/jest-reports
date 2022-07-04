@@ -125,7 +125,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
-const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void 0, void 0, function* () {
+const checkoutAndBuildCoverage = (sha, targetFileName, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, exec_1.exec)(`git fetch`);
     yield (0, exec_1.exec)(`git checkout ${sha}`);
     core.info(`restoring node_modules...`);
@@ -137,13 +137,10 @@ const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void
         core.info("caching node_modules...");
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
-    // TODO
-    // const INPUT_CHANGES_ONLY = process.env.INPUT_INPUT_CHANGES_ONLY as string;
-    // const since =
-    //   INPUT_CHANGES_ONLY == "True" ? `--changedSince=${INPUT_CHANGES_ONLY}` : "";
+    const since = sinceSha ? `--changedSince=${sinceSha}` : "";
     yield (0, exec_1.exec)(`npx`, [
         `jest`,
-        // since,
+        since,
         "--ci",
         "--coverage",
         // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
@@ -155,143 +152,6 @@ const checkoutAndBuildCoverage = (sha, targetFileName) => __awaiter(void 0, void
     yield (0, exec_1.exec)(`mv coverage/coverage-summary.json ${targetFileName}`);
 });
 exports.checkoutAndBuildCoverage = checkoutAndBuildCoverage;
-
-
-/***/ }),
-
-/***/ 9752:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.covReportsToSummary = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const getPercent = (summaryRow) => {
-    const total = summaryRow.lines.total +
-        summaryRow.statements.total +
-        summaryRow.branches.total +
-        summaryRow.functions.total;
-    const covered = summaryRow.lines.covered +
-        summaryRow.statements.covered +
-        summaryRow.branches.covered +
-        summaryRow.functions.covered;
-    return (covered / total) * 100;
-};
-const roundWithOneDigit = (num) => Number(num).toFixed(1);
-const addPlusIfPositive = (num) => num.toString().includes("-") ? num : "+" + num;
-const getIcon = (num) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
-const covReportsToSummary = (summary, baseSummary) => {
-    // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
-    // we're abusing of the summary api to avoid relying on a crappier dependency
-    // to generage markdown tables. Using summaries could add value in the future.
-    core.summary.clear();
-    const [_, ...summaryRows] = Object.keys(summary);
-    const error = summary.total.lines.total === "Unknown"
-        ? "The tests ran without error, but coverage could not be calculated."
-        : null;
-    const summaryTable = core.summary
-        .addTable([
-        [
-            { data: "", header: true },
-            { data: "total", header: true },
-            { data: "coverage", header: true },
-            { data: "change", header: true },
-        ],
-        ...["lines", "statements", "branches", "functions"].map((field) => [
-            getIcon(summary.total[field].pct),
-            field,
-            roundWithOneDigit(summary.total[field].pct) + "%",
-            addPlusIfPositive(roundWithOneDigit(summary.total[field].pct - baseSummary.total[field].pct)) + "%",
-        ]),
-    ])
-        .stringify();
-    let added = [];
-    let regressions = [];
-    let healthy = [];
-    for (const row of summaryRows) {
-        if (!baseSummary[row])
-            added.push(row);
-        else {
-            const pct = getPercent(summary[row]);
-            const basePct = getPercent(baseSummary[row]);
-            if (pct >= basePct) {
-                healthy.push(row);
-            }
-            else {
-                regressions.push(row);
-            }
-        }
-    }
-    const makeTable = (rows, compare = true) => {
-        core.summary.clear();
-        if (rows.length === 0)
-            return null;
-        if (compare)
-            return core.summary
-                .addTable([
-                [
-                    { data: "", header: true },
-                    { data: "module", header: true },
-                    { data: "coverage", header: true },
-                    { data: "change", header: true },
-                ],
-                ...rows.map((row) => [
-                    getIcon(getPercent(summary[row])),
-                    row.replace(process.cwd() + `/`, ""),
-                    roundWithOneDigit(getPercent(summary[row])) + "%",
-                    addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) -
-                        (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
-                ]),
-            ])
-                .stringify();
-        else
-            return core.summary
-                .addTable([
-                [
-                    { data: "", header: true },
-                    { data: "module", header: true },
-                    { data: "coverage", header: true },
-                ],
-                ...rows.map((row) => [
-                    getIcon(getPercent(summary[row])),
-                    row.replace(process.cwd() + `/`, ""),
-                    roundWithOneDigit(getPercent(summary[row])) + "%",
-                ]),
-            ])
-                .stringify();
-    };
-    const tables = {
-        added: makeTable(added, false),
-        regressions: makeTable(regressions),
-        healthy: makeTable(healthy, false),
-    };
-    return { summaryTable, tables, error };
-};
-exports.covReportsToSummary = covReportsToSummary;
 
 
 /***/ }),
@@ -343,7 +203,7 @@ const github = __importStar(__nccwpck_require__(5438));
 const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const postToGithub_1 = __nccwpck_require__(9847);
-const covReportsToSummary_1 = __nccwpck_require__(9752);
+const reportsToMarkdownSummary_1 = __nccwpck_require__(5785);
 const json_summary_1 = __nccwpck_require__(5253);
 const json_result_1 = __nccwpck_require__(8316);
 const checkoutAndRunTests_1 = __nccwpck_require__(4008);
@@ -384,7 +244,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const mainCoverage = JSON.parse(mainCoverageFileStr.toString());
             const branchCoverageFileStr = fs_1.default.readFileSync(process.cwd() + `/coverage/branch.json`);
             const branchCoverage = JSON.parse(branchCoverageFileStr.toString());
-            const coverageMarkdownReport = (0, covReportsToSummary_1.covReportsToSummary)(branchCoverage, mainCoverage);
+            const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(branchCoverage, mainCoverage);
             yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
         }
         core.info("done!");
@@ -397,7 +257,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const test = () => {
-    const a = (0, covReportsToSummary_1.covReportsToSummary)(json_summary_1.summary1, json_summary_1.summary2);
+    const a = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(json_summary_1.summary1, json_summary_1.summary2);
     console.log("summaryTable");
     console.log(a.summaryTable);
     console.log("regressions");
@@ -791,7 +651,6 @@ const postToGithub = (reportSections) => __awaiter(void 0, void 0, void 0, funct
     });
     const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("## Coverage report"); });
     let commentBody = "";
-    // if (baseCoverage) {
     commentBody = `## Coverage report\n`;
     if (reportSections.error)
         commentBody += reportSections.error;
@@ -806,11 +665,6 @@ const postToGithub = (reportSections) => __awaiter(void 0, void 0, void 0, funct
         // if (reportSections.tables.healthy)
         //   commentBody += collapsible("Unchanged", reportSections.tables.healthy);
         // }
-        // } else {
-        // const tables = summaryToTable(branchCov);
-        // commentBody = `## Coverage report\n${
-        //   !mainCov ? "base branch coverage report not found.\n" : ""
-        // }\n\n${tables.summaryTable}\n\n${tables.tables.all}`;
     }
     const commentParams = {
         owner: github.context.repo.owner,
@@ -827,6 +681,148 @@ const postToGithub = (reportSections) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.postToGithub = postToGithub;
+
+
+/***/ }),
+
+/***/ 5785:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.reportsToMarkdownSummary = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const getPercent = (summaryRow) => {
+    const total = summaryRow.lines.total +
+        summaryRow.statements.total +
+        summaryRow.branches.total +
+        summaryRow.functions.total;
+    const covered = summaryRow.lines.covered +
+        summaryRow.statements.covered +
+        summaryRow.branches.covered +
+        summaryRow.functions.covered;
+    return (covered / total) * 100;
+};
+const roundWithOneDigit = (num) => Number(num).toFixed(1);
+const addPlusIfPositive = (num) => num.toString().includes("-") ? num : "+" + num;
+const getIcon = (num) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
+const reportsToMarkdownSummary = (summary, baseSummary) => {
+    // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
+    // we're abusing of the summary api to avoid relying on a crappier dependency
+    // to generage markdown tables. Using summaries could add value in the future.
+    // clearing the buffer to make sure we start fresh
+    core.summary.clear();
+    const [_, ...summaryRows] = Object.keys(summary);
+    const error = summary.total.lines.total === "Unknown"
+        ? "The tests ran without error, but coverage could not be calculated."
+        : null;
+    const summaryTable = core.summary
+        .addTable([
+        [
+            { data: "", header: true },
+            { data: "total", header: true },
+            { data: "coverage", header: true },
+            { data: "change", header: true },
+        ],
+        ...["lines", "statements", "branches", "functions"].map((field) => [
+            getIcon(summary.total[field].pct),
+            field,
+            roundWithOneDigit(summary.total[field].pct) + "%",
+            addPlusIfPositive(roundWithOneDigit(summary.total[field].pct - baseSummary.total[field].pct)) + "%",
+        ]),
+    ])
+        .stringify();
+    let added = [];
+    let regressions = [];
+    let healthy = [];
+    for (const row of summaryRows) {
+        if (!baseSummary[row])
+            added.push(row);
+        else {
+            const pct = getPercent(summary[row]);
+            const basePct = getPercent(baseSummary[row]);
+            if (pct >= basePct) {
+                healthy.push(row);
+            }
+            else {
+                regressions.push(row);
+            }
+        }
+    }
+    /**
+     * Generates a markdown table using github's `core.summary` api to get the markdown string.
+     */
+    const makeTable = (rows, compare = true) => {
+        // clearing the buffer to avoid adding to previously generated data.
+        core.summary.clear();
+        if (rows.length === 0)
+            return null;
+        if (compare)
+            return core.summary
+                .addTable([
+                [
+                    { data: "", header: true },
+                    { data: "module", header: true },
+                    { data: "coverage", header: true },
+                    { data: "change", header: true },
+                ],
+                ...rows.map((row) => [
+                    getIcon(getPercent(summary[row])),
+                    row.replace(process.cwd() + `/`, ""),
+                    roundWithOneDigit(getPercent(summary[row])) + "%",
+                    addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) -
+                        (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
+                ]),
+            ])
+                .stringify();
+        else
+            return core.summary
+                .addTable([
+                [
+                    { data: "", header: true },
+                    { data: "module", header: true },
+                    { data: "coverage", header: true },
+                ],
+                ...rows.map((row) => [
+                    getIcon(getPercent(summary[row])),
+                    row.replace(process.cwd() + `/`, ""),
+                    roundWithOneDigit(getPercent(summary[row])) + "%",
+                ]),
+            ])
+                .stringify();
+    };
+    const tables = {
+        added: makeTable(added, false),
+        regressions: makeTable(regressions),
+        healthy: makeTable(healthy, false),
+    };
+    return { summaryTable, tables, error };
+};
+exports.reportsToMarkdownSummary = reportsToMarkdownSummary;
 
 
 /***/ }),

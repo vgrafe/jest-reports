@@ -23,10 +23,12 @@ const addPlusIfPositive = (num: number | string) =>
 
 const getIcon = (num: number) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 
-export const covReportsToSummary = (summary: any, baseSummary: any) => {
+export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
   // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
   // we're abusing of the summary api to avoid relying on a crappier dependency
   // to generage markdown tables. Using summaries could add value in the future.
+
+  // clearing the buffer to make sure we start fresh
   core.summary.clear();
 
   const [_, ...summaryRows] = Object.keys(summary);
@@ -74,7 +76,11 @@ export const covReportsToSummary = (summary: any, baseSummary: any) => {
     }
   }
 
+  /**
+   * Generates a markdown table using github's `core.summary` api to get the markdown string.
+   */
   const makeTable = (rows: string[], compare = true) => {
+    // clearing the buffer to avoid adding to previously generated data.
     core.summary.clear();
 
     if (rows.length === 0) return null;

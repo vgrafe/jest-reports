@@ -4,7 +4,7 @@ import * as github from "@actions/github";
 import * as cache from "@actions/cache";
 import { exec } from "@actions/exec";
 import { postToGithub } from "./postToGithub";
-import { covReportsToSummary } from "./covReportsToSummary";
+import { reportsToMarkdownSummary } from "./reportsToMarkdownSummary";
 import { summary1, summary2 } from "./mock/json-summary";
 import { success } from "./mock/json-result";
 import { checkoutAndBuildCoverage } from "./checkoutAndRunTests";
@@ -81,7 +81,7 @@ const run = async () => {
       );
       const branchCoverage = JSON.parse(branchCoverageFileStr.toString());
 
-      const coverageMarkdownReport = covReportsToSummary(
+      const coverageMarkdownReport = reportsToMarkdownSummary(
         branchCoverage,
         mainCoverage
       );
@@ -99,7 +99,7 @@ const run = async () => {
 };
 
 const test = () => {
-  const a = covReportsToSummary(summary1, summary2);
+  const a = reportsToMarkdownSummary(summary1, summary2);
 
   console.log("summaryTable");
   console.log(a.summaryTable);

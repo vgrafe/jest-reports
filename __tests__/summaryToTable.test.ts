@@ -1,5 +1,5 @@
 import { expect, test } from "@jest/globals";
-import { covReportsToSummary } from "../src/covReportsToSummary";
+// import { covReportsToSummary } from "../src/covReportsToSummary";
 import { summary1, summary2 } from "./mock/json-summary";
 
 test("throws invalid number", async () => {
