@@ -65,15 +65,21 @@ const computeCoverageForSha = async (sha: string, sinceSha?: string) => {
 
   // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
   // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
-  await exec(`npx`, [
-    `jest`,
-    since,
-    "--ci",
-    "--coverage",
-    "--coverageReporters=json-summary",
-    "--json",
-    "--outputFile=coverage/tests-output.json",
-  ]);
+  await exec(
+    `npx`,
+    [
+      `jest`,
+      since,
+      "--ci",
+      "--coverage",
+      "--coverageReporters=json-summary",
+      "--json",
+      "--outputFile=coverage/tests-output.json",
+    ],
+    {
+      ignoreReturnCode: true,
+    }
+  );
 
   const summaryFile = fs.readFileSync(
     `${process.cwd()}/coverage/coverage-summary.json`

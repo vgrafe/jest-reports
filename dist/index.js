@@ -177,7 +177,9 @@ const computeCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 
         "--coverageReporters=json-summary",
         "--json",
         "--outputFile=coverage/tests-output.json",
-    ]);
+    ], {
+        ignoreReturnCode: true,
+    });
     const summaryFile = fs_1.default.readFileSync(`${process.cwd()}/coverage/coverage-summary.json`);
     const coverageSummary = JSON.parse(summaryFile.toString());
     const testsOutputFile = fs_1.default.readFileSync(`${process.cwd()}/coverage/tests-output.json`);
@@ -263,7 +265,17 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             core.info("onwards to generate annotations!");
             core.info("computing PR coverage since base...");
             const prCoverageSinceBase = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
-            core.info("building 'warning' coverage annotations for PR changes...");
+            const failedTests = prCoverageSinceBase.testsOutput.testResults.filter((a) => a.status !== "passed");
+            if (failedTests.length > 0) {
+                //todo report tests in comment, exit with code != 0
+                core.summary
+                    .addHeading("Coverage report", 1)
+                    .addRaw(`The following tests failed:`)
+                    .addList(failedTests.map((ft) => ft.name));
+                core.setFailed(`${failedTests.length} tests failed!`);
+            }
+            if (prCoverageSinceBase.testsOutput)
+                core.info("building 'warning' coverage annotations for PR changes...");
             const annotationsForPrImact = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverageSinceBase.testsOutput, "warning");
             // not sure if necessary!
             core.info("appending 'info' coverage annotations for existing work...");

@@ -59,7 +59,20 @@ const run = async () => {
         pullRequest.base.sha
       );
 
-      core.info("building 'warning' coverage annotations for PR changes...");
+      const failedTests = (
+        prCoverageSinceBase.testsOutput as any
+      ).testResults.filter((a: any) => a.status !== "passed");
+      if (failedTests.length > 0) {
+        //todo report tests in comment, exit with code != 0
+        core.summary
+          .addHeading("Coverage report", 1)
+          .addRaw(`The following tests failed:`)
+          .addList(failedTests.map((ft: any) => ft.name));
+        core.setFailed(`${failedTests.length} tests failed!`);
+      }
+
+      if (prCoverageSinceBase.testsOutput)
+        core.info("building 'warning' coverage annotations for PR changes...");
       const annotationsForPrImact = createCoverageAnnotationsFromReport(
         prCoverageSinceBase.testsOutput,
         "warning"
