@@ -51,7 +51,7 @@ const run = async () => {
       core.info("appending 'info' coverage annotations for existing work...");
       const allAnnotations = createCoverageAnnotationsFromReport(
         prCoverage.testsOutput,
-        "info",
+        "notice",
         annotationsForPrImact
       );
       await octokit.rest.checks.create(

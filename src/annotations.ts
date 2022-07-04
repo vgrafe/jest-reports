@@ -27,7 +27,7 @@ const getLocation = (
 
 export const createCoverageAnnotationsFromReport = (
   jsonReport: any,
-  level: "warning" | "info",
+  level: "warning" | "notice",
   appendToExistingAnnotations?: any[]
 ) => {
   let annotations: any[] = appendToExistingAnnotations || [];

@@ -254,7 +254,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             core.info("building 'warning' coverage annotations for PR changes...");
             const annotationsForPrImact = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverageSinceBase.testsOutput, "warning");
             core.info("appending 'info' coverage annotations for existing work...");
-            const allAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "info", annotationsForPrImact);
+            const allAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotationsForPrImact);
             yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(allAnnotations));
             core.info("computing base coverage...");
             const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
