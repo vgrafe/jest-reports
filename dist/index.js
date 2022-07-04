@@ -753,9 +753,9 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     if (hasImpactOnTotalCoverage) {
         const headers = columns.map((c) => ({ data: c, header: true }));
         const cells = columns.map((c) => `${getIcon(summary.total[c].pct)} ${roundWithDigits(summary.total[c].pct)}% ${summary.total[c].pct - baseSummary.total[c].pct !== 0
-            ? "(**" +
+            ? "(<strong>" +
                 addPlusIfPositive(roundWithDigits(summary.total[c].pct - baseSummary.total[c].pct)) +
-                "%**)"
+                "%</strong>)"
             : ""}`);
         core.summary
             .addHeading("Impact on total coverage", 2)

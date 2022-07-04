@@ -59,11 +59,11 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
           summary.total[c].pct
         )}% ${
           summary.total[c].pct - baseSummary.total[c].pct !== 0
-            ? "(**" +
+            ? "(<strong>" +
               addPlusIfPositive(
                 roundWithDigits(summary.total[c].pct - baseSummary.total[c].pct)
               ) +
-              "%**)"
+              "%</strong>)"
             : ""
         }`
     );
