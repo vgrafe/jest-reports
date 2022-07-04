@@ -131,7 +131,6 @@ const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
 const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
     let mainCoverage = { coverageSummary: {}, testsOutput: {} };
-    // first, check if those outputs were cached
     const coverageCacheKey = sinceSha
         ? `couette-coverage-for-${sha}-since-${sinceSha}`
         : `couette-coverage-for-${sha}`;
@@ -144,7 +143,6 @@ const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, f
         mainCoverage.testsOutput = JSON.parse(testsOutputFile.toString());
     }
     else {
-        core.info("computing base coverage...");
         mainCoverage = yield computeCoverageForSha(sha, sinceSha);
         core.info("done. caching...");
         yield cache.saveCache([baseCachePath], coverageCacheKey);
@@ -165,14 +163,14 @@ const computeCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
     const since = sinceSha ? `--changedSince=${sinceSha}` : "";
+    // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
+    // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
     yield (0, exec_1.exec)(`npx`, [
         `jest`,
         since,
         "--ci",
         "--coverage",
-        // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
         "--coverageReporters=json-summary",
-        // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
         "--json",
         "--outputFile=coverage/tests-output.json",
     ]);
@@ -223,11 +221,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const fs_1 = __importDefault(__nccwpck_require__(7147));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const exec_1 = __nccwpck_require__(1514);
@@ -255,9 +249,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             core.info("computing PR total coverage...");
             const branchCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
             core.info("creating annotations...");
-            const testsOutput = fs_1.default.readFileSync(`${process.cwd()}/coverage/tests-output.json`);
-            const jsonReport = JSON.parse(testsOutput.toString());
-            const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(jsonReport);
+            const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(branchCoverage.testsOutput);
             yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
             core.info("computing base coverage...");
             const mainCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);

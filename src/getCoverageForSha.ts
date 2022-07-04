@@ -7,7 +7,6 @@ import * as glob from "@actions/glob";
 export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
   let mainCoverage = { coverageSummary: {}, testsOutput: {} };
 
-  // first, check if those outputs were cached
   const coverageCacheKey = sinceSha
     ? `couette-coverage-for-${sha}-since-${sinceSha}`
     : `couette-coverage-for-${sha}`;
@@ -30,7 +29,6 @@ export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
     );
     mainCoverage.testsOutput = JSON.parse(testsOutputFile.toString());
   } else {
-    core.info("computing base coverage...");
     mainCoverage = await computeCoverageForSha(sha, sinceSha);
     core.info("done. caching...");
     await cache.saveCache([baseCachePath], coverageCacheKey);
@@ -62,14 +60,14 @@ const computeCoverageForSha = async (sha: string, sinceSha?: string) => {
 
   const since = sinceSha ? `--changedSince=${sinceSha}` : "";
 
+  // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
+  // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
   await exec(`npx`, [
     `jest`,
     since,
     "--ci",
     "--coverage",
-    // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
     "--coverageReporters=json-summary",
-    // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
     "--json",
     "--outputFile=coverage/tests-output.json",
   ]);

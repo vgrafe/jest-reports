@@ -1,7 +1,5 @@
-import fs from "fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import * as cache from "@actions/cache";
 import { exec } from "@actions/exec";
 import { postToGithub } from "./postToGithub";
 import { reportsToMarkdownSummary } from "./reportsToMarkdownSummary";
@@ -40,12 +38,9 @@ const run = async () => {
       const branchCoverage = await getCoverageForSha(pullRequest.head.sha);
 
       core.info("creating annotations...");
-      const testsOutput = fs.readFileSync(
-        `${process.cwd()}/coverage/tests-output.json`
+      const annotations = createCoverageAnnotationsFromReport(
+        branchCoverage.testsOutput
       );
-      const jsonReport = JSON.parse(testsOutput.toString());
-
-      const annotations = createCoverageAnnotationsFromReport(jsonReport);
       await octokit.rest.checks.create(formatCoverageAnnotations(annotations));
 
       core.info("computing base coverage...");
