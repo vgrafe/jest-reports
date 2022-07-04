@@ -40,13 +40,13 @@ const run = async () => {
       core.info("computing base coverage...");
       const baseCoverage = await getCoverageForSha(pullRequest.base.sha);
 
-      core.info("converting coverage file into mardown table...");
+      core.info("converting coverage file into mardown reports...");
       const coverageMarkdownReport = reportsToMarkdownSummary(
         prCoverage.coverageSummary,
         baseCoverage.coverageSummary
       );
 
-      core.info("posting result to github...");
+      core.info("posting mardown reports to github...");
       await postToGithub(coverageMarkdownReport);
 
       core.info("onwards to generate annotations!");
@@ -91,17 +91,7 @@ const run = async () => {
 const test = () => {
   const a = reportsToMarkdownSummary(summary1, summary2);
 
-  console.log("summaryTable");
-  console.log(a.summaryTable);
-
-  console.log("regressions");
-  console.log(a.tables.regressions);
-
-  console.log("added");
-  console.log(a.tables.added);
-
-  console.log("healthy");
-  console.log(a.tables.healthy);
+  console.log(a);
 
   console.log("annotations");
 

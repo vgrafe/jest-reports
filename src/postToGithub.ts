@@ -10,7 +10,7 @@ ${text}
 
 </details>`;
 
-export const postToGithub = async (reportSections: any) => {
+export const postToGithub = async (body: string) => {
   const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
   const octokit = github.getOctokit(GITHUB_TOKEN);
 
@@ -24,31 +24,10 @@ export const postToGithub = async (reportSections: any) => {
     com.body?.startsWith("## Coverage report")
   );
 
-  let commentBody = "";
-
-  commentBody = `## Coverage report\n`;
-  if (reportSections.error) commentBody += reportSections.error;
-  else {
-    if (reportSections.summaryTable)
-      commentBody += `${reportSections.summaryTable}\n`;
-    if (reportSections.tables.regressions)
-      commentBody += collapsible(
-        "Regressions",
-        reportSections.tables.regressions
-      );
-    if (reportSections.tables.added)
-      commentBody += collapsible("New files", reportSections.tables.added);
-
-    // no value in showing this table in a PR, but leaving it in for future reference
-    // if (reportSections.tables.healthy)
-    //   commentBody += collapsible("Unchanged", reportSections.tables.healthy);
-    // }
-  }
-
   const commentParams = {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    body: commentBody,
+    body,
   };
 
   if (existingComment) {

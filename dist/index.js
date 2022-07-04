@@ -23,6 +23,7 @@ const getLocation = (start = { line: 0, column: undefined }, end = { line: 0, co
 });
 const createCoverageAnnotationsFromReport = (jsonReport, level, appendToExistingAnnotations) => {
     let annotations = appendToExistingAnnotations || [];
+    // instead of stacking multiple annotations per location, this aggregates comments into one
     const addOrAppendAnnotation = (newAnnotation) => {
         const existingAnnotation = annotations.find((annotation) => annotation.path === newAnnotation.path &&
             annotation.start_line === newAnnotation.start_line &&
@@ -253,17 +254,21 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
             core.info("computing base coverage...");
             const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
-            core.info("converting coverage file into mardown table...");
+            core.info("converting coverage file into mardown reports...");
             const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
-            core.info("posting result to github...");
+            core.info("posting mardown reports to github...");
             yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
             core.info("onwards to generate annotations!");
             core.info("computing PR coverage since base...");
             const prCoverageSinceBase = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
             core.info("building 'warning' coverage annotations for PR changes...");
             const annotationsForPrImact = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverageSinceBase.testsOutput, "warning");
+            // not sure if necessary!
             core.info("appending 'info' coverage annotations for existing work...");
             const allAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotationsForPrImact);
+            // converting to individual annotations and posting them.
+            // in the future, we could decide to aggregate them more aggressively if their number is
+            // over github's limit.
             yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(allAnnotations));
         }
         core.info("done, see ya.");
@@ -277,14 +282,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 const test = () => {
     const a = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(json_summary_1.summary1, json_summary_1.summary2);
-    console.log("summaryTable");
-    console.log(a.summaryTable);
-    console.log("regressions");
-    console.log(a.tables.regressions);
-    console.log("added");
-    console.log(a.tables.added);
-    console.log("healthy");
-    console.log(a.tables.healthy);
+    console.log(a);
     console.log("annotations");
     const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(json_result_1.success, "warning");
     console.log((0, annotations_1.formatCoverageAnnotations)(annotations));
@@ -660,7 +658,7 @@ const collapsible = (title, text) => `<details><summary>${title}</summary>
 ${text}
 
 </details>`;
-const postToGithub = (reportSections) => __awaiter(void 0, void 0, void 0, function* () {
+const postToGithub = (body) => __awaiter(void 0, void 0, void 0, function* () {
     const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
     const octokit = github.getOctokit(GITHUB_TOKEN);
     const allComments = yield octokit.rest.issues.listComments({
@@ -669,26 +667,10 @@ const postToGithub = (reportSections) => __awaiter(void 0, void 0, void 0, funct
         repo: github.context.repo.repo,
     });
     const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith("## Coverage report"); });
-    let commentBody = "";
-    commentBody = `## Coverage report\n`;
-    if (reportSections.error)
-        commentBody += reportSections.error;
-    else {
-        if (reportSections.summaryTable)
-            commentBody += `${reportSections.summaryTable}\n`;
-        if (reportSections.tables.regressions)
-            commentBody += collapsible("Regressions", reportSections.tables.regressions);
-        if (reportSections.tables.added)
-            commentBody += collapsible("New files", reportSections.tables.added);
-        // no value in showing this table, but leaving it in for future reference
-        // if (reportSections.tables.healthy)
-        //   commentBody += collapsible("Unchanged", reportSections.tables.healthy);
-        // }
-    }
     const commentParams = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        body: commentBody,
+        body,
     };
     if (existingComment) {
         core.info("updating comment...");
@@ -746,7 +728,7 @@ const getPercent = (summaryRow) => {
         summaryRow.functions.covered;
     return (covered / total) * 100;
 };
-const roundWithOneDigit = (num) => Number(num).toFixed(1);
+const roundWithTwoDigits = (num) => Number(num).toFixed(2);
 const addPlusIfPositive = (num) => num.toString().includes("-") ? num : "+" + num;
 const getIcon = (num) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 const reportsToMarkdownSummary = (summary, baseSummary) => {
@@ -759,22 +741,27 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     const error = summary.total.lines.total === "Unknown"
         ? "The tests ran without error, but coverage could not be calculated."
         : null;
-    const summaryTable = core.summary
-        .addTable([
-        [
-            { data: "", header: true },
-            { data: "total", header: true },
-            { data: "coverage", header: true },
-            { data: "change", header: true },
-        ],
-        ...["lines", "statements", "branches", "functions"].map((field) => [
-            getIcon(summary.total[field].pct),
-            field,
-            roundWithOneDigit(summary.total[field].pct) + "%",
-            addPlusIfPositive(roundWithOneDigit(summary.total[field].pct - baseSummary.total[field].pct)) + "%",
-        ]),
-    ])
-        .stringify();
+    const hasImpactOnTotalCoverage = [
+        "lines",
+        "statements",
+        "branches",
+        "functions",
+    ].some((field) => summary.total[field].pct - baseSummary.total[field].pct !== 0);
+    if (hasImpactOnTotalCoverage)
+        core.summary.addHeading("Impact on total coverage", 2).addTable([
+            [
+                { data: "", header: true },
+                { data: "total", header: true },
+                { data: "coverage", header: true },
+                { data: "change", header: true },
+            ],
+            ...["lines", "statements", "branches", "functions"].map((field) => [
+                getIcon(summary.total[field].pct),
+                field,
+                roundWithTwoDigits(summary.total[field].pct) + "%",
+                addPlusIfPositive(roundWithTwoDigits(summary.total[field].pct - baseSummary.total[field].pct)) + "%",
+            ]),
+        ]);
     let added = [];
     let regressions = [];
     let healthy = [];
@@ -795,14 +782,11 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     /**
      * Generates a markdown table using github's `core.summary` api to get the markdown string.
      */
-    const makeTable = (rows, compare = true) => {
-        // clearing the buffer to avoid adding to previously generated data.
-        core.summary.clear();
+    const makeTable = (heading, rows, compare = true) => {
         if (rows.length === 0)
             return null;
         if (compare)
-            return core.summary
-                .addTable([
+            core.summary.addHeading(heading, 2).addTable([
                 [
                     { data: "", header: true },
                     { data: "module", header: true },
@@ -812,15 +796,13 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
                 ...rows.map((row) => [
                     getIcon(getPercent(summary[row])),
                     row.replace(process.cwd() + `/`, ""),
-                    roundWithOneDigit(getPercent(summary[row])) + "%",
-                    addPlusIfPositive(roundWithOneDigit(getPercent(summary[row]) -
+                    roundWithTwoDigits(getPercent(summary[row])) + "%",
+                    addPlusIfPositive(roundWithTwoDigits(getPercent(summary[row]) -
                         (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
                 ]),
-            ])
-                .stringify();
+            ]);
         else
-            return core.summary
-                .addTable([
+            core.summary.addHeading(heading, 2).addTable([
                 [
                     { data: "", header: true },
                     { data: "module", header: true },
@@ -829,17 +811,16 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
                 ...rows.map((row) => [
                     getIcon(getPercent(summary[row])),
                     row.replace(process.cwd() + `/`, ""),
-                    roundWithOneDigit(getPercent(summary[row])) + "%",
+                    roundWithTwoDigits(getPercent(summary[row])) + "%",
                 ]),
-            ])
-                .stringify();
+            ]);
     };
-    const tables = {
-        added: makeTable(added, false),
-        regressions: makeTable(regressions),
-        healthy: makeTable(healthy, false),
-    };
-    return { summaryTable, tables, error };
+    if (added.length > 0)
+        makeTable("New files", added, false);
+    if (regressions.length > 0)
+        makeTable("Regressions", regressions);
+    // makeTable("Unchanged", healthy, false),
+    return core.summary.stringify();
 };
 exports.reportsToMarkdownSummary = reportsToMarkdownSummary;
 

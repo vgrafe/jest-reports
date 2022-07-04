@@ -16,7 +16,7 @@ const getPercent = (summaryRow: any) => {
   return (covered / total) * 100;
 };
 
-const roundWithOneDigit = (num: number) => Number(num).toFixed(1);
+const roundWithTwoDigits = (num: number) => Number(num).toFixed(2);
 
 const addPlusIfPositive = (num: number | string) =>
   num.toString().includes("-") ? num : "+" + num;
@@ -38,8 +38,17 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
       ? "The tests ran without error, but coverage could not be calculated."
       : null;
 
-  const summaryTable = core.summary
-    .addTable([
+  const hasImpactOnTotalCoverage = [
+    "lines",
+    "statements",
+    "branches",
+    "functions",
+  ].some(
+    (field) => summary.total[field].pct - baseSummary.total[field].pct !== 0
+  );
+
+  if (hasImpactOnTotalCoverage)
+    core.summary.addHeading("Impact on total coverage", 2).addTable([
       [
         { data: "", header: true },
         { data: "total", header: true },
@@ -49,15 +58,14 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
       ...["lines", "statements", "branches", "functions"].map((field) => [
         getIcon(summary.total[field].pct),
         field,
-        roundWithOneDigit(summary.total[field].pct) + "%",
+        roundWithTwoDigits(summary.total[field].pct) + "%",
         addPlusIfPositive(
-          roundWithOneDigit(
+          roundWithTwoDigits(
             summary.total[field].pct - baseSummary.total[field].pct
           )
         ) + "%",
       ]),
-    ])
-    .stringify();
+    ]);
 
   let added: string[] = [];
   let regressions: string[] = [];
@@ -79,56 +87,49 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
   /**
    * Generates a markdown table using github's `core.summary` api to get the markdown string.
    */
-  const makeTable = (rows: string[], compare = true) => {
-    // clearing the buffer to avoid adding to previously generated data.
-    core.summary.clear();
-
+  const makeTable = (heading: string, rows: string[], compare = true) => {
     if (rows.length === 0) return null;
 
     if (compare)
-      return core.summary
-        .addTable([
-          [
-            { data: "", header: true },
-            { data: "module", header: true },
-            { data: "coverage", header: true },
-            { data: "change", header: true },
-          ],
-          ...rows.map((row) => [
-            getIcon(getPercent(summary[row])),
-            row.replace(process.cwd() + `/`, ""),
-            roundWithOneDigit(getPercent(summary[row])) + "%",
-            addPlusIfPositive(
-              roundWithOneDigit(
-                getPercent(summary[row]) -
-                  (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
-              )
-            ) + "%",
-          ]),
-        ])
-        .stringify();
+      core.summary.addHeading(heading, 2).addTable([
+        [
+          { data: "", header: true },
+          { data: "module", header: true },
+          { data: "coverage", header: true },
+          { data: "change", header: true },
+        ],
+        ...rows.map((row) => [
+          getIcon(getPercent(summary[row])),
+          row.replace(process.cwd() + `/`, ""),
+          roundWithTwoDigits(getPercent(summary[row])) + "%",
+          addPlusIfPositive(
+            roundWithTwoDigits(
+              getPercent(summary[row]) -
+                (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
+            )
+          ) + "%",
+        ]),
+      ]);
     else
-      return core.summary
-        .addTable([
-          [
-            { data: "", header: true },
-            { data: "module", header: true },
-            { data: "coverage", header: true },
-          ],
-          ...rows.map((row) => [
-            getIcon(getPercent(summary[row])),
-            row.replace(process.cwd() + `/`, ""),
-            roundWithOneDigit(getPercent(summary[row])) + "%",
-          ]),
-        ])
-        .stringify();
+      core.summary.addHeading(heading, 2).addTable([
+        [
+          { data: "", header: true },
+          { data: "module", header: true },
+          { data: "coverage", header: true },
+        ],
+        ...rows.map((row) => [
+          getIcon(getPercent(summary[row])),
+          row.replace(process.cwd() + `/`, ""),
+          roundWithTwoDigits(getPercent(summary[row])) + "%",
+        ]),
+      ]);
   };
 
-  const tables = {
-    added: makeTable(added, false),
-    regressions: makeTable(regressions),
-    healthy: makeTable(healthy, false),
-  };
+  if (added.length > 0) makeTable("New files", added, false);
 
-  return { summaryTable, tables, error };
+  if (regressions.length > 0) makeTable("Regressions", regressions);
+
+  // makeTable("Unchanged", healthy, false),
+
+  return core.summary.stringify();
 };
