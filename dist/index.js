@@ -255,29 +255,18 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
             core.info("converting coverage file into mardown table...");
             const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
-            core.info("posting result to github, almost done!");
+            core.info("posting result to github...");
             yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
-            // core.info("computing PR coverage since base...");
-            // const prCoverageSinceBase = await getCoverageForSha(
-            //   pullRequest.head.sha,
-            //   pullRequest.base.sha
-            // );
-            // core.info("building 'warning' coverage annotations for PR changes...");
-            // const annotationsForPrImact = createCoverageAnnotationsFromReport(
-            //   prCoverageSinceBase.testsOutput,
-            //   "warning"
-            // );
-            // core.info("appending 'info' coverage annotations for existing work...");
-            // const allAnnotations = createCoverageAnnotationsFromReport(
-            //   prCoverage.testsOutput,
-            //   "notice",
-            //   annotationsForPrImact
-            // );
-            // await octokit.rest.checks.create(
-            //   formatCoverageAnnotations(allAnnotations)
-            // );
+            core.info("onwards to generate annotations!");
+            core.info("computing PR coverage since base...");
+            const prCoverageSinceBase = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
+            core.info("building 'warning' coverage annotations for PR changes...");
+            const annotationsForPrImact = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverageSinceBase.testsOutput, "warning");
+            core.info("appending 'info' coverage annotations for existing work...");
+            const allAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotationsForPrImact);
+            yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(allAnnotations));
         }
-        core.info("done, see you.");
+        core.info("done, see ya.");
         // clears buffer in case stuff was left out, which would be written when the action ends
         core.summary.clear();
     }

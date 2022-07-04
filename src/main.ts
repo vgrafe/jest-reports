@@ -46,32 +46,34 @@ const run = async () => {
         baseCoverage.coverageSummary
       );
 
-      core.info("posting result to github, almost done!");
+      core.info("posting result to github...");
       await postToGithub(coverageMarkdownReport);
 
-      // core.info("computing PR coverage since base...");
-      // const prCoverageSinceBase = await getCoverageForSha(
-      //   pullRequest.head.sha,
-      //   pullRequest.base.sha
-      // );
+      core.info("onwards to generate annotations!");
 
-      // core.info("building 'warning' coverage annotations for PR changes...");
-      // const annotationsForPrImact = createCoverageAnnotationsFromReport(
-      //   prCoverageSinceBase.testsOutput,
-      //   "warning"
-      // );
-      // core.info("appending 'info' coverage annotations for existing work...");
-      // const allAnnotations = createCoverageAnnotationsFromReport(
-      //   prCoverage.testsOutput,
-      //   "notice",
-      //   annotationsForPrImact
-      // );
-      // await octokit.rest.checks.create(
-      //   formatCoverageAnnotations(allAnnotations)
-      // );
+      core.info("computing PR coverage since base...");
+      const prCoverageSinceBase = await getCoverageForSha(
+        pullRequest.head.sha,
+        pullRequest.base.sha
+      );
+
+      core.info("building 'warning' coverage annotations for PR changes...");
+      const annotationsForPrImact = createCoverageAnnotationsFromReport(
+        prCoverageSinceBase.testsOutput,
+        "warning"
+      );
+      core.info("appending 'info' coverage annotations for existing work...");
+      const allAnnotations = createCoverageAnnotationsFromReport(
+        prCoverage.testsOutput,
+        "notice",
+        annotationsForPrImact
+      );
+      await octokit.rest.checks.create(
+        formatCoverageAnnotations(allAnnotations)
+      );
     }
 
-    core.info("done, see you.");
+    core.info("done, see ya.");
 
     // clears buffer in case stuff was left out, which would be written when the action ends
     core.summary.clear();
