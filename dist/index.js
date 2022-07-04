@@ -685,7 +685,7 @@ const postToGithub = (body) => __awaiter(void 0, void 0, void 0, function* () {
     const commentParams = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        body: `☂️\n${body}`,
+        body: `☂️\n---\n${body}`,
     };
     if (existingComment) {
         core.info("updating comment...");

@@ -27,7 +27,7 @@ export const postToGithub = async (body: string) => {
   const commentParams = {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    body: `☂️\n${body}`,
+    body: `☂️\n---\n${body}`,
   };
 
   if (existingComment) {
