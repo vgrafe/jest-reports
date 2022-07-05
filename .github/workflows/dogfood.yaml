@@ -8,6 +8,6 @@ jobs:
       group: ${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: vgrafe/couette@v0.63
+      - uses: vgrafe/couette@v0.110
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
