@@ -12,7 +12,7 @@ import {
 } from "./annotations";
 
 const run = async () => {
-  core.info("starting couette...");
+  core.info("starting jest-reports...");
 
   try {
     const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;

@@ -4,12 +4,14 @@ import * as cache from "@actions/cache";
 import { exec } from "@actions/exec";
 import * as glob from "@actions/glob";
 
+const appName = "jest-reports";
+
 export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
   let mainCoverage = { coverageSummary: {}, testsOutput: {} };
 
   const coverageCacheKey = sinceSha
-    ? `couette-coverage-for-${sha}-since-${sinceSha}`
-    : `couette-coverage-for-${sha}`;
+    ? `${appName}-coverage-for-${sha}-since-${sinceSha}`
+    : `${appName}-coverage-for-${sha}`;
 
   const baseCachePath = `coverage`;
 
@@ -45,7 +47,7 @@ const computeCoverageForSha = async (sha: string, sinceSha?: string) => {
   await exec(`git -c advice.detachedHead=false checkout ${sha}`);
 
   core.info(`restoring node_modules...`);
-  const dependenciesCacheKey = `couette-dependencies-9-${glob.hashFiles(
+  const dependenciesCacheKey = `${appName}-dependencies-9-${glob.hashFiles(
     `**/yarn.lock`
   )}`;
 

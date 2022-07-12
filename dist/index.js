@@ -130,11 +130,12 @@ const core = __importStar(__nccwpck_require__(2186));
 const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
+const appName = "jest-reports";
 const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
     let mainCoverage = { coverageSummary: {}, testsOutput: {} };
     const coverageCacheKey = sinceSha
-        ? `couette-coverage-for-${sha}-since-${sinceSha}`
-        : `couette-coverage-for-${sha}`;
+        ? `${appName}-coverage-for-${sha}-since-${sinceSha}`
+        : `${appName}-coverage-for-${sha}`;
     const baseCachePath = `coverage`;
     core.info(`restoring coverage outputs for ${coverageCacheKey}...`);
     const foundCoverageOutputs = yield cache.restoreCache([baseCachePath], coverageCacheKey);
@@ -158,7 +159,7 @@ const computeCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 
     yield (0, exec_1.exec)(`git fetch`);
     yield (0, exec_1.exec)(`git -c advice.detachedHead=false checkout ${sha}`);
     core.info(`restoring node_modules...`);
-    const dependenciesCacheKey = `couette-dependencies-9-${glob.hashFiles(`**/yarn.lock`)}`;
+    const dependenciesCacheKey = `${appName}-dependencies-9-${glob.hashFiles(`**/yarn.lock`)}`;
     const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
     if (!found) {
         core.info("running yarn...");
@@ -238,7 +239,7 @@ const json_result_1 = __nccwpck_require__(8316);
 const getCoverageForSha_1 = __nccwpck_require__(2574);
 const annotations_1 = __nccwpck_require__(5598);
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
-    core.info("starting couette...");
+    core.info("starting jest-reports...");
     try {
         const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
         const octokit = github.getOctokit(GITHUB_TOKEN);

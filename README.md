@@ -1,6 +1,4 @@
-# Couette your test coverage
-
-Because why not
+# Get insights on your tests
 
 - blazing AND fast
   - caches node_modules properly so you don't have to

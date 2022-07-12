@@ -1,4 +1,4 @@
-name: couette
+name: jest-reports
 on: [pull_request]
 
 jobs:
@@ -8,6 +8,6 @@ jobs:
       group: ${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: vgrafe/couette@v0.63
+      - uses: vgrafe/jest-reports@v0.110
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
