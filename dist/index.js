@@ -132,6 +132,10 @@ const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
 const appName = "jest-reports";
 const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
+    if (sinceSha)
+        core.info("computing PR coverage since base...");
+    else
+        core.info("computing coverage on all tests...");
     let mainCoverage = { coverageSummary: {}, testsOutput: {} };
     const coverageCacheKey = sinceSha
         ? `${appName}-coverage-for-${sha}-since-${sinceSha}`
@@ -242,6 +246,9 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting jest-reports...");
     try {
         const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
+        const COVER_CHANGES_ONLY = process.env.INPUT_COVER_CHANGES_ONLY === "True";
+        const COVERAGE_ANNOTATIONS = process.env
+            .INPUT_INPUT_COVERAGE_ANNOTATIONS;
         const octokit = github.getOctokit(GITHUB_TOKEN);
         core.info(`cloning ${github.context.repo.repo}...`);
         yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
@@ -263,10 +270,8 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 core.info("posting mardown reports to github...");
                 yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
             }
-            core.info("onwards to generate annotations!");
-            core.info("computing PR coverage since base...");
-            const prCoverageSinceBase = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, pullRequest.base.sha);
-            const failedTests = prCoverageSinceBase.testsOutput.testResults.filter((a) => a.status !== "passed");
+            const coverageData = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, COVER_CHANGES_ONLY ? pullRequest.base.sha : undefined);
+            const failedTests = coverageData.testsOutput.testResults.filter((a) => a.status !== "passed");
             if (failedTests.length > 0) {
                 //todo report tests in comment, exit with code != 0
                 const error = core.summary
@@ -276,16 +281,18 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 (0, postToGithub_1.postToGithub)(error);
                 core.setFailed(`${failedTests.length} tests failed!`);
             }
-            if (prCoverageSinceBase.testsOutput)
+            if (coverageData.testsOutput && COVERAGE_ANNOTATIONS !== "none") {
                 core.info("building 'warning' coverage annotations for PR changes...");
-            const annotationsForPrImact = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverageSinceBase.testsOutput, "warning");
-            // not sure if necessary!
-            core.info("appending 'info' coverage annotations for existing work...");
-            const allAnnotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotationsForPrImact);
-            // converting to individual annotations and posting them.
-            // in the future, we could decide to aggregate them more aggressively if their number is
-            // over github's limit.
-            yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(allAnnotations));
+                let annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(coverageData.testsOutput, "warning");
+                if (COVERAGE_ANNOTATIONS === "all") {
+                    core.info("appending 'info' coverage annotations for existing work...");
+                    annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotations);
+                }
+                // converting to individual annotations and posting them.
+                // in the future, we could decide to aggregate them more aggressively if their number is
+                // over github's limit.
+                yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
+            }
         }
         core.info("done, see ya.");
         // clears buffer in case stuff was left out, which would be written when the action ends

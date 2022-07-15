@@ -16,6 +16,11 @@ const run = async () => {
 
   try {
     const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
+    const COVER_CHANGES_ONLY = process.env.INPUT_COVER_CHANGES_ONLY === "True";
+
+    const COVERAGE_ANNOTATIONS = process.env
+      .INPUT_INPUT_COVERAGE_ANNOTATIONS as "none" | "all" | "changes-only";
+
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
     core.info(`cloning ${github.context.repo.repo}...`);
@@ -51,17 +56,14 @@ const run = async () => {
         await postToGithub(coverageMarkdownReport);
       }
 
-      core.info("onwards to generate annotations!");
-
-      core.info("computing PR coverage since base...");
-      const prCoverageSinceBase = await getCoverageForSha(
+      const coverageData = await getCoverageForSha(
         pullRequest.head.sha,
-        pullRequest.base.sha
+        COVER_CHANGES_ONLY ? pullRequest.base.sha : undefined
       );
 
-      const failedTests = (
-        prCoverageSinceBase.testsOutput as any
-      ).testResults.filter((a: any) => a.status !== "passed");
+      const failedTests = (coverageData.testsOutput as any).testResults.filter(
+        (a: any) => a.status !== "passed"
+      );
       if (failedTests.length > 0) {
         //todo report tests in comment, exit with code != 0
         const error = core.summary
@@ -74,27 +76,31 @@ const run = async () => {
         core.setFailed(`${failedTests.length} tests failed!`);
       }
 
-      if (prCoverageSinceBase.testsOutput)
+      if (coverageData.testsOutput && COVERAGE_ANNOTATIONS !== "none") {
         core.info("building 'warning' coverage annotations for PR changes...");
-      const annotationsForPrImact = createCoverageAnnotationsFromReport(
-        prCoverageSinceBase.testsOutput,
-        "warning"
-      );
+        let annotations = createCoverageAnnotationsFromReport(
+          coverageData.testsOutput,
+          "warning"
+        );
 
-      // not sure if necessary!
-      core.info("appending 'info' coverage annotations for existing work...");
-      const allAnnotations = createCoverageAnnotationsFromReport(
-        prCoverage.testsOutput,
-        "notice",
-        annotationsForPrImact
-      );
+        if (COVERAGE_ANNOTATIONS === "all") {
+          core.info(
+            "appending 'info' coverage annotations for existing work..."
+          );
+          annotations = createCoverageAnnotationsFromReport(
+            prCoverage.testsOutput,
+            "notice",
+            annotations
+          );
+        }
 
-      // converting to individual annotations and posting them.
-      // in the future, we could decide to aggregate them more aggressively if their number is
-      // over github's limit.
-      await octokit.rest.checks.create(
-        formatCoverageAnnotations(allAnnotations)
-      );
+        // converting to individual annotations and posting them.
+        // in the future, we could decide to aggregate them more aggressively if their number is
+        // over github's limit.
+        await octokit.rest.checks.create(
+          formatCoverageAnnotations(annotations)
+        );
+      }
     }
 
     core.info("done, see ya.");

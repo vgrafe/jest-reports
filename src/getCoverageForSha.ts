@@ -7,6 +7,9 @@ import * as glob from "@actions/glob";
 const appName = "jest-reports";
 
 export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
+  if (sinceSha) core.info("computing PR coverage since base...");
+  else core.info("computing coverage on all tests...");
+
   let mainCoverage = { coverageSummary: {}, testsOutput: {} };
 
   const coverageCacheKey = sinceSha
