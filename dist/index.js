@@ -259,13 +259,9 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
         yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
         const isPullRequest = github.context.eventName === "pull_request";
         const isPushOnDefaultBranch = github.context.eventName === "push" &&
-            github.context.ref === DEFAULT_BRANCH;
-        core.info(`github.context.eventName=${github.context.eventName}`);
-        core.info(`github.context.ref=${github.context.ref}`);
-        if (!isPullRequest && !isPushOnDefaultBranch) {
-            core.info(`event dispatching is not a PR push or a merge on default branch, stopping everything`);
-            return 1;
-        }
+            github.context.ref.replace("refs/heads/", "") === DEFAULT_BRANCH;
+        if (!isPullRequest && !isPushOnDefaultBranch)
+            core.setFailed(`event dispatching is not a PR push or a merge on default branch, stopping everything`);
         if (isPushOnDefaultBranch && COVER_DEFAULT_BRANCH) {
             // const coverage = await getCoverageForSha(github.context.sha);
             yield octokit.rest.repos.createCommitComment(Object.assign(Object.assign({}, github.context.repo), { commit_sha: github.context.sha, body: "SON.stringify(coverage)" }));

@@ -39,17 +39,12 @@ const run = async () => {
     const isPullRequest = github.context.eventName === "pull_request";
     const isPushOnDefaultBranch =
       github.context.eventName === "push" &&
-      github.context.ref === DEFAULT_BRANCH;
+      github.context.ref.replace("refs/heads/", "") === DEFAULT_BRANCH;
 
-    core.info(`github.context.eventName=${github.context.eventName}`);
-    core.info(`github.context.ref=${github.context.ref}`);
-
-    if (!isPullRequest && !isPushOnDefaultBranch) {
-      core.info(
+    if (!isPullRequest && !isPushOnDefaultBranch)
+      core.setFailed(
         `event dispatching is not a PR push or a merge on default branch, stopping everything`
       );
-      return 1;
-    }
 
     if (isPushOnDefaultBranch && COVER_DEFAULT_BRANCH) {
       // const coverage = await getCoverageForSha(github.context.sha);
