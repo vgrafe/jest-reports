@@ -247,9 +247,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
         const COVER_CHANGES_ONLY = process.env.INPUT_COVER_CHANGES_ONLY === "True";
-        const COVERAGE_ANNOTATIONS = process.env
-            .INPUT_INPUT_COVERAGE_ANNOTATIONS;
-        core.info(`GITHUB_TOKEN=${GITHUB_TOKEN}`);
+        const COVERAGE_ANNOTATIONS = process.env.INPUT_COVERAGE_ANNOTATIONS;
         core.info(`COVER_CHANGES_ONLY=${COVER_CHANGES_ONLY}`);
         core.info(`COVERAGE_ANNOTATIONS=${COVERAGE_ANNOTATIONS}`);
         const octokit = github.getOctokit(GITHUB_TOKEN);
