@@ -26,8 +26,13 @@ on: [pull_request]
 jobs:
   compare-cov:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.ref }}
+      cancel-in-progress: true
     steps:
-      - uses: vgrafe/jest-reports@v0.110
+      - uses: vgrafe/couette@v0.113
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          coverage-annotations: none
+          cover-changes-only: False
 ```

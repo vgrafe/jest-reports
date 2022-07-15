@@ -249,6 +249,9 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
         const COVER_CHANGES_ONLY = process.env.INPUT_COVER_CHANGES_ONLY === "True";
         const COVERAGE_ANNOTATIONS = process.env
             .INPUT_INPUT_COVERAGE_ANNOTATIONS;
+        core.info(`GITHUB_TOKEN=${GITHUB_TOKEN}`);
+        core.info(`COVER_CHANGES_ONLY=${COVER_CHANGES_ONLY}`);
+        core.info(`COVERAGE_ANNOTATIONS=${COVERAGE_ANNOTATIONS}`);
         const octokit = github.getOctokit(GITHUB_TOKEN);
         core.info(`cloning ${github.context.repo.repo}...`);
         yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
