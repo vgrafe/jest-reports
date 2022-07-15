@@ -34,5 +34,5 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           coverage-annotations: none
-          cover-changes-only: False
+          cover-pr-changes-only: False
 ```

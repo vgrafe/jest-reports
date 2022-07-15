@@ -41,6 +41,9 @@ const run = async () => {
       github.context.eventName === "push" &&
       github.context.ref === DEFAULT_BRANCH;
 
+    core.info(`github.context.eventName=${github.context.eventName}`);
+    core.info(`github.context.ref=${github.context.ref}`);
+
     if (!isPullRequest && !isPushOnDefaultBranch) {
       core.info(
         `event dispatching is not a PR push or a merge on default branch, stopping everything`
