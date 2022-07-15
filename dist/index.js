@@ -250,9 +250,6 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
         const COVERAGE_ANNOTATIONS = process.env.INPUT_COVERAGE_ANNOTATIONS;
         const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
         const COVER_DEFAULT_BRANCH = process.env.INPUT_COVER_DEFAULT_BRANCH === "true";
-        core.info(`COVER_PR_CHANGES_ONLY=${COVER_PR_CHANGES_ONLY}`);
-        core.info(`COVERAGE_ANNOTATIONS=${COVERAGE_ANNOTATIONS}`);
-        core.info(`COVER_DEFAULT_BRANCH=${COVER_DEFAULT_BRANCH}`);
         const octokit = github.getOctokit(GITHUB_TOKEN);
         core.info(`cloning ${github.context.repo.repo}...`);
         yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
@@ -262,8 +259,9 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
         if (!isPullRequest && !isPushOnDefaultBranch)
             core.setFailed(`event dispatching is not a PR push or a merge on default branch, stopping everything`);
         if (isPushOnDefaultBranch && COVER_DEFAULT_BRANCH) {
-            // const coverage = await getCoverageForSha(github.context.sha);
-            yield octokit.rest.repos.createCommitComment(Object.assign(Object.assign({}, github.context.repo), { commit_sha: github.context.sha, body: "SON.stringify(coverage)" }));
+            const coverage = yield (0, getCoverageForSha_1.getCoverageForSha)(github.context.sha);
+            const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(coverage.coverageSummary);
+            yield octokit.rest.repos.createCommitComment(Object.assign(Object.assign({}, github.context.repo), { commit_sha: github.context.sha, body: coverageMarkdownReport }));
         }
         if (isPullRequest) {
             core.info(`starting the pull request workflow...`);

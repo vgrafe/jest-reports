@@ -23,10 +23,6 @@ const run = async () => {
     const COVER_DEFAULT_BRANCH =
       process.env.INPUT_COVER_DEFAULT_BRANCH === "true";
 
-    core.info(`COVER_PR_CHANGES_ONLY=${COVER_PR_CHANGES_ONLY}`);
-    core.info(`COVERAGE_ANNOTATIONS=${COVERAGE_ANNOTATIONS}`);
-    core.info(`COVER_DEFAULT_BRANCH=${COVER_DEFAULT_BRANCH}`);
-
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
     core.info(`cloning ${github.context.repo.repo}...`);
@@ -46,12 +42,16 @@ const run = async () => {
       );
 
     if (isPushOnDefaultBranch && COVER_DEFAULT_BRANCH) {
-      // const coverage = await getCoverageForSha(github.context.sha);
+      const coverage = await getCoverageForSha(github.context.sha);
+
+      const coverageMarkdownReport = reportsToMarkdownSummary(
+        coverage.coverageSummary
+      );
 
       await octokit.rest.repos.createCommitComment({
         ...github.context.repo,
         commit_sha: github.context.sha,
-        body: "SON.stringify(coverage)",
+        body: coverageMarkdownReport,
       });
     }
 
