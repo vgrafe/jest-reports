@@ -29,6 +29,9 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   // we're abusing of the summary api to avoid relying on a crappier dependency
   // to generage markdown tables. Using summaries could add value in the future.
 
+  // if there's no base summary, we can assume this is a push/merge on default branch and not a PR
+  const isFullReportOnDefaultBranch = !baseSummary;
+
   // clearing the buffer to make sure we start fresh
   core.summary.clear();
 
@@ -47,7 +50,7 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
 
   const columns = ["lines", "statements", "branches", "functions"];
 
-  if (hasImpactOnTotalCoverage) {
+  if (hasImpactOnTotalCoverage || isFullReportOnDefaultBranch) {
     const headers = columns.map((c) => ({ data: c, header: true }));
 
     const cells = columns.map(
@@ -134,7 +137,10 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
       ]);
   };
 
-  if (added.length > 0) makeTable("New files", added, false);
+  if (added.length > 0) {
+    const title = isFullReportOnDefaultBranch ? "Files" : "Added files";
+    makeTable(title, added, false);
+  }
 
   if (regressions.length > 0) makeTable("Regressions", regressions);
 

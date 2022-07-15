@@ -768,6 +768,8 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
     // we're abusing of the summary api to avoid relying on a crappier dependency
     // to generage markdown tables. Using summaries could add value in the future.
+    // if there's no base summary, we can assume this is a push/merge on default branch and not a PR
+    const isFullReportOnDefaultBranch = !baseSummary;
     // clearing the buffer to make sure we start fresh
     core.summary.clear();
     const [_, ...summaryRows] = Object.keys(summary);
@@ -780,7 +782,7 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
         ? baseSummary.total[field].pct !== 0
         : 0);
     const columns = ["lines", "statements", "branches", "functions"];
-    if (hasImpactOnTotalCoverage) {
+    if (hasImpactOnTotalCoverage || isFullReportOnDefaultBranch) {
         const headers = columns.map((c) => ({ data: c, header: true }));
         const cells = columns.map((c) => `${getIcon(summary.total[c].pct)} ${roundWithDigits(summary.total[c].pct)}% ${summary.total[c].pct - baseSummary
             ? baseSummary.total[c].pct !== 0
@@ -844,8 +846,10 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
                 ]),
             ]);
     };
-    if (added.length > 0)
-        makeTable("New files", added, false);
+    if (added.length > 0) {
+        const title = isFullReportOnDefaultBranch ? "Files" : "Added files";
+        makeTable(title, added, false);
+    }
     if (regressions.length > 0)
         makeTable("Regressions", regressions);
     // makeTable("Unchanged", healthy, false),
