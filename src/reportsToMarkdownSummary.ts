@@ -24,7 +24,7 @@ const addPlusIfPositive = (num: number | string) =>
 
 const getIcon = (num: number) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 
-export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
+export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
   // we're abusing of the summary api to avoid relying on a crappier dependency
   // to generage markdown tables. Using summaries could add value in the future.
@@ -33,11 +33,6 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary: any) => {
   core.summary.clear();
 
   const [_, ...summaryRows] = Object.keys(summary);
-
-  const error =
-    summary.total.lines.total === "Unknown"
-      ? "The tests ran without error, but coverage could not be calculated."
-      : null;
 
   const hasImpactOnTotalCoverage = [
     "lines",

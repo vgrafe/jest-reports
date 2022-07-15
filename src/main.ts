@@ -16,11 +16,17 @@ const run = async () => {
 
   try {
     const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
-    const COVER_CHANGES_ONLY = process.env.INPUT_COVER_CHANGES_ONLY === "True";
+    const COVER_PR_CHANGES_ONLY =
+      process.env.INPUT_COVER_PR_CHANGES_ONLY === "True";
     const COVERAGE_ANNOTATIONS = process.env.INPUT_COVERAGE_ANNOTATIONS;
+    const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
+    const COVER_DEFAULT_BRANCH =
+      process.env.INPUT_COVER_DEFAULT_BRANCH === "True";
 
-    core.info(`COVER_CHANGES_ONLY=${COVER_CHANGES_ONLY}`);
+    core.info(`COVER_PR_CHANGES_ONLY=${COVER_PR_CHANGES_ONLY}`);
     core.info(`COVERAGE_ANNOTATIONS=${COVERAGE_ANNOTATIONS}`);
+    core.info(`COVER_DEFAULT_BRANCH=${COVER_DEFAULT_BRANCH}`);
+    core.info(`DEFAULT_BRANCH=${DEFAULT_BRANCH}`);
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
@@ -31,6 +37,27 @@ const run = async () => {
     );
 
     const isPullRequest = github.context.eventName === "pull_request";
+    const isPushOnDefaultBranch =
+      github.context.eventName === "push" &&
+      github.context.ref === DEFAULT_BRANCH;
+
+    if (!isPullRequest && !isPushOnDefaultBranch) {
+      core.info(
+        `event dispatching is not a PR push or a merge on default branch, stopping everything`
+      );
+      return 1;
+    }
+
+    if (isPushOnDefaultBranch && COVER_DEFAULT_BRANCH) {
+      // const coverage = await getCoverageForSha(github.context.sha);
+
+      await octokit.rest.repos.createCommitComment({
+        ...github.context.repo,
+        commit_sha: github.context.sha,
+        body: "SON.stringify(coverage)",
+      });
+    }
+
     if (isPullRequest) {
       core.info(`starting the pull request workflow...`);
 
@@ -59,7 +86,7 @@ const run = async () => {
 
       const coverageData = await getCoverageForSha(
         pullRequest.head.sha,
-        COVER_CHANGES_ONLY ? pullRequest.base.sha : undefined
+        COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined
       );
 
       const failedTests = (coverageData.testsOutput as any).testResults.filter(
