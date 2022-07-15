@@ -246,14 +246,28 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting jest-reports...");
     try {
         const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
-        const COVER_CHANGES_ONLY = process.env.INPUT_COVER_CHANGES_ONLY === "True";
+        const COVER_PR_CHANGES_ONLY = process.env.INPUT_COVER_PR_CHANGES_ONLY === "True";
         const COVERAGE_ANNOTATIONS = process.env.INPUT_COVERAGE_ANNOTATIONS;
-        core.info(`COVER_CHANGES_ONLY=${COVER_CHANGES_ONLY}`);
+        const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
+        const COVER_DEFAULT_BRANCH = process.env.INPUT_COVER_DEFAULT_BRANCH === "True";
+        core.info(`COVER_PR_CHANGES_ONLY=${COVER_PR_CHANGES_ONLY}`);
         core.info(`COVERAGE_ANNOTATIONS=${COVERAGE_ANNOTATIONS}`);
+        core.info(`COVER_DEFAULT_BRANCH=${COVER_DEFAULT_BRANCH}`);
+        core.info(`DEFAULT_BRANCH=${DEFAULT_BRANCH}`);
         const octokit = github.getOctokit(GITHUB_TOKEN);
         core.info(`cloning ${github.context.repo.repo}...`);
         yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
         const isPullRequest = github.context.eventName === "pull_request";
+        const isPushOnDefaultBranch = github.context.eventName === "push" &&
+            github.context.ref === DEFAULT_BRANCH;
+        if (!isPullRequest && !isPushOnDefaultBranch) {
+            core.info(`event dispatching is not a PR push or a merge on default branch, stopping everything`);
+            return 1;
+        }
+        if (isPushOnDefaultBranch && COVER_DEFAULT_BRANCH) {
+            // const coverage = await getCoverageForSha(github.context.sha);
+            yield octokit.rest.repos.createCommitComment(Object.assign(Object.assign({}, github.context.repo), { commit_sha: github.context.sha, body: "SON.stringify(coverage)" }));
+        }
         if (isPullRequest) {
             core.info(`starting the pull request workflow...`);
             const { data: pullRequest } = yield octokit.rest.pulls.get({
@@ -271,7 +285,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 core.info("posting mardown reports to github...");
                 yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
             }
-            const coverageData = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, COVER_CHANGES_ONLY ? pullRequest.base.sha : undefined);
+            const coverageData = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined);
             const failedTests = coverageData.testsOutput.testResults.filter((a) => a.status !== "passed");
             if (failedTests.length > 0) {
                 //todo report tests in comment, exit with code != 0
@@ -762,9 +776,6 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     // clearing the buffer to make sure we start fresh
     core.summary.clear();
     const [_, ...summaryRows] = Object.keys(summary);
-    const error = summary.total.lines.total === "Unknown"
-        ? "The tests ran without error, but coverage could not be calculated."
-        : null;
     const hasImpactOnTotalCoverage = [
         "lines",
         "statements",
