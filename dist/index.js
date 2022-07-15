@@ -246,14 +246,13 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting jest-reports...");
     try {
         const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
-        const COVER_PR_CHANGES_ONLY = process.env.INPUT_COVER_PR_CHANGES_ONLY === "True";
+        const COVER_PR_CHANGES_ONLY = process.env.INPUT_COVER_PR_CHANGES_ONLY === "true";
         const COVERAGE_ANNOTATIONS = process.env.INPUT_COVERAGE_ANNOTATIONS;
         const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
-        const COVER_DEFAULT_BRANCH = process.env.INPUT_COVER_DEFAULT_BRANCH === "True";
+        const COVER_DEFAULT_BRANCH = process.env.INPUT_COVER_DEFAULT_BRANCH === "true";
         core.info(`COVER_PR_CHANGES_ONLY=${COVER_PR_CHANGES_ONLY}`);
         core.info(`COVERAGE_ANNOTATIONS=${COVERAGE_ANNOTATIONS}`);
         core.info(`COVER_DEFAULT_BRANCH=${COVER_DEFAULT_BRANCH}`);
-        core.info(`DEFAULT_BRANCH=${DEFAULT_BRANCH}`);
         const octokit = github.getOctokit(GITHUB_TOKEN);
         core.info(`cloning ${github.context.repo.repo}...`);
         yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);

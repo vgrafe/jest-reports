@@ -17,16 +17,15 @@ const run = async () => {
   try {
     const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
     const COVER_PR_CHANGES_ONLY =
-      process.env.INPUT_COVER_PR_CHANGES_ONLY === "True";
+      process.env.INPUT_COVER_PR_CHANGES_ONLY === "true";
     const COVERAGE_ANNOTATIONS = process.env.INPUT_COVERAGE_ANNOTATIONS;
     const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
     const COVER_DEFAULT_BRANCH =
-      process.env.INPUT_COVER_DEFAULT_BRANCH === "True";
+      process.env.INPUT_COVER_DEFAULT_BRANCH === "true";
 
     core.info(`COVER_PR_CHANGES_ONLY=${COVER_PR_CHANGES_ONLY}`);
     core.info(`COVERAGE_ANNOTATIONS=${COVERAGE_ANNOTATIONS}`);
     core.info(`COVER_DEFAULT_BRANCH=${COVER_DEFAULT_BRANCH}`);
-    core.info(`DEFAULT_BRANCH=${DEFAULT_BRANCH}`);
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
