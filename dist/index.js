@@ -776,15 +776,17 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
         "statements",
         "branches",
         "functions",
-    ].some((field) => summary.total[field].pct - baseSummary.total[field].pct !== 0);
+    ].some((field) => summary.total[field].pct - baseSummary
+        ? baseSummary.total[field].pct !== 0
+        : 0);
     const columns = ["lines", "statements", "branches", "functions"];
     if (hasImpactOnTotalCoverage) {
         const headers = columns.map((c) => ({ data: c, header: true }));
-        const cells = columns.map((c) => `${getIcon(summary.total[c].pct)} ${roundWithDigits(summary.total[c].pct)}% ${summary.total[c].pct - baseSummary.total[c].pct !== 0
-            ? "(<strong>" +
-                addPlusIfPositive(roundWithDigits(summary.total[c].pct - baseSummary.total[c].pct)) +
-                "%</strong>)"
-            : ""}`);
+        const cells = columns.map((c) => `${getIcon(summary.total[c].pct)} ${roundWithDigits(summary.total[c].pct)}% ${summary.total[c].pct - baseSummary
+            ? baseSummary.total[c].pct !== 0
+            :  false
+                ? 0
+                : ""}`);
         core.summary
             .addHeading("Impact on total coverage", 2)
             .addTable([headers, cells]);
@@ -793,7 +795,7 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     let regressions = [];
     let healthy = [];
     for (const row of summaryRows) {
-        if (!baseSummary[row])
+        if (!baseSummary || !baseSummary[row])
             added.push(row);
         else {
             const pct = getPercent(summary[row]);

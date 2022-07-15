@@ -39,8 +39,10 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
     "statements",
     "branches",
     "functions",
-  ].some(
-    (field) => summary.total[field].pct - baseSummary.total[field].pct !== 0
+  ].some((field) =>
+    summary.total[field].pct - baseSummary
+      ? baseSummary.total[field].pct !== 0
+      : 0
   );
 
   const columns = ["lines", "statements", "branches", "functions"];
@@ -53,10 +55,16 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
         `${getIcon(summary.total[c].pct)} ${roundWithDigits(
           summary.total[c].pct
         )}% ${
-          summary.total[c].pct - baseSummary.total[c].pct !== 0
+          summary.total[c].pct - baseSummary
+            ? baseSummary.total[c].pct !== 0
+            : 0
             ? "(<strong>" +
               addPlusIfPositive(
-                roundWithDigits(summary.total[c].pct - baseSummary.total[c].pct)
+                roundWithDigits(
+                  summary.total[c].pct - baseSummary
+                    ? baseSummary.total[c].pct
+                    : 0
+                )
               ) +
               "%</strong>)"
             : ""
@@ -73,7 +81,7 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   let healthy: string[] = [];
 
   for (const row of summaryRows) {
-    if (!baseSummary[row]) added.push(row);
+    if (!baseSummary || !baseSummary[row]) added.push(row);
     else {
       const pct = getPercent(summary[row]);
       const basePct = getPercent(baseSummary[row]);
