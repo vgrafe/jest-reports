@@ -789,9 +789,10 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
             :  false
                 ? 0
                 : ""}`);
-        core.summary
-            .addHeading("Impact on total coverage", 2)
-            .addTable([headers, cells]);
+        const title = isFullReportOnDefaultBranch
+            ? "Total coverage"
+            : "Impact on total coverage";
+        core.summary.addHeading(title, 2).addTable([headers, cells]);
     }
     let added = [];
     let regressions = [];
