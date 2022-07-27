@@ -101,13 +101,18 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   core.info(`building impact section, ${summaryRows.length} rows`);
 
   for (const row of summaryRows) {
-    if (!baseSummary || !baseSummary[row]) added.push(row);
-    else {
+    core.info(row);
+    if (!baseSummary || !baseSummary[row]) {
+      core.info(`detected as new`);
+      added.push(row);
+    } else {
       const pct = getPercent(summary[row]);
       const basePct = getPercent(baseSummary[row]);
       if (pct >= basePct) {
+        core.info(`detected as healty`);
         healthy.push(row);
       } else {
+        core.info(`detected as regression`);
         regressions.push(row);
       }
     }
@@ -166,6 +171,9 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   }
 
   // makeTable("Unchanged", healthy, false),
+
+  core.info(`done building summary`);
+  core.info(core.summary.stringify());
 
   return core.summary.stringify();
 };
