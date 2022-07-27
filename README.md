@@ -1,6 +1,6 @@
 # What it does
 
-Posts coverage report on your PR
+Posts coverage report on your PR.
 
 ![](docs/screenshot0.jpeg)
 
