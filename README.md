@@ -30,7 +30,7 @@ jobs:
       group: ${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: vgrafe/couette@v0.123
+      - uses: vgrafe/jest-reports@v0.123
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
