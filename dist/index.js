@@ -803,7 +803,7 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     let added = [];
     let regressions = [];
     let healthy = [];
-    core.info(`building impact section, ${summaryRows} rows`);
+    core.info(`building impact section, ${summaryRows.length} rows`);
     for (const row of summaryRows) {
         if (!baseSummary || !baseSummary[row])
             added.push(row);

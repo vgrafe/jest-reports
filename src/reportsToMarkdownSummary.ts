@@ -96,7 +96,7 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   let regressions: string[] = [];
   let healthy: string[] = [];
 
-  core.info(`building impact section, ${summaryRows} rows`);
+  core.info(`building impact section, ${summaryRows.length} rows`);
 
   for (const row of summaryRows) {
     if (!baseSummary || !baseSummary[row]) added.push(row);
