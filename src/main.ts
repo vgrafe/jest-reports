@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { exec } from "@actions/exec";
-import { postToGithub } from "./postToGithub";
+import { postInPullRequest } from "./postInPullRequest";
 import { reportsToMarkdownSummary } from "./reportsToMarkdownSummary";
 import { summary1, summary2 } from "./mock/json-summary";
 import { success } from "./mock/json-result";
@@ -60,7 +60,7 @@ const run = async () => {
 
     if (isPullRequest) {
       core.info(
-        `starting the PR workflow with ${github.context.issue.number}...`
+        `starting the PR workflow on #${github.context.issue.number}...`
       );
 
       const { data: pullRequest } = await octokit.rest.pulls.get({
@@ -70,30 +70,15 @@ const run = async () => {
       });
 
       core.info("computing PR total coverage...");
-      const prCoverage = await getCoverageForSha(pullRequest.head.sha);
-
-      core.info("computing base coverage...");
-      const baseCoverage = await getCoverageForSha(pullRequest.base.sha);
-
-      core.info("converting coverage file into markdown reports...");
-      const coverageMarkdownReport = reportsToMarkdownSummary(
-        prCoverage.coverageSummary,
-        baseCoverage.coverageSummary
-      );
-
-      if (coverageMarkdownReport.length) {
-        core.info("posting markdown reports to github...");
-        await postToGithub(coverageMarkdownReport);
-      } else core.info("coverage report is empty, skipping posting comment.");
-
-      const coverageData = await getCoverageForSha(
+      const prCoverage = await getCoverageForSha(
         pullRequest.head.sha,
         COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined
       );
 
-      const failedTests = (coverageData.testsOutput as any).testResults.filter(
+      const failedTests = (prCoverage.testsOutput as any).testResults.filter(
         (a: any) => a.status !== "passed"
       );
+
       if (failedTests.length > 0) {
         //todo report tests in comment, exit with code != 0
         const error = core.summary
@@ -101,35 +86,51 @@ const run = async () => {
           .addList(failedTests.map((ft: any) => ft.name))
           .stringify();
 
-        postToGithub(error);
+        postInPullRequest(error);
 
         core.setFailed(`${failedTests.length} tests failed!`);
-      }
+      } else {
+        core.info("computing base coverage...");
+        const baseCoverage = await getCoverageForSha(pullRequest.base.sha);
 
-      if (coverageData.testsOutput && COVERAGE_ANNOTATIONS !== "none") {
-        core.info("building 'warning' coverage annotations for PR changes...");
-        let annotations = createCoverageAnnotationsFromReport(
-          coverageData.testsOutput,
-          "warning"
+        core.info("compiling coverage files into markdown report...");
+        const coverageMarkdownReport = reportsToMarkdownSummary(
+          prCoverage.coverageSummary,
+          baseCoverage.coverageSummary
         );
 
-        if (COVERAGE_ANNOTATIONS === "all") {
+        if (coverageMarkdownReport.length) {
+          core.info("report complete! posting markdown report to github...");
+          await postInPullRequest(coverageMarkdownReport);
+        } else core.info("coverage report is empty, skipping posting comment.");
+
+        if (prCoverage.testsOutput && COVERAGE_ANNOTATIONS !== "none") {
           core.info(
-            "appending 'info' coverage annotations for existing work..."
+            "building 'warning' coverage annotations for PR changes..."
           );
-          annotations = createCoverageAnnotationsFromReport(
+          let annotations = createCoverageAnnotationsFromReport(
             prCoverage.testsOutput,
-            "notice",
-            annotations
+            "warning"
+          );
+
+          if (COVERAGE_ANNOTATIONS === "all") {
+            core.info(
+              "appending 'info' coverage annotations for existing work..."
+            );
+            annotations = createCoverageAnnotationsFromReport(
+              prCoverage.testsOutput,
+              "notice",
+              annotations
+            );
+          }
+
+          // converting to individual annotations and posting them.
+          // in the future, we could decide to aggregate them more aggressively if their number is
+          // over github's limit.
+          await octokit.rest.checks.create(
+            formatCoverageAnnotations(annotations)
           );
         }
-
-        // converting to individual annotations and posting them.
-        // in the future, we could decide to aggregate them more aggressively if their number is
-        // over github's limit.
-        await octokit.rest.checks.create(
-          formatCoverageAnnotations(annotations)
-        );
       }
     }
 

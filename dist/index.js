@@ -236,7 +236,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const exec_1 = __nccwpck_require__(1514);
-const postToGithub_1 = __nccwpck_require__(9847);
+const postInPullRequest_1 = __nccwpck_require__(8647);
 const reportsToMarkdownSummary_1 = __nccwpck_require__(5785);
 const json_summary_1 = __nccwpck_require__(5253);
 const json_result_1 = __nccwpck_require__(8316);
@@ -266,46 +266,47 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             yield octokit.rest.repos.createCommitComment(Object.assign(Object.assign({}, github.context.repo), { commit_sha: github.context.sha, body: coverageMarkdownReport }));
         }
         if (isPullRequest) {
-            core.info(`starting the PR workflow with ${github.context.issue.number}...`);
+            core.info(`starting the PR workflow on #${github.context.issue.number}...`);
             const { data: pullRequest } = yield octokit.rest.pulls.get({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 pull_number: github.context.issue.number,
             });
             core.info("computing PR total coverage...");
-            const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
-            core.info("computing base coverage...");
-            const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
-            core.info("converting coverage file into markdown reports...");
-            const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
-            if (coverageMarkdownReport.length) {
-                core.info("posting markdown reports to github...");
-                yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
-            }
-            else
-                core.info("coverage report is empty, skipping posting comment.");
-            const coverageData = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined);
-            const failedTests = coverageData.testsOutput.testResults.filter((a) => a.status !== "passed");
+            const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined);
+            const failedTests = prCoverage.testsOutput.testResults.filter((a) => a.status !== "passed");
             if (failedTests.length > 0) {
                 //todo report tests in comment, exit with code != 0
                 const error = core.summary
                     .addRaw(`The following tests failed:`)
                     .addList(failedTests.map((ft) => ft.name))
                     .stringify();
-                (0, postToGithub_1.postToGithub)(error);
+                (0, postInPullRequest_1.postInPullRequest)(error);
                 core.setFailed(`${failedTests.length} tests failed!`);
             }
-            if (coverageData.testsOutput && COVERAGE_ANNOTATIONS !== "none") {
-                core.info("building 'warning' coverage annotations for PR changes...");
-                let annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(coverageData.testsOutput, "warning");
-                if (COVERAGE_ANNOTATIONS === "all") {
-                    core.info("appending 'info' coverage annotations for existing work...");
-                    annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotations);
+            else {
+                core.info("computing base coverage...");
+                const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
+                core.info("compiling coverage files into markdown report...");
+                const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
+                if (coverageMarkdownReport.length) {
+                    core.info("report complete! posting markdown report to github...");
+                    yield (0, postInPullRequest_1.postInPullRequest)(coverageMarkdownReport);
                 }
-                // converting to individual annotations and posting them.
-                // in the future, we could decide to aggregate them more aggressively if their number is
-                // over github's limit.
-                yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
+                else
+                    core.info("coverage report is empty, skipping posting comment.");
+                if (prCoverage.testsOutput && COVERAGE_ANNOTATIONS !== "none") {
+                    core.info("building 'warning' coverage annotations for PR changes...");
+                    let annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "warning");
+                    if (COVERAGE_ANNOTATIONS === "all") {
+                        core.info("appending 'info' coverage annotations for existing work...");
+                        annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotations);
+                    }
+                    // converting to individual annotations and posting them.
+                    // in the future, we could decide to aggregate them more aggressively if their number is
+                    // over github's limit.
+                    yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
+                }
             }
         }
         core.info("done, see ya.");
@@ -649,7 +650,7 @@ exports.summary2 = {
 
 /***/ }),
 
-/***/ 9847:
+/***/ 8647:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -687,15 +688,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.postToGithub = void 0;
+exports.postInPullRequest = void 0;
 const github = __importStar(__nccwpck_require__(5438));
 const core = __importStar(__nccwpck_require__(2186));
-const collapsible = (title, text) => `<details><summary>${title}</summary>
-
-${text}
-
-</details>`;
-const postToGithub = (body) => __awaiter(void 0, void 0, void 0, function* () {
+const postInPullRequest = (body) => __awaiter(void 0, void 0, void 0, function* () {
     const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
     const octokit = github.getOctokit(GITHUB_TOKEN);
     const allComments = yield octokit.rest.issues.listComments({
@@ -703,11 +699,11 @@ const postToGithub = (body) => __awaiter(void 0, void 0, void 0, function* () {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
     });
-    const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith(`☂️`); });
+    const existingComment = allComments.data.find((com) => { var _a; return (_a = com.body) === null || _a === void 0 ? void 0 : _a.startsWith(`jest-reports`); });
     const commentParams = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        body: `☂️\n---\n${body}`,
+        body: `jest-reports\n---\n${body}`,
     };
     if (existingComment) {
         core.info("updating comment...");
@@ -718,7 +714,7 @@ const postToGithub = (body) => __awaiter(void 0, void 0, void 0, function* () {
         yield octokit.rest.issues.createComment(Object.assign({ issue_number: github.context.issue.number }, commentParams));
     }
 });
-exports.postToGithub = postToGithub;
+exports.postInPullRequest = postInPullRequest;
 
 
 /***/ }),

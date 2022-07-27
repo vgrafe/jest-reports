@@ -1,16 +1,7 @@
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 
-const collapsible = (
-  title: string,
-  text: string
-) => `<details><summary>${title}</summary>
-
-${text}
-
-</details>`;
-
-export const postToGithub = async (body: string) => {
+export const postInPullRequest = async (body: string) => {
   const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
   const octokit = github.getOctokit(GITHUB_TOKEN);
 
@@ -21,13 +12,13 @@ export const postToGithub = async (body: string) => {
   });
 
   const existingComment = allComments.data.find((com) =>
-    com.body?.startsWith(`☂️`)
+    com.body?.startsWith(`jest-reports`)
   );
 
   const commentParams = {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    body: `☂️\n---\n${body}`,
+    body: `jest-reports\n---\n${body}`,
   };
 
   if (existingComment) {
