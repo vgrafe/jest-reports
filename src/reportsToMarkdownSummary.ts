@@ -41,7 +41,7 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   const isFullReportOnDefaultBranch = !baseSummary;
 
   // clearing the buffer to make sure we start fresh
-  core.summary.clear();
+  // core.summary.clear();
 
   const [_, ...summaryRows] = Object.keys(summary);
 
@@ -160,6 +160,11 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
       ]);
   };
 
+  if (regressions.length > 0) {
+    core.info(`found regressions, adding section...`);
+    makeTable("Regressions", regressions);
+  }
+
   if (added.length > 0) {
     core.info(`found new files, adding section...`);
     const title = isFullReportOnDefaultBranch ? "Files" : "Added files";
@@ -171,14 +176,8 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
     makeTable("Improvements", added, false);
   }
 
-  if (regressions.length > 0) {
-    core.info(`found regressions, adding section...`);
-    makeTable("Regressions", regressions);
-  }
-
-  // makeTable("Unchanged", healthy, false),
-
   core.info(`done building summary`);
+
   core.info(core.summary.stringify());
 
   return core.summary.stringify();

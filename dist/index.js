@@ -541,7 +541,7 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     // if there's no base summary, we can assume this is a push/merge on default branch and not a PR
     const isFullReportOnDefaultBranch = !baseSummary;
     // clearing the buffer to make sure we start fresh
-    core.summary.clear();
+    // core.summary.clear();
     const [_, ...summaryRows] = Object.keys(summary);
     const hasImpactOnTotalCoverage = [
         "lines",
@@ -631,6 +631,10 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
                 ]),
             ]);
     };
+    if (regressions.length > 0) {
+        core.info(`found regressions, adding section...`);
+        makeTable("Regressions", regressions);
+    }
     if (added.length > 0) {
         core.info(`found new files, adding section...`);
         const title = isFullReportOnDefaultBranch ? "Files" : "Added files";
@@ -640,11 +644,6 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
         core.info(`found improved files, adding section...`);
         makeTable("Improvements", added, false);
     }
-    if (regressions.length > 0) {
-        core.info(`found regressions, adding section...`);
-        makeTable("Regressions", regressions);
-    }
-    // makeTable("Unchanged", healthy, false),
     core.info(`done building summary`);
     core.info(core.summary.stringify());
     return core.summary.stringify();
