@@ -98,6 +98,7 @@ const run = async () => {
           prCoverage.coverageSummary,
           baseCoverage.coverageSummary
         );
+        core.info(coverageMarkdownReport);
 
         if (coverageMarkdownReport.length) {
           core.info("report complete! posting markdown report to github...");

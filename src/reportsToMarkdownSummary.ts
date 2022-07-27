@@ -56,9 +56,13 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
       : 0
   );
 
+  hasImpactOnTotalCoverage && core.info(`detected impact on total coverage`);
+
   const columns = ["lines", "statements", "branches", "functions"];
 
   if (hasImpactOnTotalCoverage || isFullReportOnDefaultBranch) {
+    core.info(`building total coverage section...`);
+
     const headers = columns.map((c) => ({ data: c, header: true }));
 
     const cells = columns.map(
@@ -91,6 +95,8 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   let added: string[] = [];
   let regressions: string[] = [];
   let healthy: string[] = [];
+
+  core.info(`building impact section, ${summaryRows} rows`);
 
   for (const row of summaryRows) {
     if (!baseSummary || !baseSummary[row]) added.push(row);
@@ -147,11 +153,15 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   };
 
   if (added.length > 0) {
+    core.info(`found new files, adding section...`);
     const title = isFullReportOnDefaultBranch ? "Files" : "Added files";
     makeTable(title, added, false);
   }
 
-  if (regressions.length > 0) makeTable("Regressions", regressions);
+  if (regressions.length > 0) {
+    core.info(`found regressions, adding section...`);
+    makeTable("Regressions", regressions);
+  }
 
   // makeTable("Unchanged", healthy, false),
 

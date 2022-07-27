@@ -289,6 +289,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
                 core.info("compiling coverage files into markdown report...");
                 const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
+                core.info(coverageMarkdownReport);
                 if (coverageMarkdownReport.length) {
                     core.info("report complete! posting markdown report to github...");
                     yield (0, postInPullRequest_1.postInPullRequest)(coverageMarkdownReport);
@@ -784,8 +785,10 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     ].some((field) => summary.total[field].pct - baseSummary
         ? baseSummary.total[field].pct !== 0
         : 0);
+    hasImpactOnTotalCoverage && core.info(`detected impact on total coverage`);
     const columns = ["lines", "statements", "branches", "functions"];
     if (hasImpactOnTotalCoverage || isFullReportOnDefaultBranch) {
+        core.info(`building total coverage section...`);
         const headers = columns.map((c) => ({ data: c, header: true }));
         const cells = columns.map((c) => `${getIcon(summary.total[c].pct)} ${roundWithDigits(summary.total[c].pct)}% ${summary.total[c].pct - baseSummary
             ? baseSummary.total[c].pct !== 0
@@ -800,6 +803,7 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     let added = [];
     let regressions = [];
     let healthy = [];
+    core.info(`building impact section, ${summaryRows} rows`);
     for (const row of summaryRows) {
         if (!baseSummary || !baseSummary[row])
             added.push(row);
@@ -851,11 +855,14 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
             ]);
     };
     if (added.length > 0) {
+        core.info(`found new files, adding section...`);
         const title = isFullReportOnDefaultBranch ? "Files" : "Added files";
         makeTable(title, added, false);
     }
-    if (regressions.length > 0)
+    if (regressions.length > 0) {
+        core.info(`found regressions, adding section...`);
         makeTable("Regressions", regressions);
+    }
     // makeTable("Unchanged", healthy, false),
     return core.summary.stringify();
 };
