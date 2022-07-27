@@ -38,7 +38,7 @@ export const postToGithub = async (body: string) => {
     });
   } else {
     core.info("adding comment...");
-    octokit.rest.issues.createComment({
+    await octokit.rest.issues.createComment({
       issue_number: github.context.issue.number,
       ...commentParams,
     });

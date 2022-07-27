@@ -75,14 +75,14 @@ const run = async () => {
       core.info("computing base coverage...");
       const baseCoverage = await getCoverageForSha(pullRequest.base.sha);
 
-      core.info("converting coverage file into mardown reports...");
+      core.info("converting coverage file into markdown reports...");
       const coverageMarkdownReport = reportsToMarkdownSummary(
         prCoverage.coverageSummary,
         baseCoverage.coverageSummary
       );
 
       if (coverageMarkdownReport.length) {
-        core.info("posting mardown reports to github...");
+        core.info("posting markdown reports to github...");
         await postToGithub(coverageMarkdownReport);
       }
 

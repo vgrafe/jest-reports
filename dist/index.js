@@ -276,10 +276,10 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha);
             core.info("computing base coverage...");
             const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
-            core.info("converting coverage file into mardown reports...");
+            core.info("converting coverage file into markdown reports...");
             const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
             if (coverageMarkdownReport.length) {
-                core.info("posting mardown reports to github...");
+                core.info("posting markdown reports to github...");
                 yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
             }
             const coverageData = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined);
@@ -713,7 +713,7 @@ const postToGithub = (body) => __awaiter(void 0, void 0, void 0, function* () {
     }
     else {
         core.info("adding comment...");
-        octokit.rest.issues.createComment(Object.assign({ issue_number: github.context.issue.number }, commentParams));
+        yield octokit.rest.issues.createComment(Object.assign({ issue_number: github.context.issue.number }, commentParams));
     }
 });
 exports.postToGithub = postToGithub;
