@@ -536,10 +536,10 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     // we're abusing of the summary api to avoid relying on a crappier dependency
     // to generage markdown tables. Using summaries could add value in the future.
     core.info(`calling reportsToMarkdownSummary with ${Object.keys(summary).length} summary rows`);
-    core.info(summary);
+    core.info(JSON.stringify(summary, null, 2));
     baseSummary &&
         core.info(`and ${Object.keys(baseSummary).length} baseSummary rows`);
-    core.info(baseSummary);
+    core.info(JSON.stringify(baseSummary, null, 2));
     // if there's no base summary, we can assume this is a push/merge on default branch and not a PR
     const isFullReportOnDefaultBranch = !baseSummary;
     // clearing the buffer to make sure we start fresh

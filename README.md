@@ -20,8 +20,12 @@ Posts coverage report on your PR.
 ## Usage
 
 ```yml
-name: coverage
-on: [pull_request]
+name: jest-reports
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   compare-cov:
@@ -30,9 +34,10 @@ jobs:
       group: ${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: vgrafe/jest-reports@v0.123
+      - uses: vgrafe/couette@v0.136
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          coverage-annotations: "all"
+          cover-pr-changes-only: True
 ```
 
 ## Options
