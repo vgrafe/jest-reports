@@ -151,8 +151,8 @@ const test = () => {
 
   console.log("annotations");
 
-  const annotations = createCoverageAnnotationsFromReport(success, "warning");
-  console.log(formatCoverageAnnotations(annotations));
+  // const annotations = createCoverageAnnotationsFromReport(success, "warning");
+  // console.log(formatCoverageAnnotations(annotations));
 };
 
 run();

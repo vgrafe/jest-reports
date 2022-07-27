@@ -7,11 +7,11 @@
   "scripts": {
     "build": "tsc",
     "up": "yarn upgrade-interactive --latest",
-    "format": "prettier --write '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "package": "ncc build --source-map --license licenses.txt",
     "test": "jest",
-    "all": "npm run build && npm run format && npm run package && npm test"
+    "all": "npm run build && npm run package && npm test",
+    "testlocal": "npm run build && npm run package && node dist/index.js"
   },
   "repository": {
     "type": "git",

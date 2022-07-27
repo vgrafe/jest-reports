@@ -34,8 +34,10 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
       Object.keys(summary).length
     } summary rows`
   );
+  core.info(summary);
   baseSummary &&
     core.info(`and ${Object.keys(baseSummary).length} baseSummary rows`);
+  core.info(baseSummary);
 
   // if there's no base summary, we can assume this is a push/merge on default branch and not a PR
   const isFullReportOnDefaultBranch = !baseSummary;
