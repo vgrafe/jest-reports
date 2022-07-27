@@ -536,10 +536,8 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     // we're abusing of the summary api to avoid relying on a crappier dependency
     // to generage markdown tables. Using summaries could add value in the future.
     core.info(`calling reportsToMarkdownSummary with ${Object.keys(summary).length} summary rows`);
-    core.info(JSON.stringify(summary, null, 2));
     baseSummary &&
         core.info(`and ${Object.keys(baseSummary).length} baseSummary rows`);
-    core.info(JSON.stringify(baseSummary, null, 2));
     // if there's no base summary, we can assume this is a push/merge on default branch and not a PR
     const isFullReportOnDefaultBranch = !baseSummary;
     // clearing the buffer to make sure we start fresh
@@ -554,9 +552,9 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
         ? baseSummary.total[field].pct !== 0
         : 0);
     hasImpactOnTotalCoverage && core.info(`detected impact on total coverage`);
-    const columns = ["lines", "statements", "branches", "functions"];
     if (hasImpactOnTotalCoverage || isFullReportOnDefaultBranch) {
         core.info(`building total coverage section...`);
+        const columns = ["lines", "statements", "branches", "functions"];
         const headers = columns.map((c) => ({ data: c, header: true }));
         const cells = columns.map((c) => `${getIcon(summary.total[c].pct)} ${roundWithDigits(summary.total[c].pct)}% ${summary.total[c].pct - baseSummary
             ? baseSummary.total[c].pct !== 0
@@ -582,6 +580,7 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
             const pct = getPercent(summary[row]);
             const basePct = getPercent(baseSummary[row]);
             if (pct >= basePct) {
+                core.info(`pct=${pct}, basePct=${basePct}`);
                 core.info(`detected as healty`);
                 healthy.push(row);
             }

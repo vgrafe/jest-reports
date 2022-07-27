@@ -34,10 +34,8 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
       Object.keys(summary).length
     } summary rows`
   );
-  core.info(JSON.stringify(summary, null, 2));
   baseSummary &&
     core.info(`and ${Object.keys(baseSummary).length} baseSummary rows`);
-  core.info(JSON.stringify(baseSummary, null, 2));
 
   // if there's no base summary, we can assume this is a push/merge on default branch and not a PR
   const isFullReportOnDefaultBranch = !baseSummary;
@@ -60,11 +58,10 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
 
   hasImpactOnTotalCoverage && core.info(`detected impact on total coverage`);
 
-  const columns = ["lines", "statements", "branches", "functions"];
-
   if (hasImpactOnTotalCoverage || isFullReportOnDefaultBranch) {
     core.info(`building total coverage section...`);
 
+    const columns = ["lines", "statements", "branches", "functions"];
     const headers = columns.map((c) => ({ data: c, header: true }));
 
     const cells = columns.map(
@@ -99,7 +96,6 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   let healthy: string[] = [];
 
   core.info(`building impact section, ${summaryRows.length} rows`);
-
   for (const row of summaryRows) {
     core.info(row);
     if (!baseSummary || !baseSummary[row]) {
@@ -109,6 +105,8 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
       const pct = getPercent(summary[row]);
       const basePct = getPercent(baseSummary[row]);
       if (pct >= basePct) {
+        core.info(`pct=${pct}, basePct=${basePct}`);
+
         core.info(`detected as healty`);
         healthy.push(row);
       } else {
