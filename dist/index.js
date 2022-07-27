@@ -251,8 +251,9 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
         const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
         const COVER_DEFAULT_BRANCH = process.env.INPUT_COVER_DEFAULT_BRANCH === "true";
         const octokit = github.getOctokit(GITHUB_TOKEN);
-        const isPullRequest = github.context.eventName === "push" &&
-            github.context.ref.replace("refs/heads/", "") !== DEFAULT_BRANCH;
+        core.info(`eventName: ${github.context.eventName}`);
+        core.info(`branch: ${github.context.ref.replace("refs/heads/", "")}`);
+        const isPullRequest = github.context.eventName === "pull_request";
         const isPushOnDefaultBranch = github.context.eventName === "push" &&
             github.context.ref.replace("refs/heads/", "") === DEFAULT_BRANCH;
         if (!isPullRequest && !isPushOnDefaultBranch)
