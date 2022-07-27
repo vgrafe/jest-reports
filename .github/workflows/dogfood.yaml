@@ -8,6 +8,6 @@ jobs:
       group: ${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: vgrafe/jest-reports@v0.123
+      - uses: vgrafe/jest-reports@v0.138
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
