@@ -59,7 +59,9 @@ const run = async () => {
     }
 
     if (isPullRequest) {
-      core.info(`starting the pull request workflow...`);
+      core.info(
+        `starting the PR workflow with ${github.context.issue.number}...`
+      );
 
       const { data: pullRequest } = await octokit.rest.pulls.get({
         owner: github.context.repo.owner,

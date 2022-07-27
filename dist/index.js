@@ -266,7 +266,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             yield octokit.rest.repos.createCommitComment(Object.assign(Object.assign({}, github.context.repo), { commit_sha: github.context.sha, body: coverageMarkdownReport }));
         }
         if (isPullRequest) {
-            core.info(`starting the pull request workflow...`);
+            core.info(`starting the PR workflow with ${github.context.issue.number}...`);
             const { data: pullRequest } = yield octokit.rest.pulls.get({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
