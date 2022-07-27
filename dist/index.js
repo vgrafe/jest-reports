@@ -768,6 +768,8 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
     // we're abusing of the summary api to avoid relying on a crappier dependency
     // to generage markdown tables. Using summaries could add value in the future.
+    core.info(`calling reportsToMarkdownSummary with ${summary} summary rows`);
+    baseSummary && core.info(`and ${baseSummary} baseSummary rows`);
     // if there's no base summary, we can assume this is a push/merge on default branch and not a PR
     const isFullReportOnDefaultBranch = !baseSummary;
     // clearing the buffer to make sure we start fresh

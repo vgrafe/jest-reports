@@ -29,6 +29,9 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   // we're abusing of the summary api to avoid relying on a crappier dependency
   // to generage markdown tables. Using summaries could add value in the future.
 
+  core.info(`calling reportsToMarkdownSummary with ${summary} summary rows`);
+  baseSummary && core.info(`and ${baseSummary} baseSummary rows`);
+
   // if there's no base summary, we can assume this is a push/merge on default branch and not a PR
   const isFullReportOnDefaultBranch = !baseSummary;
 
