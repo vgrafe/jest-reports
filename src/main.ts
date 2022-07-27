@@ -84,7 +84,7 @@ const run = async () => {
       if (coverageMarkdownReport.length) {
         core.info("posting markdown reports to github...");
         await postToGithub(coverageMarkdownReport);
-      }
+      } else core.info("coverage report is empty, skipping posting comment.");
 
       const coverageData = await getCoverageForSha(
         pullRequest.head.sha,

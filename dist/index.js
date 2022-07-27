@@ -282,6 +282,8 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 core.info("posting markdown reports to github...");
                 yield (0, postToGithub_1.postToGithub)(coverageMarkdownReport);
             }
+            else
+                core.info("coverage report is empty, skipping posting comment.");
             const coverageData = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined);
             const failedTests = coverageData.testsOutput.testResults.filter((a) => a.status !== "passed");
             if (failedTests.length > 0) {
