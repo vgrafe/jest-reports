@@ -25,10 +25,9 @@ const run = async () => {
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
-    core.info(`eventName: ${github.context.eventName}`);
-    core.info(`branch: ${github.context.ref.replace("refs/heads/", "")}`);
-
-    const isPullRequest = github.context.eventName === "pull_request";
+    const isPullRequest =
+      github.context.eventName === "push" &&
+      github.context.ref.replace("refs/heads/", "") !== DEFAULT_BRANCH;
     const isPushOnDefaultBranch =
       github.context.eventName === "push" &&
       github.context.ref.replace("refs/heads/", "") === DEFAULT_BRANCH;
