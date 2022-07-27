@@ -5,7 +5,7 @@ import * as core from "@actions/core";
  */
 const makeTable = (
   heading: string,
-  rows: string[],
+  rows: any[],
   compare = true,
   summary: any,
   baseSummary: any
