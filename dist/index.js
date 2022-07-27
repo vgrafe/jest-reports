@@ -585,7 +585,7 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
                 core.info(`detected as healty`);
                 improved.push(row);
             }
-            if (pct === basePct) {
+            else if (pct === basePct) {
                 core.info(`detected as healty`);
                 noChange.push(row);
             }
