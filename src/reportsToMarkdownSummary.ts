@@ -5,7 +5,7 @@ import * as core from "@actions/core";
  */
 const makeTable = (
   heading: string,
-  rows: any[],
+  rows: string[],
   compare = true,
   summary: any,
   baseSummary: any
@@ -180,7 +180,7 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
 
   if (improved.length > 0) {
     core.info(`found improved files, adding section...`);
-    makeTable("Improvements", added, true, summary, baseSummary);
+    makeTable("Improvements", improved, true, summary, baseSummary);
   }
 
   core.info(`done building summary`);

@@ -643,7 +643,7 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     }
     if (improved.length > 0) {
         core.info(`found improved files, adding section...`);
-        makeTable("Improvements", added, true, summary, baseSummary);
+        makeTable("Improvements", improved, true, summary, baseSummary);
     }
     core.info(`done building summary`);
     core.info(core.summary.stringify());
