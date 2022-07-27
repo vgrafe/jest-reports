@@ -251,13 +251,15 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
         const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
         const COVER_DEFAULT_BRANCH = process.env.INPUT_COVER_DEFAULT_BRANCH === "true";
         const octokit = github.getOctokit(GITHUB_TOKEN);
-        core.info(`cloning ${github.context.repo.repo}...`);
-        yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
+        core.info(`eventName: ${github.context.eventName}`);
+        core.info(`branch: ${github.context.ref.replace("refs/heads/", "")}`);
         const isPullRequest = github.context.eventName === "pull_request";
         const isPushOnDefaultBranch = github.context.eventName === "push" &&
             github.context.ref.replace("refs/heads/", "") === DEFAULT_BRANCH;
         if (!isPullRequest && !isPushOnDefaultBranch)
             core.setFailed(`event dispatching is not a PR push or a merge on default branch, stopping everything`);
+        core.info(`cloning ${github.context.repo.repo}...`);
+        yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
         if (isPushOnDefaultBranch && COVER_DEFAULT_BRANCH) {
             const coverage = yield (0, getCoverageForSha_1.getCoverageForSha)(github.context.sha);
             const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(coverage.coverageSummary);

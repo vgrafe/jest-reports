@@ -25,7 +25,7 @@ const run = async () => {
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
-    core.info(`eventName: ${eventName}`);
+    core.info(`eventName: ${github.context.eventName}`);
     core.info(`branch: ${github.context.ref.replace("refs/heads/", "")}`);
 
     const isPullRequest = github.context.eventName === "pull_request";
