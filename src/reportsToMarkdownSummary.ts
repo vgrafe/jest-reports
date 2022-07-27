@@ -107,10 +107,10 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
       const basePct = getPercent(baseSummary[row]);
       core.info(`pct=${pct}, basePct=${basePct}`);
       if (pct > basePct) {
-        core.info(`detected as healty`);
+        core.info(`detected as healthy`);
         improved.push(row);
       } else if (pct === basePct) {
-        core.info(`detected as healty`);
+        core.info(`detected as nochange`);
         noChange.push(row);
       } else {
         core.info(`detected as regression`);

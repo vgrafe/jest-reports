@@ -582,11 +582,11 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
             const basePct = getPercent(baseSummary[row]);
             core.info(`pct=${pct}, basePct=${basePct}`);
             if (pct > basePct) {
-                core.info(`detected as healty`);
+                core.info(`detected as healthy`);
                 improved.push(row);
             }
             else if (pct === basePct) {
-                core.info(`detected as healty`);
+                core.info(`detected as nochange`);
                 noChange.push(row);
             }
             else {
