@@ -93,7 +93,8 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
 
   let added: string[] = [];
   let regressions: string[] = [];
-  let healthy: string[] = [];
+  let noChange: string[] = [];
+  let improved: string[] = [];
 
   core.info(`building impact section, ${summaryRows.length} rows`);
   for (const row of summaryRows) {
@@ -104,11 +105,14 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
     } else {
       const pct = getPercent(summary[row]);
       const basePct = getPercent(baseSummary[row]);
-      if (pct >= basePct) {
-        core.info(`pct=${pct}, basePct=${basePct}`);
-
+      core.info(`pct=${pct}, basePct=${basePct}`);
+      if (pct > basePct) {
         core.info(`detected as healty`);
-        healthy.push(row);
+        improved.push(row);
+      }
+      if (pct === basePct) {
+        core.info(`detected as healty`);
+        noChange.push(row);
       } else {
         core.info(`detected as regression`);
         regressions.push(row);
@@ -161,6 +165,11 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
     core.info(`found new files, adding section...`);
     const title = isFullReportOnDefaultBranch ? "Files" : "Added files";
     makeTable(title, added, false);
+  }
+
+  if (improved.length > 0) {
+    core.info(`found improved files, adding section...`);
+    makeTable("Improvements", added, false);
   }
 
   if (regressions.length > 0) {

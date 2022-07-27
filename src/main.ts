@@ -100,7 +100,7 @@ const run = async () => {
         );
         core.info(coverageMarkdownReport);
 
-        if (coverageMarkdownReport.length) {
+        if (coverageMarkdownReport.length > 0) {
           core.info("report complete! posting markdown report to github...");
           await postInPullRequest(coverageMarkdownReport);
         } else core.info("coverage report is empty, skipping posting comment.");
@@ -147,7 +147,7 @@ const run = async () => {
 const test = () => {
   const a = reportsToMarkdownSummary(summary1, summary2);
 
-  console.log(a);
+  console.log(a.length);
 
   console.log("annotations");
 

@@ -289,7 +289,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 core.info("compiling coverage files into markdown report...");
                 const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
                 core.info(coverageMarkdownReport);
-                if (coverageMarkdownReport.length) {
+                if (coverageMarkdownReport.length > 0) {
                     core.info("report complete! posting markdown report to github...");
                     yield (0, postInPullRequest_1.postInPullRequest)(coverageMarkdownReport);
                 }
@@ -320,7 +320,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 const test = () => {
     const a = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(json_summary_1.summary1, json_summary_1.summary2);
-    console.log(a);
+    console.log(a.length);
     console.log("annotations");
     // const annotations = createCoverageAnnotationsFromReport(success, "warning");
     // console.log(formatCoverageAnnotations(annotations));
@@ -568,7 +568,8 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
     }
     let added = [];
     let regressions = [];
-    let healthy = [];
+    let noChange = [];
+    let improved = [];
     core.info(`building impact section, ${summaryRows.length} rows`);
     for (const row of summaryRows) {
         core.info(row);
@@ -579,10 +580,14 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
         else {
             const pct = getPercent(summary[row]);
             const basePct = getPercent(baseSummary[row]);
-            if (pct >= basePct) {
-                core.info(`pct=${pct}, basePct=${basePct}`);
+            core.info(`pct=${pct}, basePct=${basePct}`);
+            if (pct > basePct) {
                 core.info(`detected as healty`);
-                healthy.push(row);
+                improved.push(row);
+            }
+            if (pct === basePct) {
+                core.info(`detected as healty`);
+                noChange.push(row);
             }
             else {
                 core.info(`detected as regression`);
@@ -630,6 +635,10 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
         core.info(`found new files, adding section...`);
         const title = isFullReportOnDefaultBranch ? "Files" : "Added files";
         makeTable(title, added, false);
+    }
+    if (improved.length > 0) {
+        core.info(`found improved files, adding section...`);
+        makeTable("Improvements", added, false);
     }
     if (regressions.length > 0) {
         core.info(`found regressions, adding section...`);
