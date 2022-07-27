@@ -1,5 +1,53 @@
 import * as core from "@actions/core";
 
+/**
+ * Generates a markdown table using github's `core.summary` api to get the markdown string.
+ */
+const makeTable = (
+  heading: string,
+  rows: string[],
+  compare = true,
+  summary: any,
+  baseSummary: any
+) => {
+  core.info(`maketable with ${rows.length} rows`);
+  if (rows.length === 0) return null;
+
+  if (compare)
+    core.summary.addHeading(heading, 2).addTable([
+      [
+        { data: "", header: true },
+        { data: "module", header: true },
+        { data: "coverage", header: true },
+        { data: "change", header: true },
+      ],
+      ...rows.map((row) => [
+        getIcon(getPercent(summary[row])),
+        row.replace(process.cwd() + `/`, ""),
+        roundWithDigits(getPercent(summary[row])) + "%",
+        addPlusIfPositive(
+          roundWithDigits(
+            getPercent(summary[row]) -
+              (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
+          )
+        ) + "%",
+      ]),
+    ]);
+  else
+    core.summary.addHeading(heading, 2).addTable([
+      [
+        { data: "", header: true },
+        { data: "module", header: true },
+        { data: "coverage", header: true },
+      ],
+      ...rows.map((row) => [
+        getIcon(getPercent(summary[row])),
+        row.replace(process.cwd() + `/`, ""),
+        roundWithDigits(getPercent(summary[row])) + "%",
+      ]),
+    ]);
+};
+
 const getPercent = (summaryRow: any) => {
   const total =
     summaryRow.lines.total +
@@ -41,7 +89,7 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
   const isFullReportOnDefaultBranch = !baseSummary;
 
   // clearing the buffer to make sure we start fresh
-  // core.summary.clear();
+  core.summary.clear();
 
   const [_, ...summaryRows] = Object.keys(summary);
 
@@ -119,61 +167,20 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
     }
   }
 
-  /**
-   * Generates a markdown table using github's `core.summary` api to get the markdown string.
-   */
-  const makeTable = (heading: string, rows: string[], compare = true) => {
-    if (rows.length === 0) return null;
-
-    if (compare)
-      core.summary.addHeading(heading, 2).addTable([
-        [
-          { data: "", header: true },
-          { data: "module", header: true },
-          { data: "coverage", header: true },
-          { data: "change", header: true },
-        ],
-        ...rows.map((row) => [
-          getIcon(getPercent(summary[row])),
-          row.replace(process.cwd() + `/`, ""),
-          roundWithDigits(getPercent(summary[row])) + "%",
-          addPlusIfPositive(
-            roundWithDigits(
-              getPercent(summary[row]) -
-                (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
-            )
-          ) + "%",
-        ]),
-      ]);
-    else
-      core.summary.addHeading(heading, 2).addTable([
-        [
-          { data: "", header: true },
-          { data: "module", header: true },
-          { data: "coverage", header: true },
-        ],
-        ...rows.map((row) => [
-          getIcon(getPercent(summary[row])),
-          row.replace(process.cwd() + `/`, ""),
-          roundWithDigits(getPercent(summary[row])) + "%",
-        ]),
-      ]);
-  };
-
   if (regressions.length > 0) {
     core.info(`found regressions, adding section...`);
-    makeTable("Regressions", regressions);
+    makeTable("Regressions", regressions, true, summary, baseSummary);
   }
 
   if (added.length > 0) {
     core.info(`found new files, adding section...`);
     const title = isFullReportOnDefaultBranch ? "Files" : "Added files";
-    makeTable(title, added, false);
+    makeTable(title, added, false, summary, baseSummary);
   }
 
   if (improved.length > 0) {
     core.info(`found improved files, adding section...`);
-    makeTable("Improvements", added, false);
+    makeTable("Improvements", added, true, summary, baseSummary);
   }
 
   core.info(`done building summary`);
