@@ -83,7 +83,11 @@ const run = async () => {
         //todo report tests in comment, exit with code != 0
         const error = core.summary
           .addRaw(`The following tests failed:`)
-          .addList(failedTests.map((ft: any) => ft.name))
+          .addList(
+            failedTests.map(
+              (ft: any) => ft.name.replace(process.cwd() + `/`, "`") + "``"
+            )
+          )
           .stringify();
 
         postInPullRequest(error);
