@@ -34,7 +34,7 @@ jobs:
       group: ${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: vgrafe/couette@v0.136
+      - uses: vgrafe/jest-reports@v0.146
         with:
           coverage-annotations: "all"
           cover-pr-changes-only: True
