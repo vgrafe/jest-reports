@@ -1,8 +1,8 @@
 {
-  "name": "typescript-action",
-  "version": "0.0.0",
+  "name": "jest-reports",
+  "version": "0.1.0",
   "private": true,
-  "description": "TypeScript template action",
+  "description": "Runs jest and generates a report posted on Github PR or commit",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
