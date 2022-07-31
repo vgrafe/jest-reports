@@ -20,8 +20,6 @@ const run = async () => {
       process.env.INPUT_COVER_PR_CHANGES_ONLY === "true";
     const COVERAGE_ANNOTATIONS = process.env.INPUT_COVERAGE_ANNOTATIONS;
     const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
-    const COVER_DEFAULT_BRANCH =
-      process.env.INPUT_COVER_DEFAULT_BRANCH === "true";
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
@@ -44,7 +42,7 @@ const run = async () => {
       `git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`
     );
 
-    if (isPushOnDefaultBranch && COVER_DEFAULT_BRANCH) {
+    if (isPushOnDefaultBranch) {
       const coverage = await getCoverageForSha(github.context.sha);
 
       const coverageMarkdownReport = reportsToMarkdownSummary(

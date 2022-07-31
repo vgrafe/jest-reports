@@ -11,9 +11,6 @@ inputs:
   cover-pr-changes-only:
     description: "Only run coverage on changes introduced in the PR"
     default: True
-  cover-default-branch:
-    description: "Run full test suite when the default branch gets pushed. Will add a comment to the commit."
-    default: True
   coverage-annotations:
     description: "Add aggregated coverage annotations. Default to 'changes-only'. Other values are 'none' and 'all'"
     default: "changes-only"
@@ -29,5 +26,5 @@ runs:
     - name: Expose GitHub Runtime
       uses: crazy-max/ghaction-github-runtime@v2
 
-    - run: DEFAULT_BRANCH=${{ github.event.repository.default_branch }} INPUT_COVER_DEFAULT_BRANCH=${{ inputs.cover-default-branch }} INPUT_COVERAGE_ANNOTATIONS=${{ inputs.coverage-annotations }} INPUT_GITHUB_TOKEN=${{ inputs.github-token }} INPUT_COVER_PR_CHANGES_ONLY=${{ inputs.cover-pr-changes-only }} node ${{ github.action_path }}/dist/index.js
+    - run: DEFAULT_BRANCH=${{ github.event.repository.default_branch }} INPUT_COVERAGE_ANNOTATIONS=${{ inputs.coverage-annotations }} INPUT_GITHUB_TOKEN=${{ inputs.github-token }} INPUT_COVER_PR_CHANGES_ONLY=${{ inputs.cover-pr-changes-only }} node ${{ github.action_path }}/dist/index.js
       shell: bash
