@@ -1,0 +1,33 @@
+name: "jest-reports"
+branding:
+  icon: "umbrella"
+  color: "blue"
+description: "test coverage reporter"
+author: "vgrafe"
+inputs:
+  github-token:
+    description: "A github access token"
+    default: ${{ github.token }}
+  cover-pr-changes-only:
+    description: "Only run coverage on changes introduced in the PR"
+    default: True
+  cover-default-branch:
+    description: "Run full test suite when the default branch gets pushed. Will add a comment to the commit."
+    default: True
+  coverage-annotations:
+    description: "Add aggregated coverage annotations. Default to 'changes-only'. Other values are 'none' and 'all'"
+    default: "changes-only"
+runs:
+  using: composite
+  steps:
+    # forcing node 16.10.0 since later versions have memory issues with jest
+    - uses: actions/setup-node@v3
+      with:
+        node-version: "16.10.0"
+
+    # needed for cache to work https://github.com/crazy-max/ghaction-github-runtime
+    - name: Expose GitHub Runtime
+      uses: crazy-max/ghaction-github-runtime@v2
+
+    - run: DEFAULT_BRANCH=${{ github.event.repository.default_branch }} INPUT_COVER_DEFAULT_BRANCH=${{ inputs.cover-default-branch }} INPUT_COVERAGE_ANNOTATIONS=${{ inputs.coverage-annotations }} INPUT_GITHUB_TOKEN=${{ inputs.github-token }} INPUT_COVER_PR_CHANGES_ONLY=${{ inputs.cover-pr-changes-only }} node ${{ github.action_path }}/dist/index.js
+      shell: bash

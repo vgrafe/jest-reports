@@ -1,0 +1,41 @@
+{
+  "name": "typescript-action",
+  "version": "0.0.0",
+  "private": true,
+  "description": "TypeScript template action",
+  "main": "lib/main.js",
+  "scripts": {
+    "build": "tsc",
+    "up": "yarn upgrade-interactive --latest",
+    "format-check": "prettier --check '**/*.ts'",
+    "package": "ncc build --source-map --license licenses.txt",
+    "test": "jest",
+    "all": "npm run build && npm run package && npm test",
+    "testlocal": "npm run build && npm run package && node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actions/typescript-action.git"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "setup"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/cache": "^3.0.0",
+    "@actions/core": "^1.6.0",
+    "@actions/github": "^5.0.3",
+    "@actions/glob": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.6.1",
+    "@vercel/ncc": "^0.34.0",
+    "jest": "^28.1.3",
+    "prettier": "2.7.1",
+    "ts-jest": "^28.0.7",
+    "typescript": "^4.4.4"
+  }
+}
