@@ -131,6 +131,7 @@ const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
 const appName = "jest-reports";
+const baseCachePath = `coverage`;
 const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
     if (sinceSha)
         core.info("computing PR coverage since base...");
@@ -138,9 +139,8 @@ const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, f
         core.info("computing coverage on all tests...");
     let mainCoverage = { coverageSummary: {}, testsOutput: {} };
     const coverageCacheKey = sinceSha
-        ? `${appName}-coverage-for-${sha}-since-${sinceSha}`
-        : `${appName}-coverage-for-${sha}`;
-    const baseCachePath = `coverage`;
+        ? `${appName}-cache-coverage-for-${sha}-since-${sinceSha}`
+        : `${appName}-cache-coverage-for-${sha}`;
     core.info(`restoring coverage outputs for ${coverageCacheKey}...`);
     const foundCoverageOutputs = yield cache.restoreCache([baseCachePath], coverageCacheKey);
     if (foundCoverageOutputs) {
@@ -163,7 +163,8 @@ const computeCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 
     yield (0, exec_1.exec)(`git fetch`);
     yield (0, exec_1.exec)(`git -c advice.detachedHead=false checkout ${sha}`);
     core.info(`restoring node_modules...`);
-    const dependenciesCacheKey = `${appName}-dependencies-9-${glob.hashFiles(`**/yarn.lock`)}`;
+    const lockFileHash = yield glob.hashFiles(`**/yarn.lock`);
+    const dependenciesCacheKey = `${appName}-cache-dependencies-${lockFileHash}`;
     const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
     if (!found) {
         core.info("running yarn...");

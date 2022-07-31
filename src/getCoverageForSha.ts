@@ -5,6 +5,7 @@ import { exec } from "@actions/exec";
 import * as glob from "@actions/glob";
 
 const appName = "jest-reports";
+const baseCachePath = `coverage`;
 
 export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
   if (sinceSha) core.info("computing PR coverage since base...");
@@ -13,10 +14,8 @@ export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
   let mainCoverage = { coverageSummary: {}, testsOutput: {} };
 
   const coverageCacheKey = sinceSha
-    ? `${appName}-coverage-for-${sha}-since-${sinceSha}`
-    : `${appName}-coverage-for-${sha}`;
-
-  const baseCachePath = `coverage`;
+    ? `${appName}-cache-coverage-for-${sha}-since-${sinceSha}`
+    : `${appName}-cache-coverage-for-${sha}`;
 
   core.info(`restoring coverage outputs for ${coverageCacheKey}...`);
   const foundCoverageOutputs = await cache.restoreCache(
@@ -50,9 +49,8 @@ const computeCoverageForSha = async (sha: string, sinceSha?: string) => {
   await exec(`git -c advice.detachedHead=false checkout ${sha}`);
 
   core.info(`restoring node_modules...`);
-  const dependenciesCacheKey = `${appName}-dependencies-9-${glob.hashFiles(
-    `**/yarn.lock`
-  )}`;
+  const lockFileHash = await glob.hashFiles(`**/yarn.lock`);
+  const dependenciesCacheKey = `${appName}-cache-dependencies-${lockFileHash}`;
 
   const found = await cache.restoreCache(
     ["**/node_modules"],
