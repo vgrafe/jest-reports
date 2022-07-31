@@ -44,25 +44,31 @@ export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
   return mainCoverage;
 };
 
-const computeCoverageForSha = async (sha: string, sinceSha?: string) => {
-  await exec(`git fetch`);
-  await exec(`git -c advice.detachedHead=false checkout ${sha}`);
-
-  core.info(`restoring node_modules...`);
+const installNodeModules = async () => {
   const lockFileHash = await glob.hashFiles(`**/yarn.lock`);
   const dependenciesCacheKey = `${appName}-cache-dependencies-${lockFileHash}`;
+  core.info(`restoring node_modules with key: ${dependenciesCacheKey}`);
 
   const found = await cache.restoreCache(
     ["**/node_modules"],
     dependenciesCacheKey
   );
 
-  if (!found) {
-    core.info("running yarn...");
+  if (found) {
+    core.info("cache was restored, no need to install the dependencies.");
+  } else {
+    core.info("cache not found, installing dependencies...");
     await exec(`yarn`);
-    core.info("caching node_modules...");
+    core.info("saving node_modules to cache...");
     await cache.saveCache(["**/node_modules"], dependenciesCacheKey);
   }
+};
+
+const computeCoverageForSha = async (sha: string, sinceSha?: string) => {
+  await exec(`git fetch`);
+  await exec(`git -c advice.detachedHead=false checkout ${sha}`);
+
+  await installNodeModules();
 
   const since = sinceSha ? `--changedSince=${sinceSha}` : "";
 

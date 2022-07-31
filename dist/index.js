@@ -159,19 +159,25 @@ const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, f
     return mainCoverage;
 });
 exports.getCoverageForSha = getCoverageForSha;
+const installNodeModules = () => __awaiter(void 0, void 0, void 0, function* () {
+    const lockFileHash = yield glob.hashFiles(`**/yarn.lock`);
+    const dependenciesCacheKey = `${appName}-cache-dependencies-${lockFileHash}`;
+    core.info(`restoring node_modules with key: ${dependenciesCacheKey}`);
+    const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
+    if (found) {
+        core.info("cache was restored, no need to install the dependencies.");
+    }
+    else {
+        core.info("cache not found, installing dependencies...");
+        yield (0, exec_1.exec)(`yarn`);
+        core.info("saving node_modules to cache...");
+        yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
+    }
+});
 const computeCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, exec_1.exec)(`git fetch`);
     yield (0, exec_1.exec)(`git -c advice.detachedHead=false checkout ${sha}`);
-    core.info(`restoring node_modules...`);
-    const lockFileHash = yield glob.hashFiles(`**/yarn.lock`);
-    const dependenciesCacheKey = `${appName}-cache-dependencies-${lockFileHash}`;
-    const found = yield cache.restoreCache(["**/node_modules"], dependenciesCacheKey);
-    if (!found) {
-        core.info("running yarn...");
-        yield (0, exec_1.exec)(`yarn`);
-        core.info("caching node_modules...");
-        yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
-    }
+    yield installNodeModules();
     const since = sinceSha ? `--changedSince=${sinceSha}` : "";
     // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
     // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
