@@ -1,8 +1,8 @@
-name: "jest-reports"
+name: "Jest report"
 branding:
   icon: "umbrella"
   color: "blue"
-description: "Comments jest's coverage report on your PR or commit. Supports comparison with base branch."
+description: "Comments jest coverage report on your PR and compares it with its base branch coverage."
 author: "vgrafe"
 inputs:
   github-token:
