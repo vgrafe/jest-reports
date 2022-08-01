@@ -2,7 +2,7 @@ name: "jest-reports"
 branding:
   icon: "umbrella"
   color: "blue"
-description: "test coverage reporter"
+description: "Comments jest's coverage report on your PR or commit. Supports comparison with base branch."
 author: "vgrafe"
 inputs:
   github-token:
