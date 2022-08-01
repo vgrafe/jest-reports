@@ -1,20 +1,17 @@
 # What it does
 
-Posts coverage report on your PR.
+Posts coverage report in a comment on your PR, or in a commit when pushing to your default branch.
 
 ![](docs/screenshot0.jpeg)
 
-# Get insights on your tests
+## Features
 
-- blazing AND fast: caches everything reusable without you having to worry about it
-- smart logic to play well with github's 50 annotations limit
-  - aggregates annotations when on the same LOC (still hard limit to 50 annotations from github)
-- soon:
+- can be run on both PR and pushes on main
+- on a PR, it will compare coverage with base branch
+  - 2x faster than other actions on the marketplace thanks to aggressive caching
+- coming soon:
   - sharded tests support
-  - more control on the output
-  - use the output in other workflow steps
-  - summarises annotations on the same file when 50 limit is reached
-  - more than just coverage reports
+  - better hanlding of github's 50 limit on annotations
 
 ## Usage
 
