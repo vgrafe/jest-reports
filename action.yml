@@ -1,4 +1,4 @@
-name: "Jest report"
+name: "Jest coverage diff"
 branding:
   icon: "umbrella"
   color: "blue"
