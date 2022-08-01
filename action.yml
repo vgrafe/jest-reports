@@ -11,9 +11,9 @@ inputs:
   cover-pr-changes-only:
     description: "Only run coverage on changes introduced in the PR"
     default: True
-  coverage-annotations:
-    description: "Add aggregated coverage annotations. Default to 'changes-only'. Other values are 'none' and 'all'"
-    default: "changes-only"
+  run-steps:
+    description: "skip any step by removing the corresponging item from this comma-separated list"
+    default: "install-deps,compare-with-base-branch,report-on-github,annotations"
 runs:
   using: composite
   steps:
@@ -26,5 +26,5 @@ runs:
     - name: Expose GitHub Runtime
       uses: crazy-max/ghaction-github-runtime@v2
 
-    - run: DEFAULT_BRANCH=${{ github.event.repository.default_branch }} INPUT_COVERAGE_ANNOTATIONS=${{ inputs.coverage-annotations }} INPUT_GITHUB_TOKEN=${{ inputs.github-token }} INPUT_COVER_PR_CHANGES_ONLY=${{ inputs.cover-pr-changes-only }} node ${{ github.action_path }}/dist/index.js
+    - run: DEFAULT_BRANCH=${{ github.event.repository.default_branch }} INPUT_RUN_STEPS=${{ inputs.run-steps }} INPUT_GITHUB_TOKEN=${{ inputs.github-token }} INPUT_COVER_PR_CHANGES_ONLY=${{ inputs.cover-pr-changes-only }} node ${{ github.action_path }}/dist/index.js
       shell: bash

@@ -4,23 +4,37 @@ import { exec } from "@actions/exec";
 import { postInPullRequest } from "./postInPullRequest";
 import { reportsToMarkdownSummary } from "./reportsToMarkdownSummary";
 import { summary1, summary2 } from "./mock/json-summary";
-import { success } from "./mock/json-result";
 import { getCoverageForSha } from "./getCoverageForSha";
 import {
   createCoverageAnnotationsFromReport,
   formatCoverageAnnotations,
 } from "./annotations";
+import {
+  COVER_PR_CHANGES_ONLY,
+  DEFAULT_BRANCH,
+  GITHUB_TOKEN,
+  RUN_STEPS,
+} from "./env";
+
+/*
+
+to push a new version in one command:
+ yarn all && git add . && git commit -m "improves logs" && git tag -a -m "v0.1.2" v0.1.2 && git push --follow-tags
+
+*/
+
+// to merge shard reports
+// npx nyc merge coverage coverage/merged-coverage.json
+// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
+// nyc is deprecated, so let's do:L
+// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
+// ok istambul is also deprecated, wtf
+// looks like merging can be done simply by merging the json outputs
 
 const run = async () => {
   core.info("starting jest-reports...");
 
   try {
-    const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
-    const COVER_PR_CHANGES_ONLY =
-      process.env.INPUT_COVER_PR_CHANGES_ONLY === "true";
-    const COVERAGE_ANNOTATIONS = process.env.INPUT_COVERAGE_ANNOTATIONS;
-    const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
-
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
     core.info(`eventName: ${github.context.eventName}`);
@@ -43,7 +57,10 @@ const run = async () => {
     );
 
     if (isPushOnDefaultBranch) {
-      const coverage = await getCoverageForSha(github.context.sha);
+      const coverage = await getCoverageForSha({
+        sha: github.context.sha,
+        installDependencies: RUN_STEPS.includes("install-deps"),
+      });
 
       const coverageMarkdownReport = reportsToMarkdownSummary(
         coverage.coverageSummary
@@ -68,10 +85,11 @@ const run = async () => {
       });
 
       core.info("computing PR total coverage...");
-      const prCoverage = await getCoverageForSha(
-        pullRequest.head.sha,
-        COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined
-      );
+      const prCoverage = await getCoverageForSha({
+        sha: pullRequest.head.sha,
+        sinceSha: COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined,
+        installDependencies: RUN_STEPS.includes("install-deps"),
+      });
 
       const failedTests = (prCoverage.testsOutput as any).testResults.filter(
         (a: any) => a.status !== "passed"
@@ -92,22 +110,32 @@ const run = async () => {
 
         core.setFailed(`${failedTests.length} tests failed!`);
       } else {
-        core.info("computing base coverage...");
-        const baseCoverage = await getCoverageForSha(pullRequest.base.sha);
+        let baseCoverage;
+        if (RUN_STEPS.includes("compare-with-base-branch")) {
+          core.info("computing base coverage...");
+          baseCoverage = await getCoverageForSha({
+            sha: pullRequest.base.sha,
+            // installDependencies should always be true here since it can't possibly have been installed for the base branch!
+            installDependencies: true,
+          });
+        } else core.info("base branch comparison turned off, skipping it.");
 
         core.info("compiling coverage files into markdown report...");
         const coverageMarkdownReport = reportsToMarkdownSummary(
           prCoverage.coverageSummary,
-          baseCoverage.coverageSummary
+          baseCoverage?.coverageSummary
         );
-        core.info(coverageMarkdownReport);
 
         if (coverageMarkdownReport.length > 0) {
           core.info("report complete! posting markdown report to github...");
           await postInPullRequest(coverageMarkdownReport);
         } else core.info("coverage report is empty, skipping posting comment.");
 
-        if (prCoverage.testsOutput && COVERAGE_ANNOTATIONS !== "none") {
+        if (!RUN_STEPS.includes("annotations"))
+          core.info("annotations are turned off, skipping them.");
+        else if (!prCoverage.testsOutput)
+          core.info("no test outputs found, skipping annotations.");
+        else {
           core.info(
             "building 'warning' coverage annotations for PR changes..."
           );
@@ -116,16 +144,16 @@ const run = async () => {
             "warning"
           );
 
-          if (COVERAGE_ANNOTATIONS === "all") {
-            core.info(
-              "appending 'info' coverage annotations for existing work..."
-            );
-            annotations = createCoverageAnnotationsFromReport(
-              prCoverage.testsOutput,
-              "notice",
-              annotations
-            );
-          }
+          // if (COVERAGE_ANNOTATIONS === "all") {
+          //   core.info(
+          //     "appending 'info' coverage annotations for existing work..."
+          //   );
+          //   annotations = createCoverageAnnotationsFromReport(
+          //     prCoverage.testsOutput,
+          //     "notice",
+          //     annotations
+          //   );
+          // }
 
           // converting to individual annotations and posting them.
           // in the future, we could decide to aggregate them more aggressively if their number is
@@ -143,34 +171,4 @@ const run = async () => {
   }
 };
 
-const test = () => {
-  const a = reportsToMarkdownSummary(summary1, summary2);
-
-  console.log(a.length);
-
-  console.log("annotations");
-
-  // const annotations = createCoverageAnnotationsFromReport(success, "warning");
-  // console.log(formatCoverageAnnotations(annotations));
-};
-
 run();
-
-// test();
-
-/*
-
- yarn all
- git add .
- git commit -m "update"
- git tag -a -m "some update" v0.1x
- git push --follow-tags
-
-*/
-
-// to merge shard reports
-// npx nyc merge coverage coverage/merged-coverage.json
-// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
-// nyc is deprecated, so let's do:L
-// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
-// ok istambul is also deprecated, wtf

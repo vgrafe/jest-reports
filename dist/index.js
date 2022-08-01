@@ -83,6 +83,50 @@ exports.formatCoverageAnnotations = formatCoverageAnnotations;
 
 /***/ }),
 
+/***/ 9763:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DEFAULT_BRANCH = exports.RUN_STEPS = exports.COVER_PR_CHANGES_ONLY = exports.GITHUB_TOKEN = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+exports.GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
+exports.COVER_PR_CHANGES_ONLY = process.env.INPUT_COVER_PR_CHANGES_ONLY === "true";
+exports.RUN_STEPS = (process.env.INPUT_RUN_STEPS || "")
+    .split(",")
+    .map((item) => item);
+exports.DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
+core.info("RUN_STEPS");
+for (const step of exports.RUN_STEPS)
+    core.info(step);
+
+
+/***/ }),
+
 /***/ 2574:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -132,7 +176,7 @@ const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
 const appName = "jest-reports";
 const baseCachePath = `coverage`;
-const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
+const getCoverageForSha = ({ sha, sinceSha, installDependencies, }) => __awaiter(void 0, void 0, void 0, function* () {
     if (sinceSha)
         core.info("computing PR coverage since base...");
     else
@@ -152,7 +196,11 @@ const getCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, f
     }
     else {
         core.info(`not found, let's checkout and run jest...`);
-        mainCoverage = yield computeCoverageForSha(sha, sinceSha);
+        mainCoverage = yield computeCoverageForSha({
+            sha,
+            sinceSha,
+            installDependencies,
+        });
         core.info("done. caching...");
         yield cache.saveCache([baseCachePath], coverageCacheKey);
     }
@@ -174,10 +222,13 @@ const installNodeModules = () => __awaiter(void 0, void 0, void 0, function* () 
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
 });
-const computeCoverageForSha = (sha, sinceSha) => __awaiter(void 0, void 0, void 0, function* () {
+const computeCoverageForSha = ({ sha, sinceSha, installDependencies, }) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, exec_1.exec)(`git fetch`);
     yield (0, exec_1.exec)(`git -c advice.detachedHead=false checkout ${sha}`);
-    yield installNodeModules();
+    if (installDependencies)
+        yield installNodeModules();
+    else
+        core.info("dependencies installation turned off, skipping it.");
     const since = sinceSha ? `--changedSince=${sinceSha}` : "";
     // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
     // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
@@ -245,29 +296,40 @@ const github = __importStar(__nccwpck_require__(5438));
 const exec_1 = __nccwpck_require__(1514);
 const postInPullRequest_1 = __nccwpck_require__(8647);
 const reportsToMarkdownSummary_1 = __nccwpck_require__(5785);
-const json_summary_1 = __nccwpck_require__(5253);
 const getCoverageForSha_1 = __nccwpck_require__(2574);
 const annotations_1 = __nccwpck_require__(5598);
+const env_1 = __nccwpck_require__(9763);
+/*
+
+to push a new version in one command:
+ yarn all && git add . && git commit -m "improves logs" && git tag -a -m "v0.1.2" v0.1.2 && git push --follow-tags
+
+*/
+// to merge shard reports
+// npx nyc merge coverage coverage/merged-coverage.json
+// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
+// nyc is deprecated, so let's do:L
+// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
+// ok istambul is also deprecated, wtf
+// looks like merging can be done simply by merging the json outputs
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting jest-reports...");
     try {
-        const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
-        const COVER_PR_CHANGES_ONLY = process.env.INPUT_COVER_PR_CHANGES_ONLY === "true";
-        const COVERAGE_ANNOTATIONS = process.env.INPUT_COVERAGE_ANNOTATIONS;
-        const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
-        const COVER_DEFAULT_BRANCH = process.env.INPUT_COVER_DEFAULT_BRANCH === "true";
-        const octokit = github.getOctokit(GITHUB_TOKEN);
+        const octokit = github.getOctokit(env_1.GITHUB_TOKEN);
         core.info(`eventName: ${github.context.eventName}`);
         core.info(`branch: ${github.context.ref.replace("refs/heads/", "")}`);
         const isPullRequest = github.context.eventName === "pull_request";
         const isPushOnDefaultBranch = github.context.eventName === "push" &&
-            github.context.ref.replace("refs/heads/", "") === DEFAULT_BRANCH;
+            github.context.ref.replace("refs/heads/", "") === env_1.DEFAULT_BRANCH;
         if (!isPullRequest && !isPushOnDefaultBranch)
             core.setFailed(`event dispatching is not a PR push or a merge on default branch, stopping everything`);
         core.info(`cloning ${github.context.repo.repo}...`);
-        yield (0, exec_1.exec)(`git clone https://oauth2:${GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
-        if (isPushOnDefaultBranch && COVER_DEFAULT_BRANCH) {
-            const coverage = yield (0, getCoverageForSha_1.getCoverageForSha)(github.context.sha);
+        yield (0, exec_1.exec)(`git clone https://oauth2:${env_1.GITHUB_TOKEN}@github.com/${github.context.repo.owner}/${github.context.repo.repo}.git .`);
+        if (isPushOnDefaultBranch) {
+            const coverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
+                sha: github.context.sha,
+                installDependencies: env_1.RUN_STEPS.includes("install-deps"),
+            });
             const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(coverage.coverageSummary);
             yield octokit.rest.repos.createCommitComment(Object.assign(Object.assign({}, github.context.repo), { commit_sha: github.context.sha, body: coverageMarkdownReport }));
         }
@@ -279,7 +341,11 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 pull_number: github.context.issue.number,
             });
             core.info("computing PR total coverage...");
-            const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.head.sha, COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined);
+            const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
+                sha: pullRequest.head.sha,
+                sinceSha: env_1.COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined,
+                installDependencies: env_1.RUN_STEPS.includes("install-deps"),
+            });
             const failedTests = prCoverage.testsOutput.testResults.filter((a) => a.status !== "passed");
             if (failedTests.length > 0) {
                 //todo report tests in comment, exit with code != 0
@@ -291,24 +357,42 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 core.setFailed(`${failedTests.length} tests failed!`);
             }
             else {
-                core.info("computing base coverage...");
-                const baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)(pullRequest.base.sha);
+                let baseCoverage;
+                if (env_1.RUN_STEPS.includes("compare-with-base-branch")) {
+                    core.info("computing base coverage...");
+                    baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
+                        sha: pullRequest.base.sha,
+                        // installDependencies should always be true here since it can't possibly have been installed for the base branch!
+                        installDependencies: true,
+                    });
+                }
+                else
+                    core.info("base branch comparison turned off, skipping it.");
                 core.info("compiling coverage files into markdown report...");
-                const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage.coverageSummary);
-                core.info(coverageMarkdownReport);
+                const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage === null || baseCoverage === void 0 ? void 0 : baseCoverage.coverageSummary);
                 if (coverageMarkdownReport.length > 0) {
                     core.info("report complete! posting markdown report to github...");
                     yield (0, postInPullRequest_1.postInPullRequest)(coverageMarkdownReport);
                 }
                 else
                     core.info("coverage report is empty, skipping posting comment.");
-                if (prCoverage.testsOutput && COVERAGE_ANNOTATIONS !== "none") {
+                if (!env_1.RUN_STEPS.includes("annotations"))
+                    core.info("annotations are turned off, skipping them.");
+                else if (!prCoverage.testsOutput)
+                    core.info("no test outputs found, skipping annotations.");
+                else {
                     core.info("building 'warning' coverage annotations for PR changes...");
                     let annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "warning");
-                    if (COVERAGE_ANNOTATIONS === "all") {
-                        core.info("appending 'info' coverage annotations for existing work...");
-                        annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotations);
-                    }
+                    // if (COVERAGE_ANNOTATIONS === "all") {
+                    //   core.info(
+                    //     "appending 'info' coverage annotations for existing work..."
+                    //   );
+                    //   annotations = createCoverageAnnotationsFromReport(
+                    //     prCoverage.testsOutput,
+                    //     "notice",
+                    //     annotations
+                    //   );
+                    // }
                     // converting to individual annotations and posting them.
                     // in the future, we could decide to aggregate them more aggressively if their number is
                     // over github's limit.
@@ -324,101 +408,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             core.setFailed(error.message);
     }
 });
-const test = () => {
-    const a = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(json_summary_1.summary1, json_summary_1.summary2);
-    console.log(a.length);
-    console.log("annotations");
-    // const annotations = createCoverageAnnotationsFromReport(success, "warning");
-    // console.log(formatCoverageAnnotations(annotations));
-};
 run();
-// test();
-/*
-
- yarn all
- git add .
- git commit -m "update"
- git tag -a -m "some update" v0.1x
- git push --follow-tags
-
-*/
-// to merge shard reports
-// npx nyc merge coverage coverage/merged-coverage.json
-// npx nyc report -t coverage --report-dir coverage --reporter=json-summary
-// nyc is deprecated, so let's do:L
-// npx istanbul-merge --out coverage/coverage-merged.json coverage/*
-// ok istambul is also deprecated, wtf
-
-
-/***/ }),
-
-/***/ 5253:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.summary2 = exports.summary1 = void 0;
-exports.summary1 = {
-    total: {
-        lines: { total: 15, covered: 15, skipped: 0, pct: 100 },
-        statements: { total: 19, covered: 19, skipped: 0, pct: 100 },
-        functions: { total: 6, covered: 6, skipped: 0, pct: 100 },
-        branches: { total: 6, covered: 4, skipped: 0, pct: 66.66 },
-        branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
-    },
-    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
-        lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
-        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-        statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
-        branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
-    },
-    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
-        lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
-        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-        statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
-        branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
-    },
-    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch3.tsx": {
-        lines: { total: 5, covered: 5, skipped: 0, pct: 100 },
-        functions: { total: 3, covered: 3, skipped: 0, pct: 100 },
-        statements: { total: 7, covered: 7, skipped: 0, pct: 100 },
-        branches: { total: 2, covered: 2, skipped: 0, pct: 100 },
-    },
-    "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
-        lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
-        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-        statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
-        branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
-    },
-};
-exports.summary2 = {
-    total: {
-        lines: { total: 15, covered: 15, skipped: 0, pct: 100 },
-        statements: { total: 19, covered: 19, skipped: 0, pct: 100 },
-        functions: { total: 6, covered: 6, skipped: 0, pct: 100 },
-        branches: { total: 6, covered: 4, skipped: 0, pct: 66.66 },
-        branchesTrue: { total: 0, covered: 0, skipped: 0, pct: 100 },
-    },
-    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch.tsx": {
-        lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
-        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-        statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
-        branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
-    },
-    "/Users/vgrafe/Code/with-jest-app/components/TextSwitch2.tsx": {
-        lines: { total: 2, covered: 2, skipped: 0, pct: 100 },
-        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-        statements: { total: 3, covered: 3, skipped: 0, pct: 100 },
-        branches: { total: 2, covered: 1, skipped: 0, pct: 50 },
-    },
-    "/Users/vgrafe/Code/with-jest-app/pages/index.tsx": {
-        lines: { total: 6, covered: 6, skipped: 0, pct: 100 },
-        functions: { total: 1, covered: 1, skipped: 0, pct: 100 },
-        statements: { total: 6, covered: 6, skipped: 0, pct: 100 },
-        branches: { total: 0, covered: 0, skipped: 0, pct: 100 },
-    },
-};
 
 
 /***/ }),
@@ -464,7 +454,12 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.postInPullRequest = void 0;
 const github = __importStar(__nccwpck_require__(5438));
 const core = __importStar(__nccwpck_require__(2186));
+const env_1 = __nccwpck_require__(9763);
 const postInPullRequest = (body) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!env_1.RUN_STEPS.includes("report-on-github")) {
+        core.info("github reporting is turned off, skipping it.");
+        return;
+    }
     const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
     const octokit = github.getOctokit(GITHUB_TOKEN);
     const allComments = yield octokit.rest.issues.listComments({

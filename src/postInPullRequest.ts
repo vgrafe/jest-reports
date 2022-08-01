@@ -1,7 +1,13 @@
 import * as github from "@actions/github";
 import * as core from "@actions/core";
+import { RUN_STEPS } from "./env";
 
 export const postInPullRequest = async (body: string) => {
+  if (!RUN_STEPS.includes("report-on-github")) {
+    core.info("github reporting is turned off, skipping it.");
+    return;
+  }
+
   const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
   const octokit = github.getOctokit(GITHUB_TOKEN);
 

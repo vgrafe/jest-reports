@@ -7,7 +7,17 @@ import * as glob from "@actions/glob";
 const appName = "jest-reports";
 const baseCachePath = `coverage`;
 
-export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
+interface CovActionParams {
+  sha: string;
+  sinceSha?: string;
+  installDependencies?: boolean;
+}
+
+export const getCoverageForSha = async ({
+  sha,
+  sinceSha,
+  installDependencies,
+}: CovActionParams) => {
   if (sinceSha) core.info("computing PR coverage since base...");
   else core.info("computing coverage on all tests...");
 
@@ -36,7 +46,11 @@ export const getCoverageForSha = async (sha: string, sinceSha?: string) => {
     mainCoverage.testsOutput = JSON.parse(testsOutputFile.toString());
   } else {
     core.info(`not found, let's checkout and run jest...`);
-    mainCoverage = await computeCoverageForSha(sha, sinceSha);
+    mainCoverage = await computeCoverageForSha({
+      sha,
+      sinceSha,
+      installDependencies,
+    });
     core.info("done. caching...");
     await cache.saveCache([baseCachePath], coverageCacheKey);
   }
@@ -64,11 +78,16 @@ const installNodeModules = async () => {
   }
 };
 
-const computeCoverageForSha = async (sha: string, sinceSha?: string) => {
+const computeCoverageForSha = async ({
+  sha,
+  sinceSha,
+  installDependencies,
+}: CovActionParams) => {
   await exec(`git fetch`);
   await exec(`git -c advice.detachedHead=false checkout ${sha}`);
 
-  await installNodeModules();
+  if (installDependencies) await installNodeModules();
+  else core.info("dependencies installation turned off, skipping it.");
 
   const since = sinceSha ? `--changedSince=${sinceSha}` : "";
 

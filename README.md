@@ -32,8 +32,7 @@ jobs:
     steps:
       - uses: vgrafe/jest-reports@v0.146
         with:
-          coverage-annotations: "all"
-          cover-pr-changes-only: True
+          cover-pr-changes-only: False
 ```
 
 ## Options
@@ -46,10 +45,7 @@ with:
   cover-pr-changes-only:
     description: "Only run coverage on changes introduced in the PR"
     default: True
-  cover-default-branch:
-    description: "Run full test suite when the default branch gets pushed. Will add a comment to the commit."
-    default: True
-  coverage-annotations:
-    description: "Add aggregated coverage annotations. Default to 'changes-only'. Other values are 'none' and 'all'"
-    default: "changes-only"
+  run-steps:
+    description: "skip any step by removing the corresponging item from this comma-separated list"
+    default: "install-deps,compare-with-base-branch,report-on-github,annotations"
 ```
