@@ -59,7 +59,6 @@ const run = async () => {
     if (isPushOnDefaultBranch) {
       const coverage = await getCoverageForSha({
         sha: github.context.sha,
-        installDependencies: RUN_STEPS.includes("install-deps"),
       });
 
       const coverageMarkdownReport = reportsToMarkdownSummary(
@@ -88,7 +87,6 @@ const run = async () => {
       const prCoverage = await getCoverageForSha({
         sha: pullRequest.head.sha,
         sinceSha: COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined,
-        installDependencies: RUN_STEPS.includes("install-deps"),
       });
 
       const failedTests = (prCoverage.testsOutput as any).testResults.filter(
@@ -115,8 +113,6 @@ const run = async () => {
           core.info("computing base coverage...");
           baseCoverage = await getCoverageForSha({
             sha: pullRequest.base.sha,
-            // installDependencies should always be true here since it can't possibly have been installed for the base branch!
-            installDependencies: true,
           });
         } else core.info("base branch comparison turned off, skipping it.");
 
@@ -131,36 +127,43 @@ const run = async () => {
           await postInPullRequest(coverageMarkdownReport);
         } else core.info("coverage report is empty, skipping posting comment.");
 
-        if (!RUN_STEPS.includes("annotations"))
-          core.info("annotations are turned off, skipping them.");
-        else if (!prCoverage.testsOutput)
+        if (!prCoverage.testsOutput)
           core.info("no test outputs found, skipping annotations.");
         else {
-          core.info(
-            "building 'warning' coverage annotations for PR changes..."
-          );
-          let annotations = createCoverageAnnotationsFromReport(
-            prCoverage.testsOutput,
-            "warning"
-          );
+          let annotations;
 
-          // if (COVERAGE_ANNOTATIONS === "all") {
-          //   core.info(
-          //     "appending 'info' coverage annotations for existing work..."
-          //   );
-          //   annotations = createCoverageAnnotationsFromReport(
-          //     prCoverage.testsOutput,
-          //     "notice",
-          //     annotations
-          //   );
-          // }
+          if (!RUN_STEPS.includes("annotations-changes"))
+            core.info("annotations-changes are turned off, skipping them.");
+          else {
+            core.info(
+              "building 'warning' coverage annotations for PR changes..."
+            );
+            annotations = createCoverageAnnotationsFromReport(
+              prCoverage.testsOutput,
+              "warning"
+            );
+          }
+
+          if (!RUN_STEPS.includes("annotations-all"))
+            core.info("annotations-all are turned off, skipping them.");
+          else {
+            core.info(
+              "building 'info' coverage annotations for all codebase..."
+            );
+            annotations = createCoverageAnnotationsFromReport(
+              prCoverage.testsOutput,
+              "notice",
+              annotations
+            );
+          }
 
           // converting to individual annotations and posting them.
           // in the future, we could decide to aggregate them more aggressively if their number is
           // over github's limit.
-          await octokit.rest.checks.create(
-            formatCoverageAnnotations(annotations)
-          );
+          if (annotations)
+            await octokit.rest.checks.create(
+              formatCoverageAnnotations(annotations)
+            );
         }
       }
     }

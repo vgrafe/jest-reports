@@ -1,8 +1,8 @@
 type RunStep =
-  | "install-deps"
   | "compare-with-base-branch"
   | "report-on-github"
-  | "annotations";
+  | "annotations-changes"
+  | "annotations-all";
 
 export const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
 export const COVER_PR_CHANGES_ONLY =

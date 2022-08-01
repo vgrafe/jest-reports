@@ -47,5 +47,5 @@ with:
     default: True
   run-steps:
     description: "skip any step by removing the corresponging item from this comma-separated list"
-    default: "install-deps,compare-with-base-branch,report-on-github,annotations"
+    default: "compare-with-base-branch,report-on-github,annotations-changes,annotations-all"
 ```

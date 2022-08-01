@@ -149,7 +149,7 @@ const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
 const appName = "jest-reports";
 const baseCachePath = `coverage`;
-const getCoverageForSha = ({ sha, sinceSha, installDependencies, }) => __awaiter(void 0, void 0, void 0, function* () {
+const getCoverageForSha = ({ sha, sinceSha }) => __awaiter(void 0, void 0, void 0, function* () {
     if (sinceSha)
         core.info("computing PR coverage since base...");
     else
@@ -172,7 +172,6 @@ const getCoverageForSha = ({ sha, sinceSha, installDependencies, }) => __awaiter
         mainCoverage = yield computeCoverageForSha({
             sha,
             sinceSha,
-            installDependencies,
         });
         core.info("done. caching...");
         yield cache.saveCache([baseCachePath], coverageCacheKey);
@@ -195,13 +194,10 @@ const installNodeModules = () => __awaiter(void 0, void 0, void 0, function* () 
         yield cache.saveCache(["**/node_modules"], dependenciesCacheKey);
     }
 });
-const computeCoverageForSha = ({ sha, sinceSha, installDependencies, }) => __awaiter(void 0, void 0, void 0, function* () {
+const computeCoverageForSha = ({ sha, sinceSha }) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, exec_1.exec)(`git fetch`);
     yield (0, exec_1.exec)(`git -c advice.detachedHead=false checkout ${sha}`);
-    if (installDependencies)
-        yield installNodeModules();
-    else
-        core.info("dependencies installation turned off, skipping it.");
+    yield installNodeModules();
     const since = sinceSha ? `--changedSince=${sinceSha}` : "";
     // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
     // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
@@ -301,7 +297,6 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
         if (isPushOnDefaultBranch) {
             const coverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
                 sha: github.context.sha,
-                installDependencies: env_1.RUN_STEPS.includes("install-deps"),
             });
             const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(coverage.coverageSummary);
             yield octokit.rest.repos.createCommitComment(Object.assign(Object.assign({}, github.context.repo), { commit_sha: github.context.sha, body: coverageMarkdownReport }));
@@ -317,7 +312,6 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
                 sha: pullRequest.head.sha,
                 sinceSha: env_1.COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined,
-                installDependencies: env_1.RUN_STEPS.includes("install-deps"),
             });
             const failedTests = prCoverage.testsOutput.testResults.filter((a) => a.status !== "passed");
             if (failedTests.length > 0) {
@@ -335,8 +329,6 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                     core.info("computing base coverage...");
                     baseCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
                         sha: pullRequest.base.sha,
-                        // installDependencies should always be true here since it can't possibly have been installed for the base branch!
-                        installDependencies: true,
                     });
                 }
                 else
@@ -349,27 +341,27 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 }
                 else
                     core.info("coverage report is empty, skipping posting comment.");
-                if (!env_1.RUN_STEPS.includes("annotations"))
-                    core.info("annotations are turned off, skipping them.");
-                else if (!prCoverage.testsOutput)
+                if (!prCoverage.testsOutput)
                     core.info("no test outputs found, skipping annotations.");
                 else {
-                    core.info("building 'warning' coverage annotations for PR changes...");
-                    let annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "warning");
-                    // if (COVERAGE_ANNOTATIONS === "all") {
-                    //   core.info(
-                    //     "appending 'info' coverage annotations for existing work..."
-                    //   );
-                    //   annotations = createCoverageAnnotationsFromReport(
-                    //     prCoverage.testsOutput,
-                    //     "notice",
-                    //     annotations
-                    //   );
-                    // }
+                    let annotations;
+                    if (!env_1.RUN_STEPS.includes("annotations-changes"))
+                        core.info("annotations-changes are turned off, skipping them.");
+                    else {
+                        core.info("building 'warning' coverage annotations for PR changes...");
+                        annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "warning");
+                    }
+                    if (!env_1.RUN_STEPS.includes("annotations-all"))
+                        core.info("annotations-all are turned off, skipping them.");
+                    else {
+                        core.info("building 'info' coverage annotations for all codebase...");
+                        annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(prCoverage.testsOutput, "notice", annotations);
+                    }
                     // converting to individual annotations and posting them.
                     // in the future, we could decide to aggregate them more aggressively if their number is
                     // over github's limit.
-                    yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
+                    if (annotations)
+                        yield octokit.rest.checks.create((0, annotations_1.formatCoverageAnnotations)(annotations));
                 }
             }
         }

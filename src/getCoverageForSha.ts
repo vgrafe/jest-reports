@@ -10,14 +10,9 @@ const baseCachePath = `coverage`;
 interface CovActionParams {
   sha: string;
   sinceSha?: string;
-  installDependencies?: boolean;
 }
 
-export const getCoverageForSha = async ({
-  sha,
-  sinceSha,
-  installDependencies,
-}: CovActionParams) => {
+export const getCoverageForSha = async ({ sha, sinceSha }: CovActionParams) => {
   if (sinceSha) core.info("computing PR coverage since base...");
   else core.info("computing coverage on all tests...");
 
@@ -49,7 +44,6 @@ export const getCoverageForSha = async ({
     mainCoverage = await computeCoverageForSha({
       sha,
       sinceSha,
-      installDependencies,
     });
     core.info("done. caching...");
     await cache.saveCache([baseCachePath], coverageCacheKey);
@@ -78,16 +72,11 @@ const installNodeModules = async () => {
   }
 };
 
-const computeCoverageForSha = async ({
-  sha,
-  sinceSha,
-  installDependencies,
-}: CovActionParams) => {
+const computeCoverageForSha = async ({ sha, sinceSha }: CovActionParams) => {
   await exec(`git fetch`);
   await exec(`git -c advice.detachedHead=false checkout ${sha}`);
 
-  if (installDependencies) await installNodeModules();
-  else core.info("dependencies installation turned off, skipping it.");
+  await installNodeModules();
 
   const since = sinceSha ? `--changedSince=${sinceSha}` : "";
 
