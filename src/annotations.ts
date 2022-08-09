@@ -28,14 +28,14 @@ const getLocation = (
 export const createCoverageAnnotationsFromReport = (
   jsonReport: any,
   level: "warning" | "notice",
-  appendToExistingAnnotations?: any[]
+  appendToExistingAnnotations?: Annotation[]
 ) => {
-  let annotations: any[] = appendToExistingAnnotations || [];
+  let annotations: Annotation[] = appendToExistingAnnotations || [];
 
   // instead of stacking multiple annotations per location, this aggregates comments into one
-  const addOrAppendAnnotation = (newAnnotation: any) => {
+  const addOrAppendAnnotation = (newAnnotation: Annotation) => {
     const existingAnnotation = annotations.find(
-      (annotation: any) =>
+      (annotation: Annotation) =>
         annotation.path === newAnnotation.path &&
         annotation.start_line === newAnnotation.start_line &&
         annotation.end_line === newAnnotation.end_line

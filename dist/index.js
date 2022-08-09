@@ -334,7 +334,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 else
                     core.info("base branch comparison turned off, skipping it.");
                 core.info("compiling coverage files into markdown report...");
-                const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage === null || baseCoverage === void 0 ? void 0 : baseCoverage.coverageSummary);
+                const coverageMarkdownReport = (0, reportsToMarkdownSummary_1.reportsToMarkdownSummary)(prCoverage.coverageSummary, baseCoverage === null || baseCoverage === void 0 ? void 0 : baseCoverage.coverageSummary, prCoverage.testsOutput);
                 if (coverageMarkdownReport.length > 0) {
                     core.info("report complete! posting markdown report to github...");
                     yield (0, postInPullRequest_1.postInPullRequest)(coverageMarkdownReport);
@@ -483,6 +483,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.reportsToMarkdownSummary = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+const path_1 = __nccwpck_require__(1017);
+const annotations_1 = __nccwpck_require__(5598);
 const collapsibleStart = (title) => `<details><summary>${title}</summary>
   
   `;
@@ -493,7 +495,7 @@ const collapsible = (title, text) => `${collapsibleStart(title)}${text}${collaps
 /**
  * Generates a markdown table using github's `core.summary` api to get the markdown string.
  */
-const makeTable = (heading, rows, compare = true, summary, baseSummary) => {
+const makeTable = (heading, rows, compare = true, summary, baseSummary, annotations) => {
     core.info(`maketable with ${rows.length} rows`);
     if (rows.length === 0)
         return null;
@@ -504,13 +506,17 @@ const makeTable = (heading, rows, compare = true, summary, baseSummary) => {
                 { data: "module", header: true },
                 { data: "coverage", header: true },
                 { data: "change", header: true },
+                { data: "lines", header: true },
             ],
             ...rows.map((row) => [
                 getIcon(getPercent(summary[row])),
-                row.replace(process.cwd() + `/`, ""),
+                (0, path_1.relative)(process.cwd(), row),
                 roundWithDigits(getPercent(summary[row])) + "%",
                 addPlusIfPositive(roundWithDigits(getPercent(summary[row]) -
                     (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
+                (annotations === null || annotations === void 0 ? void 0 : annotations.find((a) => a.path === (0, path_1.relative)(process.cwd(), row)))
+                    ? annotations === null || annotations === void 0 ? void 0 : annotations.filter((a) => a.path === (0, path_1.relative)(process.cwd(), row)).map((a) => `[${a.start_line}-${a.end_line}]`).join(",")
+                    : "--",
             ]),
         ]);
     else
@@ -522,7 +528,7 @@ const makeTable = (heading, rows, compare = true, summary, baseSummary) => {
             ],
             ...rows.map((row) => [
                 getIcon(getPercent(summary[row])),
-                row.replace(process.cwd() + `/`, ""),
+                (0, path_1.relative)(process.cwd(), row),
                 roundWithDigits(getPercent(summary[row])) + "%",
             ]),
         ]);
@@ -541,10 +547,11 @@ const getPercent = (summaryRow) => {
 const roundWithDigits = (num, digits = 1) => Number(num).toFixed(digits);
 const addPlusIfPositive = (num) => num.toString().includes("-") ? num : "+" + num;
 const getIcon = (num) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
-const reportsToMarkdownSummary = (summary, baseSummary) => {
+const reportsToMarkdownSummary = (summary, baseSummary, testsOutput) => {
     // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
     // we're abusing of the summary api to avoid relying on a crappier dependency
     // to generage markdown tables. Using summaries could add value in the future.
+    const annotations = (0, annotations_1.createCoverageAnnotationsFromReport)(testsOutput, "warning");
     core.info(`calling reportsToMarkdownSummary with ${Object.keys(summary).length} summary rows`);
     baseSummary &&
         core.info(`and ${Object.keys(baseSummary).length} baseSummary rows`);
@@ -595,12 +602,12 @@ const reportsToMarkdownSummary = (summary, baseSummary) => {
         core.summary.addRaw(collapsibleStart("Breakdown"));
         if (regressions.length > 0) {
             core.info(`found regressions, adding section...`);
-            makeTable("Regressions", regressions, true, summary, baseSummary);
+            makeTable("Regressions", regressions, true, summary, baseSummary, annotations);
         }
         if (added.length > 0) {
             core.info(`found new files, adding section...`);
             const title = isFullReportOnDefaultBranch ? "Files" : "New files";
-            makeTable(title, added, false, summary, baseSummary);
+            makeTable(title, added, false, summary, baseSummary, annotations);
         }
         if (improved.length > 0) {
             core.info(`found improved files, adding section...`);
@@ -1140,7 +1147,13 @@ function resolvePaths(patterns) {
                     .replace(new RegExp(`\\${path.sep}`, 'g'), '/');
                 core.debug(`Matched: ${relativeFile}`);
                 // Paths are made relative so the tar entries are all relative to the root of the workspace.
-                paths.push(`${relativeFile}`);
+                if (relativeFile === '') {
+                    // path.relative returns empty string if workspace and file are equal
+                    paths.push('.');
+                }
+                else {
+                    paths.push(`${relativeFile}`);
+                }
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -1717,9 +1730,9 @@ function extractTar(archivePath, compressionMethod) {
         function getCompressionProgram() {
             switch (compressionMethod) {
                 case constants_1.CompressionMethod.Zstd:
-                    return ['--use-compress-program', 'zstd -d --long=30'];
+                    return ['--use-compress-program', 'unzstd --long=30'];
                 case constants_1.CompressionMethod.ZstdWithoutLong:
-                    return ['--use-compress-program', 'zstd -d'];
+                    return ['--use-compress-program', 'unzstd'];
                 default:
                     return ['-z'];
             }
@@ -1750,9 +1763,9 @@ function createTar(archiveFolder, sourceDirectories, compressionMethod) {
         function getCompressionProgram() {
             switch (compressionMethod) {
                 case constants_1.CompressionMethod.Zstd:
-                    return ['--use-compress-program', 'zstd -T0 --long=30'];
+                    return ['--use-compress-program', 'zstdmt --long=30'];
                 case constants_1.CompressionMethod.ZstdWithoutLong:
-                    return ['--use-compress-program', 'zstd -T0'];
+                    return ['--use-compress-program', 'zstdmt'];
                 default:
                     return ['-z'];
             }
@@ -1783,9 +1796,9 @@ function listTar(archivePath, compressionMethod) {
         function getCompressionProgram() {
             switch (compressionMethod) {
                 case constants_1.CompressionMethod.Zstd:
-                    return ['--use-compress-program', 'zstd -d --long=30'];
+                    return ['--use-compress-program', 'unzstd --long=30'];
                 case constants_1.CompressionMethod.ZstdWithoutLong:
-                    return ['--use-compress-program', 'zstd -d'];
+                    return ['--use-compress-program', 'unzstd'];
                 default:
                     return ['-z'];
             }

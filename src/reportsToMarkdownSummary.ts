@@ -1,4 +1,6 @@
 import * as core from "@actions/core";
+import { relative } from "path";
+import { createCoverageAnnotationsFromReport } from "./annotations";
 
 const collapsibleStart = (title: string) =>
   `<details><summary>${title}</summary>
@@ -20,7 +22,8 @@ const makeTable = (
   rows: string[],
   compare = true,
   summary: any,
-  baseSummary: any
+  baseSummary: any,
+  annotations?: Annotation[]
 ) => {
   core.info(`maketable with ${rows.length} rows`);
   if (rows.length === 0) return null;
@@ -32,10 +35,11 @@ const makeTable = (
         { data: "module", header: true },
         { data: "coverage", header: true },
         { data: "change", header: true },
+        { data: "lines", header: true },
       ],
       ...rows.map((row) => [
         getIcon(getPercent(summary[row])),
-        row.replace(process.cwd() + `/`, ""),
+        relative(process.cwd(), row),
         roundWithDigits(getPercent(summary[row])) + "%",
         addPlusIfPositive(
           roundWithDigits(
@@ -43,6 +47,12 @@ const makeTable = (
               (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
           )
         ) + "%",
+        annotations?.find((a) => a.path === relative(process.cwd(), row))
+          ? annotations
+              ?.filter((a) => a.path === relative(process.cwd(), row))
+              .map((a) => `[${a.start_line}-${a.end_line}]`)
+              .join(",")
+          : "--",
       ]),
     ]);
   else
@@ -54,7 +64,7 @@ const makeTable = (
       ],
       ...rows.map((row) => [
         getIcon(getPercent(summary[row])),
-        row.replace(process.cwd() + `/`, ""),
+        relative(process.cwd(), row),
         roundWithDigits(getPercent(summary[row])) + "%",
       ]),
     ]);
@@ -84,10 +94,19 @@ const addPlusIfPositive = (num: number | string) =>
 
 const getIcon = (num: number) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 
-export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
+export const reportsToMarkdownSummary = (
+  summary: any,
+  baseSummary?: any,
+  testsOutput?: any
+) => {
   // https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
   // we're abusing of the summary api to avoid relying on a crappier dependency
   // to generage markdown tables. Using summaries could add value in the future.
+
+  const annotations = createCoverageAnnotationsFromReport(
+    testsOutput,
+    "warning"
+  );
 
   core.info(
     `calling reportsToMarkdownSummary with ${
@@ -165,13 +184,20 @@ export const reportsToMarkdownSummary = (summary: any, baseSummary?: any) => {
 
     if (regressions.length > 0) {
       core.info(`found regressions, adding section...`);
-      makeTable("Regressions", regressions, true, summary, baseSummary);
+      makeTable(
+        "Regressions",
+        regressions,
+        true,
+        summary,
+        baseSummary,
+        annotations
+      );
     }
 
     if (added.length > 0) {
       core.info(`found new files, adding section...`);
       const title = isFullReportOnDefaultBranch ? "Files" : "New files";
-      makeTable(title, added, false, summary, baseSummary);
+      makeTable(title, added, false, summary, baseSummary, annotations);
     }
 
     if (improved.length > 0) {

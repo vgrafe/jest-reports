@@ -119,7 +119,8 @@ const run = async () => {
         core.info("compiling coverage files into markdown report...");
         const coverageMarkdownReport = reportsToMarkdownSummary(
           prCoverage.coverageSummary,
-          baseCoverage?.coverageSummary
+          baseCoverage?.coverageSummary,
+          prCoverage.testsOutput
         );
 
         if (coverageMarkdownReport.length > 0) {
