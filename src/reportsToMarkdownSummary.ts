@@ -52,8 +52,8 @@ const makeTable = (
               ?.filter((a) => a.path === relative(process.cwd(), row))
               .map((a) =>
                 a.start_line === a.end_line
-                  ? `[${a.start_line}]`
-                  : `[${a.start_line}-${a.end_line}]`
+                  ? `${a.start_line}`
+                  : `${a.start_line}-${a.end_line}`
               )
               .join(",")
           : "--",

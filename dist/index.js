@@ -516,8 +516,8 @@ const makeTable = (heading, rows, compare = true, summary, baseSummary, annotati
                     (baseSummary[row] ? getPercent(baseSummary[row]) : 0))) + "%",
                 (annotations === null || annotations === void 0 ? void 0 : annotations.find((a) => a.path === (0, path_1.relative)(process.cwd(), row)))
                     ? annotations === null || annotations === void 0 ? void 0 : annotations.filter((a) => a.path === (0, path_1.relative)(process.cwd(), row)).map((a) => a.start_line === a.end_line
-                        ? `[${a.start_line}]`
-                        : `[${a.start_line}-${a.end_line}]`).join(",")
+                        ? `${a.start_line}`
+                        : `${a.start_line}-${a.end_line}`).join(",")
                     : "--",
             ]),
         ]);
