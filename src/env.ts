@@ -11,3 +11,4 @@ export const RUN_STEPS: RunStep[] = (process.env.INPUT_RUN_STEPS || "")
   .split(",")
   .map((item) => item as RunStep);
 export const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
+export const BASE_SHA = process.env.BASE_SHA;
