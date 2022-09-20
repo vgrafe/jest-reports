@@ -309,10 +309,20 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 repo: github.context.repo.repo,
                 pull_number: github.context.issue.number,
             });
-            core.info("computing PR total coverage...");
+            let sinceSha = undefined;
+            if (env_1.SCOPE === "all")
+                core.info("computing test + coverage...");
+            if (env_1.SCOPE === "pr-changes") {
+                core.info("computing test + coverage scoped to PR changes...");
+                sinceSha = pullRequest.base.sha;
+            }
+            if (env_1.SCOPE === "changes-since-last-success") {
+                core.info("computing test + coverage scoped to changes since last successful run... NOT SUPPORTED YET WOOPSIE!");
+                // sinceSha =  TODO cache last successful run sha for the PR and get it here
+            }
             const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
                 sha: pullRequest.head.sha,
-                sinceSha: env_1.SCOPE === "pr-changes" ? pullRequest.base.sha : undefined,
+                sinceSha,
             });
             const failedTests = prCoverage.testsOutput.testResults.filter((a) => a.status !== "passed");
             if (failedTests.length > 0) {

@@ -78,10 +78,22 @@ const run = async () => {
         pull_number: github.context.issue.number,
       });
 
-      core.info("computing PR total coverage...");
+      let sinceSha = undefined;
+      if (SCOPE === "all") core.info("computing test + coverage...");
+      if (SCOPE === "pr-changes") {
+        core.info("computing test + coverage scoped to PR changes...");
+        sinceSha = pullRequest.base.sha;
+      }
+      if (SCOPE === "changes-since-last-success") {
+        core.info(
+          "computing test + coverage scoped to changes since last successful run... NOT SUPPORTED YET WOOPSIE!"
+        );
+        // sinceSha =  TODO cache last successful run sha for the PR and get it here
+      }
+
       const prCoverage = await getCoverageForSha({
         sha: pullRequest.head.sha,
-        sinceSha: SCOPE === "pr-changes" ? pullRequest.base.sha : undefined,
+        sinceSha,
       });
 
       const failedTests = (prCoverage.testsOutput as any).testResults.filter(
