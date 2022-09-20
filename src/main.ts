@@ -9,12 +9,7 @@ import {
   createCoverageAnnotationsFromReport,
   formatCoverageAnnotations,
 } from "./annotations";
-import {
-  COVER_PR_CHANGES_ONLY,
-  DEFAULT_BRANCH,
-  GITHUB_TOKEN,
-  RUN_STEPS,
-} from "./env";
+import { SCOPE, DEFAULT_BRANCH, GITHUB_TOKEN, RUN_STEPS } from "./env";
 
 /*
 
@@ -86,7 +81,7 @@ const run = async () => {
       core.info("computing PR total coverage...");
       const prCoverage = await getCoverageForSha({
         sha: pullRequest.head.sha,
-        sinceSha: COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined,
+        sinceSha: SCOPE === "pr-changes" ? pullRequest.base.sha : undefined,
       });
 
       const failedTests = (prCoverage.testsOutput as any).testResults.filter(

@@ -8,9 +8,13 @@ inputs:
   github-token:
     description: "A github access token"
     default: ${{ github.token }}
-  cover-pr-changes-only:
-    description: "Only run coverage on changes introduced in the PR"
-    default: True
+  scope:
+    description: "Set the scope of the jest run: all, changed in PR, changed since last successful run on the PR"
+    default: "all"
+    options:
+      - all
+      - pr-changes
+      - changes-since-last-success
   run-steps:
     description: "skip any step by removing the corresponging item from this comma-separated list"
     default: "compare-with-base-branch,report-on-github,annotations-changes,annotations-all"
@@ -26,5 +30,5 @@ runs:
     - name: Expose GitHub Runtime
       uses: crazy-max/ghaction-github-runtime@v2
 
-    - run: DEFAULT_BRANCH=${{ github.event.repository.default_branch }} BASE_SHA=${{ github.event.pull_request.head.sha }} INPUT_RUN_STEPS=${{ inputs.run-steps }} INPUT_GITHUB_TOKEN=${{ inputs.github-token }} INPUT_COVER_PR_CHANGES_ONLY=${{ inputs.cover-pr-changes-only }} node ${{ github.action_path }}/dist/index.js
+    - run: DEFAULT_BRANCH=${{ github.event.repository.default_branch }} BASE_SHA=${{ github.event.pull_request.head.sha }} INPUT_RUN_STEPS=${{ inputs.run-steps }} INPUT_GITHUB_TOKEN=${{ inputs.github-token }} INPUT_SCOPE=${{ inputs.scope }} node ${{ github.action_path }}/dist/index.js
       shell: bash

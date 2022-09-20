@@ -89,13 +89,14 @@ exports.formatCoverageAnnotations = formatCoverageAnnotations;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DEFAULT_BRANCH = exports.RUN_STEPS = exports.COVER_PR_CHANGES_ONLY = exports.GITHUB_TOKEN = void 0;
+exports.BASE_SHA = exports.DEFAULT_BRANCH = exports.RUN_STEPS = exports.SCOPE = exports.GITHUB_TOKEN = void 0;
 exports.GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN;
-exports.COVER_PR_CHANGES_ONLY = process.env.INPUT_COVER_PR_CHANGES_ONLY === "true";
+exports.SCOPE = process.env.INPUT_SCOPE;
 exports.RUN_STEPS = (process.env.INPUT_RUN_STEPS || "")
     .split(",")
     .map((item) => item);
 exports.DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
+exports.BASE_SHA = process.env.BASE_SHA;
 
 
 /***/ }),
@@ -311,7 +312,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             core.info("computing PR total coverage...");
             const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
                 sha: pullRequest.head.sha,
-                sinceSha: env_1.COVER_PR_CHANGES_ONLY ? pullRequest.base.sha : undefined,
+                sinceSha: env_1.SCOPE === "pr-changes" ? pullRequest.base.sha : undefined,
             });
             const failedTests = prCoverage.testsOutput.testResults.filter((a) => a.status !== "passed");
             if (failedTests.length > 0) {

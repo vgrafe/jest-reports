@@ -27,9 +27,7 @@ jobs:
   compare-cov:
     runs-on: ubuntu-latest
     steps:
-      - uses: vgrafe/jest-reports@v0.146
-        with:
-          cover-pr-changes-only: False
+      - uses: vgrafe/jest-reports@v0.1.5
 ```
 
 ## Options
@@ -39,9 +37,13 @@ with:
   github-token:
     description: "A github access token"
     default: ${{ github.token }}
-  cover-pr-changes-only:
-    description: "Only run coverage on changes introduced in the PR"
-    default: True
+  scope:
+    description: "Set the scope of the jest run: all, changed in PR, changed since last successful run on the PR"
+    default: "all"
+    options:
+      - all
+      - pr-changes
+      - changes-since-last-success
   run-steps:
     description: "skip any step by removing the corresponging item from this comma-separated list"
     default: "compare-with-base-branch,report-on-github,annotations-changes,annotations-all"
