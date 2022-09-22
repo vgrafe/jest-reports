@@ -1,14 +1,13 @@
 import * as cache from "@actions/cache";
 import fs from "fs";
 
-const filePath = `__cache__/strings`;
+const filePath = "____lastsuccess.txt";
 
 export const writeLastSuccessShaForPr = async (
   pullRequestId: number,
   value: string
 ) => {
-  fs.mkdirSync(filePath, { recursive: true });
-  fs.writeFileSync(`${filePath}/lastsuccess.txt`, value, { encoding: "utf8" });
+  fs.writeFileSync(filePath, value, { encoding: "utf8" });
   return cache.saveCache([filePath], `pull-${pullRequestId}-last-success-sha`);
 };
 
@@ -18,7 +17,6 @@ export const readLastSuccessShaForPr = async (pullRequestId: number) => {
     `pull-${pullRequestId}-last-success-sha`
   );
 
-  if (foundCoverageOutputs)
-    return fs.readFileSync(`${filePath}/lastsuccess.txt`, "utf8");
+  if (foundCoverageOutputs) return fs.readFileSync(filePath, "utf8");
   else return undefined;
 };
