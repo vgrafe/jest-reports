@@ -7,7 +7,8 @@ export const writeLastSuccessShaForPr = async (
   pullRequestId: number,
   value: string
 ) => {
-  fs.writeFileSync(`${filePath}/lastsuccess.txt`, value, { encoding: "utf8" });
+  fs.mkdirSync(filePath)
+  fs.writeFileSync(`${filePath}/lastsuccess.txt`, value, { encoding: "utf8", mode:  });
   return cache.saveCache([filePath], `pull-${pullRequestId}-last-success-sha`);
 };
 
