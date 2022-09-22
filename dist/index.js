@@ -129,6 +129,7 @@ const cache = __importStar(__nccwpck_require__(7799));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const filePath = `__cache__/strings`;
 const writeLastSuccessShaForPr = (pullRequestId, value) => __awaiter(void 0, void 0, void 0, function* () {
+    fs_1.default.mkdirSync(filePath, { recursive: true });
     fs_1.default.writeFileSync(`${filePath}/lastsuccess.txt`, value, { encoding: "utf8" });
     return cache.saveCache([filePath], `pull-${pullRequestId}-last-success-sha`);
 });
