@@ -86,6 +86,7 @@ const run = async () => {
         sinceSha = pullRequest.base.sha;
       }
       if (SCOPE === "changes-since-last-success") {
+        // still buggy, can't bust cache so first success will always be used
         sinceSha = await readLastSuccessShaForPr(pullRequest.id);
         if (!sinceSha) {
           core.info(
