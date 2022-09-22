@@ -89,11 +89,13 @@ const run = async () => {
         sinceSha = await readLastSuccessShaForPr(pullRequest.id);
         if (!sinceSha) {
           core.info(
-            `this PR had no succesful test run yet, running tests since base branch at ${pullRequest.base.sha}`
+            `PR #${pullRequest.id} had no succesful test run yet, running tests since base branch at ${pullRequest.base.sha}`
           );
           sinceSha = pullRequest.base.sha;
         } else {
-          core.info(`running tests since last success run at ${sinceSha}`);
+          core.info(
+            `running tests since last success run on PR #${pullRequest.id}: ${sinceSha}`
+          );
         }
       }
 
