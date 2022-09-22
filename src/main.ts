@@ -89,6 +89,10 @@ const run = async () => {
           "computing test + coverage scoped to changes since last successful run... NOT SUPPORTED YET WOOPSIE!"
         );
         // sinceSha =  TODO cache last successful run sha for the PR and get it here
+
+        // get cached sha of last success on this branch
+        // if undefined, use pullRequest.base.sha
+        // if defined, use it
       }
 
       const prCoverage = await getCoverageForSha({

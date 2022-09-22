@@ -5,7 +5,7 @@ import { exec } from "@actions/exec";
 import * as glob from "@actions/glob";
 
 const appName = "jest-reports";
-const baseCachePath = `coverage`;
+const coverageCachePath = `coverage`;
 
 interface CovActionParams {
   sha: string;
@@ -18,14 +18,14 @@ export const getCoverageForSha = async ({ sha, sinceSha }: CovActionParams) => {
 
   let mainCoverage = { coverageSummary: {}, testsOutput: {} };
 
-  const coverageCacheKey = sinceSha
+  const coverageatShaCacheKey = sinceSha
     ? `${appName}-cache-coverage-for-${sha}-since-${sinceSha}`
     : `${appName}-cache-coverage-for-${sha}`;
 
-  core.info(`restoring coverage outputs for ${coverageCacheKey}...`);
+  core.info(`restoring coverage outputs for ${coverageatShaCacheKey}...`);
   const foundCoverageOutputs = await cache.restoreCache(
-    [baseCachePath],
-    coverageCacheKey
+    [coverageCachePath],
+    coverageatShaCacheKey
   );
 
   if (foundCoverageOutputs) {
@@ -46,7 +46,7 @@ export const getCoverageForSha = async ({ sha, sinceSha }: CovActionParams) => {
       sinceSha,
     });
     core.info("done. caching...");
-    await cache.saveCache([baseCachePath], coverageCacheKey);
+    await cache.saveCache([coverageCachePath], coverageatShaCacheKey);
   }
 
   return mainCoverage;
