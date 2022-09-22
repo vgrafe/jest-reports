@@ -10,6 +10,7 @@ import {
   formatCoverageAnnotations,
 } from "./annotations";
 import { SCOPE, DEFAULT_BRANCH, GITHUB_TOKEN, RUN_STEPS } from "./env";
+import { readLastSuccessShaForPr, writeLastSuccessShaForPr } from "./cache";
 
 /*
 
@@ -85,14 +86,15 @@ const run = async () => {
         sinceSha = pullRequest.base.sha;
       }
       if (SCOPE === "changes-since-last-success") {
-        core.info(
-          "computing test + coverage scoped to changes since last successful run... NOT SUPPORTED YET WOOPSIE!"
-        );
-        // sinceSha =  TODO cache last successful run sha for the PR and get it here
-
-        // get cached sha of last success on this branch
-        // if undefined, use pullRequest.base.sha
-        // if defined, use it
+        sinceSha = await readLastSuccessShaForPr(pullRequest.id);
+        if (!sinceSha) {
+          core.info(
+            `this PR had no succesful test run yet, running tests since base branch at ${pullRequest.base.sha}`
+          );
+          sinceSha = pullRequest.base.sha;
+        } else {
+          core.info(`running tests since last success run at ${sinceSha}`);
+        }
       }
 
       const prCoverage = await getCoverageForSha({
@@ -119,6 +121,10 @@ const run = async () => {
 
         core.setFailed(`${failedTests.length} tests failed!`);
       } else {
+        core.info("run successful! caching sha for future use...");
+        const currentSha = pullRequest.head.sha;
+        await writeLastSuccessShaForPr(pullRequest.id, currentSha);
+
         let baseCoverage;
         if (RUN_STEPS.includes("compare-with-base-branch")) {
           core.info("computing base coverage...");
