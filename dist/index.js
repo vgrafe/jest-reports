@@ -83,6 +83,68 @@ exports.formatCoverageAnnotations = formatCoverageAnnotations;
 
 /***/ }),
 
+/***/ 3782:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.readLastSuccessShaForPr = exports.writeLastSuccessShaForPr = void 0;
+const cache = __importStar(__nccwpck_require__(7799));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const filePath = `__cache__/strings`;
+const writeLastSuccessShaForPr = (pullRequestId, value) => __awaiter(void 0, void 0, void 0, function* () {
+    fs_1.default.writeFileSync(`${filePath}/lastsuccess.txt`, value, { encoding: "utf8" });
+    return cache.saveCache([filePath], `pull-${pullRequestId}-last-success-sha`);
+});
+exports.writeLastSuccessShaForPr = writeLastSuccessShaForPr;
+const readLastSuccessShaForPr = (pullRequestId) => __awaiter(void 0, void 0, void 0, function* () {
+    const foundCoverageOutputs = yield cache.restoreCache([filePath], `pull-${pullRequestId}-last-success-sha`);
+    if (foundCoverageOutputs)
+        return fs_1.default.readFileSync(`${filePath}/lastsuccess.txt`, "utf8");
+    else
+        return undefined;
+});
+exports.readLastSuccessShaForPr = readLastSuccessShaForPr;
+
+
+/***/ }),
+
 /***/ 9763:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -149,18 +211,18 @@ const cache = __importStar(__nccwpck_require__(7799));
 const exec_1 = __nccwpck_require__(1514);
 const glob = __importStar(__nccwpck_require__(8090));
 const appName = "jest-reports";
-const baseCachePath = `coverage`;
+const coverageCachePath = `coverage`;
 const getCoverageForSha = ({ sha, sinceSha }) => __awaiter(void 0, void 0, void 0, function* () {
     if (sinceSha)
         core.info("computing PR coverage since base...");
     else
         core.info("computing coverage on all tests...");
     let mainCoverage = { coverageSummary: {}, testsOutput: {} };
-    const coverageCacheKey = sinceSha
+    const coverageatShaCacheKey = sinceSha
         ? `${appName}-cache-coverage-for-${sha}-since-${sinceSha}`
         : `${appName}-cache-coverage-for-${sha}`;
-    core.info(`restoring coverage outputs for ${coverageCacheKey}...`);
-    const foundCoverageOutputs = yield cache.restoreCache([baseCachePath], coverageCacheKey);
+    core.info(`restoring coverage outputs for ${coverageatShaCacheKey}...`);
+    const foundCoverageOutputs = yield cache.restoreCache([coverageCachePath], coverageatShaCacheKey);
     if (foundCoverageOutputs) {
         core.info(`found.`);
         const summaryFile = fs_1.default.readFileSync(`${process.cwd()}/coverage/coverage-summary.json`);
@@ -175,7 +237,7 @@ const getCoverageForSha = ({ sha, sinceSha }) => __awaiter(void 0, void 0, void 
             sinceSha,
         });
         core.info("done. caching...");
-        yield cache.saveCache([baseCachePath], coverageCacheKey);
+        yield cache.saveCache([coverageCachePath], coverageatShaCacheKey);
     }
     return mainCoverage;
 });
@@ -269,6 +331,7 @@ const reportsToMarkdownSummary_1 = __nccwpck_require__(5785);
 const getCoverageForSha_1 = __nccwpck_require__(2574);
 const annotations_1 = __nccwpck_require__(5598);
 const env_1 = __nccwpck_require__(9763);
+const cache_1 = __nccwpck_require__(3782);
 /*
 
 to push a new version in one command:
@@ -317,8 +380,14 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 sinceSha = pullRequest.base.sha;
             }
             if (env_1.SCOPE === "changes-since-last-success") {
-                core.info("computing test + coverage scoped to changes since last successful run... NOT SUPPORTED YET WOOPSIE!");
-                // sinceSha =  TODO cache last successful run sha for the PR and get it here
+                sinceSha = yield (0, cache_1.readLastSuccessShaForPr)(pullRequest.id);
+                if (!sinceSha) {
+                    core.info(`this PR had no succesful test run yet, running tests since base branch at ${pullRequest.base.sha}`);
+                    sinceSha = pullRequest.base.sha;
+                }
+                else {
+                    core.info(`running tests since last success run at ${sinceSha}`);
+                }
             }
             const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
                 sha: pullRequest.head.sha,
@@ -335,6 +404,9 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 core.setFailed(`${failedTests.length} tests failed!`);
             }
             else {
+                core.info("run successful! caching sha for future use...");
+                const currentSha = pullRequest.head.sha;
+                yield (0, cache_1.writeLastSuccessShaForPr)(pullRequest.id, currentSha);
                 let baseCoverage;
                 if (env_1.RUN_STEPS.includes("compare-with-base-branch")) {
                     core.info("computing base coverage...");
