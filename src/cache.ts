@@ -7,8 +7,12 @@ export const writeLastSuccessShaForPr = async (
   pullRequestId: number,
   value: string
 ) => {
+  // lists all files in `filePath` folder to know which one to write to
+  const files = fs.readdirSync(filePath);
+  const newFileName = `${files.length}.txt`;
+
   fs.mkdirSync(filePath, { recursive: true });
-  fs.writeFileSync(`${filePath}/lastsuccess.txt`, value, { encoding: "utf8" });
+  fs.writeFileSync(`${filePath}/${newFileName}`, value, { encoding: "utf8" });
   return cache.saveCache([filePath], `pull-${pullRequestId}-last-success-sha`);
 };
 
@@ -18,7 +22,10 @@ export const readLastSuccessShaForPr = async (pullRequestId: number) => {
     `pull-${pullRequestId}-last-success-sha`
   );
 
-  if (foundCoverageOutputs)
-    return fs.readFileSync(`${filePath}/lastsuccess.txt`, "utf8");
+  // lists all files in `filePath` folder to know which one to read from
+  const files = fs.readdirSync(filePath);
+
+  if (foundCoverageOutputs && files.length > 0)
+    return fs.readFileSync(`${filePath}/${files.length - 1}.txt`, "utf8");
   else return undefined;
 };
