@@ -127,17 +127,24 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.readLastSuccessShaForPr = exports.writeLastSuccessShaForPr = void 0;
 const cache = __importStar(__nccwpck_require__(7799));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
-const filePath = `__cache__/strings`;
+const filePath = `__cache__`;
 const writeLastSuccessShaForPr = (pullRequestId, value) => __awaiter(void 0, void 0, void 0, function* () {
-    fs_1.default.mkdirSync(filePath, { recursive: true });
-    fs_1.default.writeFileSync(`${filePath}/lastsuccess.txt`, value, { encoding: "utf8" });
-    return cache.saveCache([filePath], `pull-${pullRequestId}-last-success-sha`);
+    // create the cache folder if it does not exist
+    if (!fs_1.default.existsSync(filePath))
+        fs_1.default.mkdirSync(filePath, { recursive: true });
+    // lists all files in `filePath` folder to know which one to write to
+    const files = fs_1.default.readdirSync(filePath);
+    const newFileName = `${files.length}.txt`;
+    fs_1.default.writeFileSync(`${filePath}/${newFileName}`, value, { encoding: "utf8" });
+    return cache.saveCache([filePath], `pull-${pullRequestId}-success-sha-logs`);
 });
 exports.writeLastSuccessShaForPr = writeLastSuccessShaForPr;
 const readLastSuccessShaForPr = (pullRequestId) => __awaiter(void 0, void 0, void 0, function* () {
-    const foundCoverageOutputs = yield cache.restoreCache([filePath], `pull-${pullRequestId}-last-success-sha`);
-    if (foundCoverageOutputs)
-        return fs_1.default.readFileSync(`${filePath}/lastsuccess.txt`, "utf8");
+    const foundCoverageOutputs = yield cache.restoreCache([filePath], `pull-${pullRequestId}-success-sha-logs`);
+    // lists all files in `filePath` folder to know which one to read from
+    const files = fs_1.default.existsSync(filePath) && fs_1.default.readdirSync(filePath);
+    if (foundCoverageOutputs && files && files.length > 0)
+        return fs_1.default.readFileSync(`${filePath}/${files.length - 1}.txt`, "utf8");
     else
         return undefined;
 });
@@ -381,13 +388,14 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 sinceSha = pullRequest.base.sha;
             }
             if (env_1.SCOPE === "changes-since-last-success") {
+                // still buggy, can't bust cache so first success will always be used
                 sinceSha = yield (0, cache_1.readLastSuccessShaForPr)(pullRequest.id);
                 if (!sinceSha) {
-                    core.info(`this PR had no succesful test run yet, running tests since base branch at ${pullRequest.base.sha}`);
+                    core.info(`PR #${pullRequest.id} had no succesful test run yet, running tests since base branch at ${pullRequest.base.sha}`);
                     sinceSha = pullRequest.base.sha;
                 }
                 else {
-                    core.info(`running tests since last success run at ${sinceSha}`);
+                    core.info(`running tests since last success run on PR #${pullRequest.id}: ${sinceSha}`);
                 }
             }
             const prCoverage = yield (0, getCoverageForSha_1.getCoverageForSha)({
