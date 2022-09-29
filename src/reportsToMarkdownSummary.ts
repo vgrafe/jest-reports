@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import { relative } from "path";
 import { createCoverageAnnotationsFromReport } from "./annotations";
+import { SORT_TABLES } from "./env";
 
 const collapsibleStart = (title: string) =>
   `<details><summary>${title}</summary>
@@ -13,6 +14,14 @@ const collapsibleEnd = () => `
 
 const collapsible = (title: string, text: string) =>
   `${collapsibleStart(title)}${text}${collapsibleEnd()}`;
+
+const userSorting = (a: any, b: any) => {
+  if (SORT_TABLES === "alphabetic") {
+    return a[0].localeCompare(b[0]);
+  } else {
+    return b[2] - a[2];
+  }
+};
 
 /**
  * Generates a markdown table using github's `core.summary` api to get the markdown string.
@@ -37,27 +46,29 @@ const makeTable = (
         { data: "change", header: true },
         { data: "lines", header: true },
       ],
-      ...rows.map((row) => [
-        getIcon(getPercent(summary[row])),
-        relative(process.cwd(), row),
-        roundWithDigits(getPercent(summary[row])) + "%",
-        addPlusIfPositive(
-          roundWithDigits(
-            getPercent(summary[row]) -
-              (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
-          )
-        ) + "%",
-        annotations?.find((a) => a.path === relative(process.cwd(), row))
-          ? annotations
-              ?.filter((a) => a.path === relative(process.cwd(), row))
-              .map((a) =>
-                a.start_line === a.end_line
-                  ? `${a.start_line}`
-                  : `${a.start_line}-${a.end_line}`
-              )
-              .join(",")
-          : "--",
-      ]),
+      ...rows
+        .map((row) => [
+          getIcon(getPercent(summary[row])),
+          relative(process.cwd(), row),
+          roundWithDigits(getPercent(summary[row])) + "%",
+          addPlusIfPositive(
+            roundWithDigits(
+              getPercent(summary[row]) -
+                (baseSummary[row] ? getPercent(baseSummary[row]) : 0)
+            )
+          ) + "%",
+          annotations?.find((a) => a.path === relative(process.cwd(), row))
+            ? annotations
+                ?.filter((a) => a.path === relative(process.cwd(), row))
+                .map((a) =>
+                  a.start_line === a.end_line
+                    ? `${a.start_line}`
+                    : `${a.start_line}-${a.end_line}`
+                )
+                .join(",")
+            : "--",
+        ])
+        .sort(userSorting),
     ]);
   else
     core.summary.addHeading(heading, 2).addTable([
@@ -66,11 +77,13 @@ const makeTable = (
         { data: "module", header: true },
         { data: "coverage", header: true },
       ],
-      ...rows.map((row) => [
-        getIcon(getPercent(summary[row])),
-        relative(process.cwd(), row),
-        roundWithDigits(getPercent(summary[row])) + "%",
-      ]),
+      ...rows
+        .map((row) => [
+          getIcon(getPercent(summary[row])),
+          relative(process.cwd(), row),
+          roundWithDigits(getPercent(summary[row])) + "%",
+        ])
+        .sort(userSorting),
     ]);
 };
 

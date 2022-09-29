@@ -10,7 +10,7 @@ import {
   formatCoverageAnnotations,
 } from "./annotations";
 import { SCOPE, DEFAULT_BRANCH, GITHUB_TOKEN, RUN_STEPS } from "./env";
-import { readLastSuccessShaForPr, writeLastSuccessShaForPr } from "./cache";
+import { getLastSuccessfulSha } from "./getLastSuccessfulSha";
 
 /*
 
@@ -32,14 +32,14 @@ const run = async () => {
 
   try {
     const octokit = github.getOctokit(GITHUB_TOKEN);
+    const currentBranch = github.context.ref.replace("refs/heads/", "");
 
     core.info(`eventName: ${github.context.eventName}`);
-    core.info(`branch: ${github.context.ref.replace("refs/heads/", "")}`);
+    core.info(`branch: ${currentBranch}`);
 
     const isPullRequest = github.context.eventName === "pull_request";
     const isPushOnDefaultBranch =
-      github.context.eventName === "push" &&
-      github.context.ref.replace("refs/heads/", "") === DEFAULT_BRANCH;
+      github.context.eventName === "push" && currentBranch === DEFAULT_BRANCH;
 
     if (!isPullRequest && !isPushOnDefaultBranch)
       core.setFailed(
@@ -86,8 +86,11 @@ const run = async () => {
         sinceSha = pullRequest.base.sha;
       }
       if (SCOPE === "changes-since-last-success") {
-        // still buggy, can't bust cache so first success will always be used
-        sinceSha = await readLastSuccessShaForPr(pullRequest.id);
+        core.info("finding last siccessful job on that PR...");
+
+        // finding last time that workflow was successful on that branch
+        sinceSha = await getLastSuccessfulSha();
+
         if (!sinceSha) {
           core.info(
             `PR #${pullRequest.id} had no succesful test run yet, running tests since base branch at ${pullRequest.base.sha}`
@@ -115,7 +118,7 @@ const run = async () => {
           .addRaw(`The following tests failed:`)
           .addList(
             failedTests.map(
-              (ft: any) => ft.name.replace(process.cwd() + `/`, "`") + "``"
+              (ft: any) => ft.name.replace(process.cwd() + `/`, "`") + "`"
             )
           )
           .stringify();
@@ -124,10 +127,6 @@ const run = async () => {
 
         core.setFailed(`${failedTests.length} tests failed!`);
       } else {
-        core.info("run successful! caching sha for future use...");
-        const currentSha = pullRequest.head.sha;
-        await writeLastSuccessShaForPr(pullRequest.id, currentSha);
-
         let baseCoverage;
         if (RUN_STEPS.includes("compare-with-base-branch")) {
           core.info("computing base coverage...");

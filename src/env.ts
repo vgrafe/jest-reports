@@ -6,6 +6,8 @@ type RunStep =
 
 type Scope = "all" | "pr-changes" | "changes-since-last-success";
 
+type SortTablesRows = "alphabetic" | "coverage-descending";
+
 export const GITHUB_TOKEN = process.env.INPUT_GITHUB_TOKEN as string;
 export const SCOPE = process.env.INPUT_SCOPE as Scope;
 export const RUN_STEPS: RunStep[] = (process.env.INPUT_RUN_STEPS || "")
@@ -13,3 +15,4 @@ export const RUN_STEPS: RunStep[] = (process.env.INPUT_RUN_STEPS || "")
   .map((item) => item as RunStep);
 export const DEFAULT_BRANCH = process.env.DEFAULT_BRANCH;
 export const BASE_SHA = process.env.BASE_SHA;
+export const SORT_TABLES: SortTablesRows = "coverage-descending";
