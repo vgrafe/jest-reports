@@ -12,7 +12,6 @@ export const getLastSuccessfulSha = async () => {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     workflow_id: "compare-coverage.yaml",
-    status: "success",
     branch: currentBranch,
   });
 

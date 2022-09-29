@@ -274,7 +274,6 @@ const getLastSuccessfulSha = () => __awaiter(void 0, void 0, void 0, function* (
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
         workflow_id: "compare-coverage.yaml",
-        status: "success",
         branch: currentBranch,
     });
     core.info(`found ${runs.workflow_runs.length} successes.`);
