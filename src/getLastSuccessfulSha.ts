@@ -13,7 +13,6 @@ export const getLastSuccessfulSha = async () => {
     repo: github.context.repo.repo,
     workflow_id: "compare-coverage.yaml",
     status: "success",
-    event: "pull_request",
     branch: currentBranch,
   });
 
