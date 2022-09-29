@@ -268,14 +268,15 @@ const env_1 = __nccwpck_require__(9763);
 const getLastSuccessfulSha = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const octokit = github.getOctokit(env_1.GITHUB_TOKEN);
+    const currentBranch = github.context.ref.replace("refs/heads/", "");
     core.info("getting last subcessful workflow runs...");
     const { data: runs } = yield octokit.rest.actions.listWorkflowRuns({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        workflow_id: github.context.workflow,
+        workflow_id: "compare-coverage.yaml",
         status: "success",
         event: "pull_request",
-        branch: github.context.ref,
+        branch: currentBranch,
     });
     core.info(`found ${runs.workflow_runs.length} successes.`);
     const headCommits = runs.workflow_runs.map((run) => {
