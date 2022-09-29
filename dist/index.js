@@ -268,15 +268,15 @@ const getLastSuccessfulSha = () => __awaiter(void 0, void 0, void 0, function* (
     var _a;
     const octokit = github.getOctokit(env_1.GITHUB_TOKEN);
     const currentBranch = github.context.ref.replace("refs/heads/", "");
-    const { data } = yield octokit.rest.actions.listWorkflowRuns({
+    const { data: runs } = yield octokit.rest.actions.listWorkflowRuns({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        workflow_id: github.context.workflow,
+        workflow_id: "compare-coverage.yaml",
         status: "success",
         event: "push",
         branch: currentBranch,
     });
-    const headCommits = data.workflow_runs.map((run) => {
+    const headCommits = runs.workflow_runs.map((run) => {
         return run.head_commit;
     });
     const sortedHeadCommits = headCommits.sort((a, b) => Number(a.timestamp) - Number(b.timestamp));

@@ -5,16 +5,16 @@ export const getLastSuccessfulSha = async () => {
   const octokit = github.getOctokit(GITHUB_TOKEN);
   const currentBranch = github.context.ref.replace("refs/heads/", "");
 
-  const { data } = await octokit.rest.actions.listWorkflowRuns({
+  const { data: runs } = await octokit.rest.actions.listWorkflowRuns({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    workflow_id: github.context.workflow,
+    workflow_id: "compare-coverage.yaml",
     status: "success",
     event: "push",
     branch: currentBranch,
   });
 
-  const headCommits = data.workflow_runs.map((run) => {
+  const headCommits = runs.workflow_runs.map((run) => {
     return run.head_commit;
   });
 
