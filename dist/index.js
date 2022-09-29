@@ -262,20 +262,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLastSuccessfulSha = void 0;
+const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const env_1 = __nccwpck_require__(9763);
 const getLastSuccessfulSha = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const octokit = github.getOctokit(env_1.GITHUB_TOKEN);
-    const currentBranch = github.context.ref.replace("refs/heads/", "");
+    core.info("getting last subcessful workflow runs...");
     const { data: runs } = yield octokit.rest.actions.listWorkflowRuns({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
         workflow_id: "compare-coverage.yaml",
         status: "success",
         event: "push",
-        branch: currentBranch,
+        branch: github.context.ref,
     });
+    core.info(`found ${runs.workflow_runs.length} successes.`);
     const headCommits = runs.workflow_runs.map((run) => {
         return run.head_commit;
     });
@@ -382,6 +384,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 sinceSha = pullRequest.base.sha;
             }
             if (env_1.SCOPE === "changes-since-last-success") {
+                core.info("finding last siccessful job on that PR...");
                 // finding last time that workflow was successful on that branch
                 sinceSha = yield (0, getLastSuccessfulSha_1.getLastSuccessfulSha)();
                 if (!sinceSha) {

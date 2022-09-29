@@ -86,6 +86,8 @@ const run = async () => {
         sinceSha = pullRequest.base.sha;
       }
       if (SCOPE === "changes-since-last-success") {
+        core.info("finding last siccessful job on that PR...");
+
         // finding last time that workflow was successful on that branch
         sinceSha = await getLastSuccessfulSha();
 
