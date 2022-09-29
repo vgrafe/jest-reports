@@ -269,6 +269,7 @@ const getLastSuccessfulSha = () => __awaiter(void 0, void 0, void 0, function* (
     var _a;
     const octokit = github.getOctokit(env_1.GITHUB_TOKEN);
     core.info("getting last subcessful workflow runs...");
+    core.info("workflow: " + github.context.workflow);
     const { data: runs } = yield octokit.rest.actions.listWorkflowRuns({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,

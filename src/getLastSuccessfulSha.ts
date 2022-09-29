@@ -6,6 +6,7 @@ export const getLastSuccessfulSha = async () => {
   const octokit = github.getOctokit(GITHUB_TOKEN);
 
   core.info("getting last subcessful workflow runs...");
+  core.info("workflow: " + github.context.workflow);
 
   const { data: runs } = await octokit.rest.actions.listWorkflowRuns({
     owner: github.context.repo.owner,
