@@ -83,76 +83,6 @@ exports.formatCoverageAnnotations = formatCoverageAnnotations;
 
 /***/ }),
 
-/***/ 3782:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.readLastSuccessShaForPr = exports.writeLastSuccessShaForPr = void 0;
-const cache = __importStar(__nccwpck_require__(7799));
-const fs_1 = __importDefault(__nccwpck_require__(7147));
-const filePath = `__cache__`;
-const writeLastSuccessShaForPr = (pullRequestId, value) => __awaiter(void 0, void 0, void 0, function* () {
-    // create the cache folder if it does not exist
-    if (!fs_1.default.existsSync(filePath))
-        fs_1.default.mkdirSync(filePath, { recursive: true });
-    // lists all files in `filePath` folder to know which one to write to
-    const files = fs_1.default.readdirSync(filePath);
-    const newFileName = `${files.length}.txt`;
-    fs_1.default.writeFileSync(`${filePath}/${newFileName}`, value, { encoding: "utf8" });
-    return cache.saveCache([filePath], `pull-${pullRequestId}-success-sha-logs`);
-});
-exports.writeLastSuccessShaForPr = writeLastSuccessShaForPr;
-const readLastSuccessShaForPr = (pullRequestId) => __awaiter(void 0, void 0, void 0, function* () {
-    const foundCoverageOutputs = yield cache.restoreCache([filePath], `pull-${pullRequestId}-success-sha-logs`);
-    // lists all files in `filePath` folder to know which one to read from
-    const files = fs_1.default.existsSync(filePath) && fs_1.default.readdirSync(filePath);
-    if (foundCoverageOutputs && files && files.length > 0)
-        return fs_1.default.readFileSync(`${filePath}/${files.length - 1}.txt`, "utf8");
-    else
-        return undefined;
-});
-exports.readLastSuccessShaForPr = readLastSuccessShaForPr;
-
-
-/***/ }),
-
 /***/ 9763:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -293,6 +223,70 @@ const computeCoverageForSha = ({ sha, sinceSha }) => __awaiter(void 0, void 0, v
 
 /***/ }),
 
+/***/ 7135:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getLastSuccessfulSha = void 0;
+const github = __importStar(__nccwpck_require__(5438));
+const env_1 = __nccwpck_require__(9763);
+const getLastSuccessfulSha = () => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const octokit = github.getOctokit(env_1.GITHUB_TOKEN);
+    const currentBranch = github.context.ref.replace("refs/heads/", "");
+    const { data } = yield octokit.rest.actions.listWorkflowRuns({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        workflow_id: github.context.workflow,
+        status: "success",
+        event: "push",
+        branch: currentBranch,
+    });
+    const headCommits = data.workflow_runs.map((run) => {
+        return run.head_commit;
+    });
+    const sortedHeadCommits = headCommits.sort((a, b) => Number(a.timestamp) - Number(b.timestamp));
+    return (_a = sortedHeadCommits[0]) === null || _a === void 0 ? void 0 : _a.id;
+});
+exports.getLastSuccessfulSha = getLastSuccessfulSha;
+
+
+/***/ }),
+
 /***/ 3109:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -339,7 +333,7 @@ const reportsToMarkdownSummary_1 = __nccwpck_require__(5785);
 const getCoverageForSha_1 = __nccwpck_require__(2574);
 const annotations_1 = __nccwpck_require__(5598);
 const env_1 = __nccwpck_require__(9763);
-const cache_1 = __nccwpck_require__(3782);
+const getLastSuccessfulSha_1 = __nccwpck_require__(7135);
 /*
 
 to push a new version in one command:
@@ -357,11 +351,11 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     core.info("starting jest-reports...");
     try {
         const octokit = github.getOctokit(env_1.GITHUB_TOKEN);
+        const currentBranch = github.context.ref.replace("refs/heads/", "");
         core.info(`eventName: ${github.context.eventName}`);
-        core.info(`branch: ${github.context.ref.replace("refs/heads/", "")}`);
+        core.info(`branch: ${currentBranch}`);
         const isPullRequest = github.context.eventName === "pull_request";
-        const isPushOnDefaultBranch = github.context.eventName === "push" &&
-            github.context.ref.replace("refs/heads/", "") === env_1.DEFAULT_BRANCH;
+        const isPushOnDefaultBranch = github.context.eventName === "push" && currentBranch === env_1.DEFAULT_BRANCH;
         if (!isPullRequest && !isPushOnDefaultBranch)
             core.setFailed(`event dispatching is not a PR push or a merge on default branch, stopping everything`);
         core.info(`cloning ${github.context.repo.repo}...`);
@@ -388,8 +382,8 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 sinceSha = pullRequest.base.sha;
             }
             if (env_1.SCOPE === "changes-since-last-success") {
-                // still buggy, can't bust cache so first success will always be used
-                sinceSha = yield (0, cache_1.readLastSuccessShaForPr)(pullRequest.id);
+                // finding last time that workflow was successful on that branch
+                sinceSha = yield (0, getLastSuccessfulSha_1.getLastSuccessfulSha)();
                 if (!sinceSha) {
                     core.info(`PR #${pullRequest.id} had no succesful test run yet, running tests since base branch at ${pullRequest.base.sha}`);
                     sinceSha = pullRequest.base.sha;
@@ -413,9 +407,6 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 core.setFailed(`${failedTests.length} tests failed!`);
             }
             else {
-                core.info("run successful! caching sha for future use...");
-                const currentSha = pullRequest.head.sha;
-                yield (0, cache_1.writeLastSuccessShaForPr)(pullRequest.id, currentSha);
                 let baseCoverage;
                 if (env_1.RUN_STEPS.includes("compare-with-base-branch")) {
                     core.info("computing base coverage...");
