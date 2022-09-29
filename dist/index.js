@@ -272,9 +272,9 @@ const getLastSuccessfulSha = () => __awaiter(void 0, void 0, void 0, function* (
     const { data: runs } = yield octokit.rest.actions.listWorkflowRuns({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        workflow_id: "comparecov",
+        workflow_id: "compare-coverage.yaml",
         status: "success",
-        event: "push",
+        event: "pull_request",
         branch: github.context.ref,
     });
     core.info(`found ${runs.workflow_runs.length} successes.`);

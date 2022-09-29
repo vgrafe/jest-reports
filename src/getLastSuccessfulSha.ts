@@ -10,9 +10,9 @@ export const getLastSuccessfulSha = async () => {
   const { data: runs } = await octokit.rest.actions.listWorkflowRuns({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    workflow_id: "comparecov",
+    workflow_id: "compare-coverage.yaml",
     status: "success",
-    event: "push",
+    event: "pull_request",
     branch: github.context.ref,
   });
 
