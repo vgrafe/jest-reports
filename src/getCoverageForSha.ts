@@ -83,9 +83,11 @@ const computeCoverageForSha = async ({ sha, sinceSha }: CovActionParams) => {
   // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
   // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
   await exec(
-    `npx`,
+    `node`,
     [
-      `jest`,
+      `--no-compilation-cache`,
+      `./node_modules/jest/bin/jest.js`,
+      `--config jest.config.js`,
       since,
       "--ci",
       "--coverage",
