@@ -24,7 +24,7 @@ runs:
     # forcing node 16.10.0 since later versions have memory issues with jest
     - uses: actions/setup-node@v3
       with:
-        node-version: "16.10.0"
+        node-version: "18"
 
     # needed for cache to work https://github.com/crazy-max/ghaction-github-runtime
     - name: Expose GitHub Runtime
