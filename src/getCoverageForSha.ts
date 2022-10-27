@@ -94,6 +94,8 @@ const computeCoverageForSha = async ({ sha, sinceSha }: CovActionParams) => {
       "--coverageReporters=json-summary",
       "--json",
       "--outputFile=coverage/tests-output.json",
+      "--no-watchman",
+      "--runInBand",
     ],
     {
       ignoreReturnCode: true,
