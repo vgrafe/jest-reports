@@ -203,8 +203,10 @@ const computeCoverageForSha = ({ sha, sinceSha }) => __awaiter(void 0, void 0, v
     const since = sinceSha ? `--changedSince=${sinceSha}` : "";
     // --coverageReporters=json-summary reports the small summary used to build the markdown tables in the PR comment
     // --json outputs `coverage/tests-output.json` which includes `coverageMap` used for coverage annotations
-    yield (0, exec_1.exec)(`npx`, [
-        `jest`,
+    yield (0, exec_1.exec)(`node`, [
+        `--no-compilation-cache`,
+        `./node_modules/jest/bin/jest.js`,
+        `--config jest.config.js`,
         since,
         "--ci",
         "--coverage",
