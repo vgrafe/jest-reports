@@ -648,9 +648,14 @@ const getPercent = (summaryRow) => {
         summaryRow.statements.covered +
         summaryRow.branches.covered +
         summaryRow.functions.covered;
-    return (covered / total) * 100;
+    const pct = summaryRow.lines.pct +
+        summaryRow.statements.pct +
+        summaryRow.branches.pct +
+        summaryRow.functions.pct;
+    // return (covered / total) * 100;
+    return pct / 4;
 };
-const roundWithDigits = (num, digits = 1) => Number(num).toFixed(digits);
+const roundWithDigits = (num, digits = 2) => Number(num).toFixed(digits);
 const addPlusIfPositive = (num) => num.toString().includes("-") ? num : "+" + num;
 const getIcon = (num) => (num < 70 ? "🔴" : num < 80 ? "🟠" : "🟢");
 const reportsToMarkdownSummary = (summary, baseSummary, testsOutput) => {
