@@ -111,7 +111,7 @@ const getPercent = (summaryRow: any) => {
   return pct / 4;
 };
 
-const roundWithDigits = (num: number, digits = 1) =>
+const roundWithDigits = (num: number, digits = 2) =>
   Number(num).toFixed(digits);
 
 const addPlusIfPositive = (num: number | string) =>
