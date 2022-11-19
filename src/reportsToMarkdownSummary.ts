@@ -100,7 +100,15 @@ const getPercent = (summaryRow: any) => {
     summaryRow.branches.covered +
     summaryRow.functions.covered;
 
-  return (covered / total) * 100;
+  const pct =
+    summaryRow.lines.pct +
+    summaryRow.statements.pct +
+    summaryRow.branches.pct +
+    summaryRow.functions.pct;
+
+  // return (covered / total) * 100;
+
+  return pct / 4;
 };
 
 const roundWithDigits = (num: number, digits = 1) =>
