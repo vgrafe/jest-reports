@@ -2,32 +2,26 @@
 # yarn lockfile v1
 
 
-"@actions/cache@^3.0.4":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@actions/cache/-/cache-3.0.4.tgz#09a8f994ffc28ca467096491b56d2de319cf0417"
-  integrity sha512-9RwVL8/ISJoYWFNH1wR/C26E+M3HDkGPWmbFJMMCKwTkjbNZJreMT4XaR/EB1bheIvN4PREQxEQQVJ18IPnf/Q==
+"@actions/cache@^3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@actions/cache/-/cache-3.1.1.tgz#f65e9ebf0fda271f8c6ff9a33a3f5c0e5cef614b"
+  integrity sha512-gOUdNap8FvlpoQAMYWiNPi9Ltt7jKWv9RuUVKg9cp/vQA9qTXoKiBkTioUAgIejh/qf7jrojYn3lCyIRIsoSeQ==
   dependencies:
-    "@actions/core" "^1.2.6"
+    "@actions/core" "^1.10.0"
     "@actions/exec" "^1.0.1"
     "@actions/glob" "^0.1.0"
     "@actions/http-client" "^2.0.1"
     "@actions/io" "^1.0.1"
+    "@azure/abort-controller" "^1.1.0"
     "@azure/ms-rest-js" "^2.6.0"
     "@azure/storage-blob" "^12.8.0"
     semver "^6.1.0"
     uuid "^3.3.3"
 
-"@actions/core@^1.2.6":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@actions/core/-/core-1.9.0.tgz#20c1baac5d4bd2508ba1fc3e5f3fc4b8a80d4082"
-  integrity sha512-5pbM693Ih59ZdUhgk+fts+bUWTnIdHV3kwOSr+QIoFHMLg7Gzhwm0cifDY/AG68ekEJAkHnQVpcy4f6GjmzBCA==
-  dependencies:
-    "@actions/http-client" "^2.0.1"
-
-"@actions/core@^1.9.1":
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/@actions/core/-/core-1.9.1.tgz#97c0201b1f9856df4f7c3a375cdcdb0c2a2f750b"
-  integrity sha512-5ad+U2YGrmmiw6du20AQW5XuWo7UKN2052FjSV7MX+Wfjf8sCqcsZe62NfgHys4QI4/Y+vQvLKYL8jWtA1ZBTA==
+"@actions/core@^1.10.0", "@actions/core@^1.2.6", "@actions/core@^1.9.1":
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@actions/core/-/core-1.10.0.tgz#44551c3c71163949a2f06e94d9ca2157a0cfac4f"
+  integrity sha512-2aZDDa3zrrZbP5ZYg159sNoLRb61nQ7awl5pSvIq5Qpj81vwDzdMRKzkWJGJuwVvWpvZKx7vspJALyvaaIQyug==
   dependencies:
     "@actions/http-client" "^2.0.1"
     uuid "^8.3.2"
@@ -85,7 +79,7 @@
     "@jridgewell/gen-mapping" "^0.1.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@azure/abort-controller@^1.0.0":
+"@azure/abort-controller@^1.0.0", "@azure/abort-controller@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@azure/abort-controller/-/abort-controller-1.1.0.tgz#788ee78457a55af8a1ad342acb182383d2119249"
   integrity sha512-TrRLIoSQVzfAJX9H1JeFjzAoDGcoK1IYX1UImfceTZpsyYfWr09Ss1aHW1y5TrrR3iq6RZLBwJ3E24uwPhwahw==
