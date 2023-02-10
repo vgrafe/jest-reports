@@ -11,7 +11,7 @@ Posts coverage report in a comment on your PR, or in a commit when pushing to yo
   - 2x faster than other actions on the marketplace thanks to aggressive caching
 - coming soon:
   - sharded tests support
-  - better hanlding of github's 50 limit on annotations
+  - better handling of github's 50 limit on annotations
 
 ## Usage
 
